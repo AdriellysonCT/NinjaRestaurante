@@ -1,0 +1,2 @@
+ALTER TABLE public.pedidos_padronizados
+ADD COLUMN numero_pedido_sequencial SERIAL;

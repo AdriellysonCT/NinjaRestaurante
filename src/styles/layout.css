@@ -1,0 +1,63 @@
+/* Layout padronizado para todas as páginas */
+
+/* Ajustes globais */
+body {
+  overflow: hidden;
+}
+
+/* Ajustes de cabeçalho */
+header {
+  height: 40px !important; /* Altura fixa do cabeçalho */
+  min-height: 40px !important;
+  max-height: 40px !important;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: hsl(var(--color-card));
+  border-bottom: 1px solid hsl(var(--color-border));
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+}
+
+/* Ajustes de conteúdo principal */
+main {
+  padding-top: 0 !important;
+  height: calc(100vh - 48px) !important;
+  overflow-y: auto;
+}
+
+/* Ajustes para páginas */
+.p-4, .p-6, .p-8, .sm\:p-6, .lg\:p-8 {
+  padding-top: 0.5rem !important;
+}
+
+/* Espaçamento entre elementos */
+.space-y-6 > * + * {
+  margin-top: 1rem !important;
+}
+
+/* Ajustes para títulos */
+h1 {
+  font-size: 1.125rem !important;
+  line-height: 1.5 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Ajustes para layout responsivo */
+@media (min-width: 640px) {
+  .page-container {
+    padding: 0.75rem;
+  }
+}
+
+/* Correção para o problema de scroll */
+.flex-1 {
+  flex: 1 1 0% !important;
+}
+
+/* Ajustes para o container principal */
+.flex.min-h-screen.w-full {
+  height: 100vh;
+  overflow: hidden;
+}
