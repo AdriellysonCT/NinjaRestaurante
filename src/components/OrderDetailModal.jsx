@@ -199,8 +199,8 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
             </div>
           </div>
           
-          {/* Entregador Responsável - apenas para status aceito/coletado/concluido */}
-          {['aceito', 'coletado', 'concluido'].includes(order.status) && order.nome_entregador && (
+          {/* Entregador Responsável - apenas para pedidos de entrega */}
+          {order.tipo_pedido === 'delivery' && ['aceito', 'coletado', 'concluido'].includes(order.status) && order.nome_entregador && (
             <div className="border-t border-gray-700 pt-3">
               <h4 className="text-xs text-gray-400 mb-1">Entregador Responsável</h4>
               <div className="flex items-center gap-2">
@@ -211,6 +211,21 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
                 </svg>
                 <span className="text-base font-semibold text-white">
                   {order.nome_entregador}
+                </span>
+              </div>
+            </div>
+          )}
+          
+          {/* Informação específica para pedidos locais */}
+          {(order.tipo_pedido === 'balcao' || order.tipo_pedido === 'mesa') && order.status === 'concluido' && (
+            <div className="border-t border-gray-700 pt-3">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 12l2 2 4-4"/>
+                  <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/>
+                </svg>
+                <span className="text-base font-semibold text-white">
+                  {order.tipo_pedido === 'balcao' ? 'Pedido retirado pelo cliente' : 'Pedido consumido no local'}
                 </span>
               </div>
             </div>

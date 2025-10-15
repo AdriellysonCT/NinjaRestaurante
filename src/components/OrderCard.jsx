@@ -35,7 +35,11 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
     if (onReady) {
       onReady(order.id);
     } else if (onUpdateStatus) {
-      onUpdateStatus(order.id, 'coletado');
+      // Para pedidos locais (retirada/consumo), vai direto para concluído
+      // Para pedidos de entrega, vai para coletado (pronto para entrega)
+      const isLocalOrder = order.tipo_pedido === 'balcao' || order.tipo_pedido === 'mesa';
+      const nextStatus = isLocalOrder ? 'concluido' : 'coletado';
+      onUpdateStatus(order.id, nextStatus);
     }
   };
 
@@ -149,7 +153,7 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
               className="w-full px-3 py-2 text-sm font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center justify-center gap-1"
             >
               <Icons.CheckCircleIcon className="w-4 h-4" />
-              Pronto Para Entrega
+              {(order.tipo_pedido === 'balcao' || order.tipo_pedido === 'mesa') ? 'Finalizar Pedido' : 'Pronto Para Entrega'}
             </button>
         )}
       </div>

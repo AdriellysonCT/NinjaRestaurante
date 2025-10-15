@@ -46,37 +46,58 @@ const Dashboard = () => {
     cancelado: "Cancelados",
   };
 
-  // Determina a etapa visual a partir do status real + started_at
+  // Determina a etapa visual a partir do status real + tipo_pedido
   const getVisualStage = (order) => {
     if (!order) return 'novas_missoes';
     
-    console.log(`Mapeando pedido ${order.numero_pedido}: status="${order.status}", started_at="${order.started_at}"`);
+    console.log(`Mapeando pedido ${order.numero_pedido}: status="${order.status}", tipo_pedido="${order.tipo_pedido}"`);
     
-    // Mapear status do banco para etapas visuais corretamente
+    // Para pedidos de retirada/consumo local, fluxo simplificado
+    if (order.tipo_pedido === 'balcao' || order.tipo_pedido === 'mesa') {
+      switch (order.status) {
+        case 'disponivel':
+          console.log(`  -> Pedido LOCAL ${order.numero_pedido} mapeado para: novas_missoes`);
+          return 'novas_missoes';
+        case 'aceito':
+          console.log(`  -> Pedido LOCAL ${order.numero_pedido} mapeado para: em_preparo`);
+          return 'em_preparo';
+        case 'concluido':
+          console.log(`  -> Pedido LOCAL ${order.numero_pedido} mapeado para: concluido`);
+          return 'concluido';
+        case 'cancelado':
+          console.log(`  -> Pedido LOCAL ${order.numero_pedido} mapeado para: cancelado`);
+          return 'cancelado';
+        default:
+          console.log(`  -> Pedido LOCAL ${order.numero_pedido} mapeado para: novas_missoes (default)`);
+          return 'novas_missoes';
+      }
+    }
+    
+    // Para pedidos de entrega, fluxo completo
     switch (order.status) {
       case 'disponivel':
-        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: novas_missoes`);
+        console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: novas_missoes`);
         return 'novas_missoes';
       case 'em_preparo':
-        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: em_preparo`);
-        return 'em_preparo'; // em_preparo no banco = em_preparo visual
+        console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: em_preparo`);
+        return 'em_preparo';
       case 'aceito':
-        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: em_preparo`);
-        return 'em_preparo'; // aceito no banco = em_preparo visual (ambos são preparo)
+        console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: em_preparo`);
+        return 'em_preparo';
       case 'pronto_para_entrega':
-        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: pronto`);
-        return 'pronto'; // pronto_para_entrega no banco = pronto visual
+        console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: pronto`);
+        return 'pronto';
       case 'coletado':
-        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: coletado`);
-        return 'coletado'; // coletado no banco = coletado visual
+        console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: coletado`);
+        return 'coletado';
       case 'concluido':
-        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: concluido`);
+        console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: concluido`);
         return 'concluido';
       case 'cancelado':
-        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: cancelado`);
+        console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: cancelado`);
         return 'cancelado';
       default:
-        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: novas_missoes (default)`);
+        console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: novas_missoes (default)`);
         return 'novas_missoes';
     }
   };
@@ -549,6 +570,9 @@ const Dashboard = () => {
   // Renderizar botão de status conforme fluxo solicitado
   const renderStatusButton = (order) => {
     const stage = getVisualStage(order);
+    const isLocalOrder = order.tipo_pedido === 'balcao' || order.tipo_pedido === 'mesa';
+    
+    // Configuração baseada no tipo de pedido
     const buttonConfigByStage = {
       novas_missoes: {
         text: "Aceitar Missão",
@@ -556,9 +580,11 @@ const Dashboard = () => {
         className: "bg-green-600 hover:bg-green-700 text-white",
       },
       em_preparo: {
-        text: "Pronto para Entrega",
-        nextStatus: "pronto_para_entrega", // aceito/em_preparo -> pronto_para_entrega
-        className: "bg-yellow-600 hover:bg-yellow-700 text-white",
+        // Para pedidos locais: vai direto para concluído
+        // Para pedidos de entrega: vai para pronto_para_entrega
+        text: isLocalOrder ? "Finalizar Pedido" : "Pronto para Entrega",
+        nextStatus: isLocalOrder ? "concluido" : "pronto_para_entrega",
+        className: isLocalOrder ? "bg-green-600 hover:bg-green-700 text-white" : "bg-yellow-600 hover:bg-yellow-700 text-white",
       },
       pronto: {
         text: "Aguardando Entregador",
