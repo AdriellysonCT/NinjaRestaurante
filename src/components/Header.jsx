@@ -61,7 +61,6 @@ const pageTitles = {
   '/dashboard': 'Dashboard',
   '/pedidos': 'Pedidos',
   '/pdv': 'PDV Balcão',
-  '/caixa': 'Caixa',
   '/mesas': 'Pedidos Mesa',
   '/agendados': 'Agendados',
   '/cardapio': 'Cardápio',

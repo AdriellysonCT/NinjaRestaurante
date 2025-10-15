@@ -734,3 +734,135 @@ export const CloseIcon = (props) => (
     <path d="m6 6 12 12" />
   </svg>
 );
+
+// Ícones ausentes usados no Dashboard Financeiro
+export const BanknoteIcon = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="2" y="6" width="20" height="12" rx="2" />
+    <circle cx="8" cy="12" r="2" />
+    <path d="M16 12h4" />
+  </svg>
+);
+
+export const SmartphoneIcon = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="7" y="2" width="10" height="20" rx="2" />
+    <path d="M12 18h.01" />
+  </svg>
+);
+
+export const RefreshCwIcon = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9" />
+    <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 8 4" />
+    <polyline points="21 3 21 9 15 9" />
+  </svg>
+);
+
+export const ArrowUpIcon = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 19V5" />
+    <path d="M5 12l7-7 7 7" />
+  </svg>
+);
+
+export const ArrowDownIcon = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 5v14" />
+    <path d="M19 12l-7 7-7-7" />
+  </svg>
+);
+
+export const ShoppingBagIcon = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M6 2h12l2 7H4l2-7Z" />
+    <path d="M4 9h16v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V9Z" />
+    <path d="M9 13v-2a3 3 0 0 1 6 0v2" />
+  </svg>
+);
+
+export const TruckIcon = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="1" y="3" width="12" height="13" rx="2" />
+    <path d="M13 8h5l4 4v4h-3" />
+    <circle cx="5.5" cy="18.5" r="2.5" />
+    <circle cx="18.5" cy="18.5" r="2.5" />
+  </svg>
+);

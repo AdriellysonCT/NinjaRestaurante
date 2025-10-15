@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Modal } from './ui/Modal';
 import * as Icons from './icons/index.jsx';
 import { useAuth } from '../context/AuthContext';
@@ -13,8 +13,6 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [printJob, setPrintJob] = useState(null);
-
-  if (!order) return null;
 
   // Função para formatar número de telefone para WhatsApp
   const formatPhoneForWhatsApp = (phone) => {
@@ -42,11 +40,45 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
 
   const handleWhatsApp = () => {
     const phoneRaw = order.telefone_cliente || order.customerPhone || order.phone || '';
-    const formattedPhone = formatPhoneForWhatsApp(phoneRaw);
+    const digits = (phoneRaw || '').replace(/\D/g, '');
+    if (!digits) {
+      alert('Telefone do cliente não informado neste pedido.');
+      return;
+    }
+    // Se o número tiver 10 ou 11 dígitos (formato BR sem DDI), prefixa 55
+    const withCountry = digits.length <= 13 && !digits.startsWith('55') ? `55${digits}` : digits;
     const message = `Olá ${order.nome_cliente || order.customerName || ''}, sobre seu pedido #${order.numero_pedido}`;
-    const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    window.open(`https://wa.me/${withCountry}?text=${encodeURIComponent(message)}`, '_blank');
   };
+
+  // Helpers de exibição
+  const formatDateBr = (raw) => {
+    try {
+      if (!raw) return '';
+      const str = typeof raw === 'string' ? raw.replace(' ', 'T') : raw;
+      const d = new Date(str);
+      if (Number.isNaN(d.getTime())) return '';
+      return d.toLocaleString('pt-BR', { hour12: false });
+    } catch {
+      return '';
+    }
+  };
+
+  const totalPrepMinutes = useMemo(() => {
+    if (!order) return 0;
+    const explicit = Number(order?.prep_time ?? order?.prepTime);
+    if (Number.isFinite(explicit) && explicit > 0) return explicit;
+    const items = Array.isArray(order?.items)
+      ? order.items
+      : (Array.isArray(order?.itens_pedido) ? order.itens_pedido : []);
+    const sum = items.reduce((acc, it) => {
+      const itemPrep = Number(it?.prepTime ?? it?.itens_cardapio?.tempo_preparo ?? 0);
+      return acc + (Number.isFinite(itemPrep) ? itemPrep : 0);
+    }, 0);
+    return sum || 0;
+  }, [order]);
+
+  if (!order) return null;
 
   const handlePrintTicket = async () => {
     setIsPrinting(true);
@@ -114,7 +146,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
           <div className="flex justify-between items-start text-white">
             <div>
               <h3 className="font-bold">{order.nome_cliente || order.customerName}</h3>
-              <p className="text-xs text-gray-300">{new Date(order.criado_em || order.timestamp).toLocaleString('pt-BR', { hour12: false })}</p>
+              <p className="text-xs text-gray-300">{formatDateBr(order.criado_em || order.created_at || order.timestamp)}</p>
             </div>
             <div className="text-right">
               <p className="font-bold text-lg text-[#FF6B00]">R$ {(parseFloat(order.valor_total ?? order.total ?? 0)).toFixed(2)}</p>
@@ -140,14 +172,49 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
               <p className="text-xs text-gray-400">Tempo de Preparo</p>
               <p className="font-medium flex items-center gap-1 text-white">
                 <Icons.ClockIcon className="w-4 h-4" />
-                {Number(order.prep_time ?? order.prepTime) ? `${Number(order.prep_time ?? order.prepTime)} min` : 'NaN min'}
+                {totalPrepMinutes > 0 ? `${totalPrepMinutes} min` : 'NaN min'}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-400">Forma de Pagamento</p>
               <p className="font-medium text-white">{order.metodo_pagamento || order.paymentMethod || 'Não informado'}</p>
             </div>
+            <div>
+              <p className="text-xs text-gray-400">Tipo de Entrega</p>
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  order.tipo_pedido === 'delivery' ? 'bg-blue-600 text-white' :
+                  order.tipo_pedido === 'balcao' ? 'bg-green-600 text-white' :
+                  order.tipo_pedido === 'mesa' ? 'bg-purple-600 text-white' :
+                  order.tipo_pedido === 'online' ? 'bg-indigo-600 text-white' :
+                  'bg-gray-600 text-white'
+                }`}>
+                  {order.tipo_pedido === 'delivery' ? '🚚 Entrega' :
+                   order.tipo_pedido === 'balcao' ? '🏪 Retirada' :
+                   order.tipo_pedido === 'mesa' ? '🍽️ Consumo Local' :
+                   order.tipo_pedido === 'online' ? '💻 Online' :
+                   order.tipo_pedido || 'Não informado'}
+                </span>
+              </div>
+            </div>
           </div>
+          
+          {/* Entregador Responsável - apenas para status aceito/coletado/concluido */}
+          {['aceito', 'coletado', 'concluido'].includes(order.status) && order.nome_entregador && (
+            <div className="border-t border-gray-700 pt-3">
+              <h4 className="text-xs text-gray-400 mb-1">Entregador Responsável</h4>
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
+                </svg>
+                <span className="text-base font-semibold text-white">
+                  {order.nome_entregador}
+                </span>
+              </div>
+            </div>
+          )}
           
           {/* Comentários */}
           <div className="border-t border-gray-700 pt-3 text-white">
@@ -172,14 +239,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
             <div className="flex justify-between items-center mb-2">
               <h4 className="font-semibold">Contato</h4>
               <button 
-                onClick={() => {
-                  const raw = order.telefone_cliente || '';
-                  const n = raw.replace(/\D/g, '');
-                  if (!n) return;
-                  const dest = n.startsWith('55') ? n : `55${n}`;
-                  const text = `Olá ${order.nome_cliente || order.customerName || ''}, sobre seu pedido #${order.numero_pedido}`;
-                  window.open(`https://wa.me/${dest}?text=${encodeURIComponent(text)}`, '_blank');
-                }}
+                onClick={handleWhatsApp}
                 className="flex items-center gap-1 text-xs text-[#28A745] hover:opacity-90"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -234,14 +294,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
               </button>
               
               <button
-                onClick={() => {
-                  const raw = order.telefone_cliente || '';
-                  const n = raw.replace(/\D/g, '');
-                  if (!n) return;
-                  const dest = n.startsWith('55') ? n : `55${n}`;
-                  const text = `Olá ${order.nome_cliente || order.customerName || ''}, sobre seu pedido #${order.numero_pedido}`;
-                  window.open(`https://wa.me/${dest}?text=${encodeURIComponent(text)}`, '_blank');
-                }}
+                onClick={handleWhatsApp}
                 className="flex items-center justify-center gap-1 px-3 py-2 rounded-md bg-[#28A745] hover:bg-[#23913D] text-white text-sm font-medium flex-1"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

@@ -18,14 +18,11 @@ import Settings from './pages/Settings';
 import { Login } from './pages/Login';
 import { Cadastro } from './pages/Cadastro';
 import POS from './pages/POS';
-import { Cash } from './pages/Cash';
-import { CashSimple } from './pages/CashSimple';
 import Tables from './pages/Tables';
 import { Scheduled } from './pages/Scheduled';
 import Finance from './pages/Finance';
 import { Test } from './pages/Test';
-import ComandaDemo from './pages/ComandaDemo';
-import TesteComanda from './pages/TesteComanda';
+// Removidos: Demo Comanda e Teste Comanda
 
 // Importar contextos
 import { ThemeContext } from './context/ThemeContext';
@@ -91,16 +88,14 @@ const MainLayout = () => {
               <Routes>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/pedidos" element={<Orders />} />
-                <Route path="/pedidos/:id" element={<ComandaDemo />} />
+                
                 <Route path="/mesas" element={<Tables />} />
                 <Route path="/pdv" element={<POS />} />
-                <Route path="/caixa" element={<CashSimple />} />
                 <Route path="/agendados" element={<Scheduled />} />
                 <Route path="/cardapio" element={<Menu />} />
                 <Route path="/financeiro" element={<Finance />} />
                 <Route path="/configuracoes" element={<Settings />} />
                 <Route path="/test" element={<Test />} />
-                <Route path="/teste-comanda" element={<TesteComanda />} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </motion.div>

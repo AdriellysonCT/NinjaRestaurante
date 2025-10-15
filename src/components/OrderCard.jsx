@@ -80,7 +80,23 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
         <div>
           <h3 className="font-bold text-card-foreground">Pedido #{order.numero_pedido}</h3>
           <p className="text-sm text-muted-foreground">{order.customerName}</p>
-          <p className="text-sm text-orange-500 font-semibold">{order.paymentType.toUpperCase()}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-orange-500 font-semibold">{order.paymentType.toUpperCase()}</p>
+            {order.tipo_pedido && (
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                order.tipo_pedido === 'delivery' ? 'bg-blue-600 text-white' :
+                order.tipo_pedido === 'balcao' ? 'bg-green-600 text-white' :
+                order.tipo_pedido === 'mesa' ? 'bg-purple-600 text-white' :
+                'bg-gray-600 text-white'
+              }`}>
+                {order.tipo_pedido === 'delivery' ? '🚚 Entrega' :
+                 order.tipo_pedido === 'balcao' ? '🏪 Retirada' :
+                 order.tipo_pedido === 'mesa' ? '🍽️ Mesa' :
+                 order.tipo_pedido === 'online' ? '💻 Online' :
+                 order.tipo_pedido}
+              </span>
+            )}
+          </div>
         </div>
         <div className="text-right">
           <p className="font-bold text-lg text-orange-500">R$ {order.total.toFixed(2)}</p>
@@ -97,7 +113,7 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
         {order.items.map((item, index) => <li key={index}>{item.qty}x {item.name}</li>)}
       </ul>
 
-      {(order.status === 'aceito' || order.status === 'em_preparo') && order.started_at && order.prepTime > 0 && (
+      {order.status === 'aceito' && order.started_at && order.prepTime > 0 && (
         <div>
           <div className="flex justify-between items-center text-sm mb-1">
             <span className="font-semibold">{statusTempo}:</span>
@@ -127,7 +143,7 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
             Aceitar
           </button>
         )}
-        {(order.status === 'aceito' || order.status === 'em_preparo') && (
+        {order.status === 'aceito' && (
             <button
               onClick={handleReadyClick}
               className="w-full px-3 py-2 text-sm font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center justify-center gap-1"

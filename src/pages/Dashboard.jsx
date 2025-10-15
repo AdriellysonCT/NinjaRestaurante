@@ -1,36 +1,84 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useAppContext } from "../context/AppContext";
 import ErrorBoundary from "../components/ErrorBoundary";
 import * as Icons from "../components/icons/index.jsx";
-import { supabase } from "../lib/supabase";
-import ImprimirComanda from "../components/ImprimirComanda";
 import { OrderDetailModal } from "../components/OrderDetailModal";
+import { supabase } from "../lib/supabase";
 
 const Dashboard = () => {
-  const { user, restaurante } = useAuth();
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [paymentType, setPaymentType] = useState("all");
+  const [deliveryType, setDeliveryType] = useState("all");
   const notificationSoundRef = useRef(null);
   const [playedNotifications, setPlayedNotifications] = useState(new Set());
   const [restaurantId, setRestaurantId] = useState(null);
   const [updatingOrders, setUpdatingOrders] = useState(new Set());
+  const [rankingPeriod, setRankingPeriod] = useState("day"); // 'day' | 'week'
   const progressTimerRef = useRef(null);
   const [progressTick, setProgressTick] = useState(0);
-  const [printJob, setPrintJob] = useState(null);
-  const audioRef = useRef(null);
-  const audioLoopRef = useRef(null);
-  const audioVolumeRef = useRef(0.8);
+  const [driverUpdatedAt, setDriverUpdatedAt] = useState({}); // { [orderId]: timestamp }
 
-  // Mapeamento de status para colunas
+  // Obter controle de som do contexto
+  const { soundEnabled, enableSound, disableSound } = useAppContext?.() || {};
+
+  // Habilitar som automaticamente quando componente monta
+  useEffect(() => {
+    if (soundEnabled === false && enableSound) {
+      console.log('Habilitando som automaticamente...');
+      enableSound();
+    }
+  }, [soundEnabled, enableSound]);
+
+  // Mapeamento das "etapas visuais" (não são novos status no banco)
   const orderStatusMapping = {
-    disponivel: "Novas Missões",
+    novas_missoes: "Novas Missões",
     em_preparo: "Em Preparo",
-    pronto_para_entrega: "Prontos Para Entrega",
-    a_caminho: "A Caminho",
+    pronto: "Pronto para Entregar",
+    aceito: "Aceitos",
+    coletado: "Coletados",
+    concluido: "Concluídos",
+    cancelado: "Cancelados",
+  };
+
+  // Determina a etapa visual a partir do status real + started_at
+  const getVisualStage = (order) => {
+    if (!order) return 'novas_missoes';
+    
+    console.log(`Mapeando pedido ${order.numero_pedido}: status="${order.status}", started_at="${order.started_at}"`);
+    
+    // Mapear status do banco para etapas visuais corretamente
+    switch (order.status) {
+      case 'disponivel':
+        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: novas_missoes`);
+        return 'novas_missoes';
+      case 'em_preparo':
+        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: em_preparo`);
+        return 'em_preparo'; // em_preparo no banco = em_preparo visual
+      case 'aceito':
+        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: em_preparo`);
+        return 'em_preparo'; // aceito no banco = em_preparo visual (ambos são preparo)
+      case 'pronto_para_entrega':
+        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: pronto`);
+        return 'pronto'; // pronto_para_entrega no banco = pronto visual
+      case 'coletado':
+        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: coletado`);
+        return 'coletado'; // coletado no banco = coletado visual
+      case 'concluido':
+        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: concluido`);
+        return 'concluido';
+      case 'cancelado':
+        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: cancelado`);
+        return 'cancelado';
+      default:
+        console.log(`  -> Pedido ${order.numero_pedido} mapeado para: novas_missoes (default)`);
+        return 'novas_missoes';
+    }
   };
 
   // Buscar ID do restaurante
@@ -94,16 +142,15 @@ const Dashboard = () => {
               categoria,
               tempo_preparo
             )
+          ),
+          entregas_padronizadas (
+            nome_entregador,
+            id_entregador,
+            status
           )
         `)
         .eq("id_restaurante", restaurantId)
-        .in("status", [
-          "disponivel",
-          "aceito",
-          "em_preparo",
-          "pronto_para_entrega",
-          "a_caminho",
-        ])
+        .or("tipo_pedido.is.null,tipo_pedido.neq.mesa")
         .order("criado_em", { ascending: false });
 
       if (pedidosError) {
@@ -118,36 +165,43 @@ const Dashboard = () => {
 
       // Transformar dados para o formato esperado pelo frontend
       const formattedOrders = pedidosDataFinal.map((pedido) => {
-        console.log(
-          "Processando pedido:",
-          pedido.numero_pedido,
-          "com",
-          pedido.itens_pedido?.length || 0,
-          "itens"
-        );
-
         const totalPrepFromItems =
           pedido.itens_pedido?.reduce((sum, item) => {
             const itemPrep = Number(item?.itens_cardapio?.tempo_preparo) || 0;
             return sum + itemPrep;
           }, 0) || 0;
+        console.log(
+          "Processando pedido:",
+          pedido.numero_pedido,
+          "Status do banco:",
+          pedido.status,
+          "Started_at:",
+          pedido.started_at,
+          "com",
+          pedido.itens_pedido?.length || 0,
+          "itens"
+        );
 
         return {
           id: pedido.id,
           numero_pedido: pedido.numero_pedido,
           customerName: pedido.nome_cliente || "Cliente não informado",
           telefone_cliente: pedido.telefone_cliente || null,
-          status: pedido.status === "aceito" ? "em_preparo" : pedido.status,
-          total: parseFloat(pedido.valor_total || 0),
+          status: pedido.status,
+          originalStatus: pedido.status,
+          total: parseFloat(pedido.valor_total || pedido.total || 0),
           paymentType: pedido.metodo_pagamento || pedido.forma_pagamento || "N/A",
           paymentMethod: pedido.metodo_pagamento || pedido.forma_pagamento || "N/A",
+          tipo_pedido: pedido.tipo_pedido || "delivery", // Incluir tipo de pedido
           created_at: pedido.criado_em,
-          started_at: pedido.started_at || pedido.iniciado_em,
+          started_at: pedido.started_at,
           prepTime:
             (Number.isFinite(Number(pedido.prep_time)) && Number(pedido.prep_time) > 0)
               ? Number(pedido.prep_time)
               : totalPrepFromItems,
           isVip: pedido.cliente_vip || pedido.is_vip || false,
+          nome_entregador: pedido.entregas_padronizadas?.nome_entregador || null,
+          id_entregador: pedido.entregas_padronizadas?.id_entregador || null,
           items:
             pedido.itens_pedido?.map((item) => ({
               id: item.id,
@@ -194,6 +248,17 @@ const Dashboard = () => {
         },
         (payload) => {
           console.log("Mudança detectada nos pedidos:", payload);
+          // Marcar badge quando mudança vier (UPDATE) com status do entregador
+          try {
+            if (payload?.eventType === 'UPDATE') {
+              const oldStatus = payload?.old?.status;
+              const newStatus = payload?.new?.status;
+              const relevant = ['aceito','coletado','concluido'];
+              if (oldStatus !== newStatus && relevant.includes(newStatus)) {
+                setDriverUpdatedAt((prev) => ({ ...prev, [payload.new.id]: Date.now() }));
+              }
+            }
+          } catch (_) {}
           fetchOrders(); // Recarregar pedidos quando houver mudanças
         }
       )
@@ -204,51 +269,35 @@ const Dashboard = () => {
     };
   }, [restaurantId, fetchOrders]);
 
+  // Limpar badges antigos (expiram em 5 minutos)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDriverUpdatedAt((prev) => {
+        const now = Date.now();
+        const out = {};
+        for (const id in prev) {
+          if (now - prev[id] < 5 * 60 * 1000) out[id] = prev[id];
+        }
+        return out;
+      });
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Copiar pedido para entregas_padronizadas
-  const copyToEntregas = async (pedidoId) => {
-    try {
-      // Buscar dados do pedido
-      const { data: pedido, error: pedidoError } = await supabase
-        .from("pedidos_padronizados")
-        .select("*")
-        .eq("id", pedidoId)
-        .single();
-
-      if (pedidoError) throw pedidoError;
-
-      // Inserir na tabela entregas_padronizadas
-      const { error: entregaError } = await supabase
-        .from("entregas_padronizadas")
-        .insert({
-          id_pedido: pedido.id,
-          id_restaurante: pedido.id_restaurante,
-          numero_pedido: pedido.numero_pedido,
-          nome_cliente: pedido.nome_cliente,
-          endereco_entrega: pedido.endereco_entrega,
-          telefone_cliente: pedido.telefone_cliente,
-          valor_total: pedido.valor_total,
-          forma_pagamento: pedido.forma_pagamento,
-          status_entrega: "aguardando_coleta",
-          criado_em: new Date().toISOString(),
-        });
-
-      if (entregaError) throw entregaError;
-
-      console.log("Pedido copiado para entregas com sucesso");
-    } catch (error) {
-      console.error("Erro ao copiar pedido para entregas:", error);
-      throw error;
-    }
-  };
+  // Removido: agora a sincronização é feita por trigger no banco de dados
 
   // Função para tocar som de notificação
   const playNotificationSound = useCallback(() => {
+    console.log('Tentando tocar som de notificação...');
     if (notificationSoundRef.current) {
+      console.log('Elemento de áudio encontrado, tocando som...');
       notificationSoundRef.current.currentTime = 0;
       notificationSoundRef.current.play().catch((e) => {
         console.warn("Erro ao tocar áudio do arquivo:", e);
         // Fallback: criar som usando Web Audio API
         try {
+          console.log('Tentando fallback com Web Audio API...');
           // @ts-ignore - Suporte para navegadores antigos
           const AudioContextClass =
             window.AudioContext || window.webkitAudioContext;
@@ -274,88 +323,36 @@ const Dashboard = () => {
 
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.3);
+            console.log('Fallback executado com sucesso');
           }
         } catch (fallbackError) {
           console.warn("Erro no fallback de áudio:", fallbackError);
         }
       });
-    }
-  }, []);
-
-  // Notificações sonoras - Audio API
-  const tocarSomNotificacao = useCallback(() => {
-    try {
-      if (audioRef.current) {
-        audioRef.current.volume = audioVolumeRef.current;
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => {});
-      }
-    } catch (_) {}
-  }, []);
-
-  const verificarNovosPedidos = useCallback(() => {
-    return orders.some((o) => o.status === "disponivel");
-  }, [orders]);
-
-  const iniciarLoopNotificacao = useCallback(() => {
-    if (audioLoopRef.current) return; // já rodando
-    tocarSomNotificacao();
-    audioLoopRef.current = setInterval(() => {
-      tocarSomNotificacao();
-    }, 5000);
-  }, [tocarSomNotificacao]);
-
-  const pararLoopNotificacao = useCallback(() => {
-    if (audioLoopRef.current) {
-      clearInterval(audioLoopRef.current);
-      audioLoopRef.current = null;
-    }
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-  }, []);
-
-  // Inicializar Audio na montagem
-  useEffect(() => {
-    const audio = new Audio("/sounds/Notificação_Pedidos.wav");
-    audio.preload = "auto";
-    audioRef.current = audio;
-    return () => {
-      pararLoopNotificacao();
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        audioRef.current = null;
-      }
-    };
-  }, [pararLoopNotificacao]);
-
-  // Monitorar lista de pedidos para iniciar/parar o loop
-  useEffect(() => {
-    if (verificarNovosPedidos()) {
-      iniciarLoopNotificacao();
     } else {
-      pararLoopNotificacao();
+      console.warn('Elemento de áudio não encontrado');
     }
-  }, [orders, iniciarLoopNotificacao, pararLoopNotificacao, verificarNovosPedidos]);
+  }, []);
+
+  // DESABILITADO: Lógica de som movida para AppContext para evitar conflitos
+  // O AppContext já gerencia o som de notificação com loop e verificação contínua
 
   // Calcular tempo restante para pedidos em preparo
-  const calcularTempoRestante = (startedAt, totalMinutes) => {
-    if (!startedAt || !Number.isFinite(Number(totalMinutes)) || Number(totalMinutes) <= 0) {
-      return { minutos: 0, atrasado: false, elapsedMin: 0 };
-    }
-    const inicio = new Date(startedAt).getTime();
-    const agora = Date.now();
-    const totalMs = Number(totalMinutes) * 60 * 1000;
-    const decorridoMs = Math.max(0, agora - inicio);
-    const restanteMs = totalMs - decorridoMs;
-    const atrasado = restanteMs <= 0;
-    const minutos = atrasado ? 0 : Math.ceil(restanteMs / 60000);
-    const elapsedMin = Math.floor(decorridoMs / 60000);
-    return { minutos, atrasado, elapsedMin };
-  };
+  const calcularTempoRestante = (startedAt, prepTime) => {
+    if (!startedAt || !prepTime) return { minutos: 0, atrasado: false };
 
+    const agora = new Date();
+    const inicio = new Date(startedAt);
+    const tempoEstimado = prepTime * 60 * 1000; // em milissegundos
+    const passado = agora - inicio;
+    const restante = tempoEstimado - passado;
+
+    if (restante <= 0) {
+      return { minutos: 0, atrasado: true };
+    }
+
+    return { minutos: Math.ceil(restante / 60000), atrasado: false };
+  };
   const calcularPorcentagemProgresso = (startedAt, totalMinutes) => {
     if (!startedAt || !Number.isFinite(Number(totalMinutes)) || Number(totalMinutes) <= 0) {
       return 0;
@@ -368,10 +365,6 @@ const Dashboard = () => {
     return Math.max(0, Math.min(100, percent));
   };
 
-  const getStatusTempo = (minutosRestantes) => {
-    return minutosRestantes <= 0 ? "Atrasado" : "Tempo Restante";
-  };
-
   // Filtrar pedidos
   const filteredOrders = orders.filter((order) => {
     const searchTermMatch =
@@ -380,53 +373,93 @@ const Dashboard = () => {
       order.numero_pedido?.toString().includes(searchTerm);
     const paymentTypeMatch =
       paymentType === "all" || order.paymentMethod === paymentType;
-    return searchTermMatch && paymentTypeMatch;
+    const deliveryTypeMatch =
+      deliveryType === "all" || order.tipo_pedido === deliveryType;
+    return searchTermMatch && paymentTypeMatch && deliveryTypeMatch;
   });
 
-  // Organizar pedidos por status
-  const statusColumns = Object.keys(orderStatusMapping).map((status) => ({
-    title: orderStatusMapping[status],
-    status: status,
-    orders: filteredOrders.filter((order) => order.status === status),
-  }));
+  // Organizar pedidos por etapa visual (ordem clara)
+  const orderedStages = [
+    'novas_missoes',
+    'em_preparo',
+    'pronto',
+    'aceito',
+    'coletado',
+    'concluido',
+    'cancelado'
+  ];
+  const statusColumns = orderedStages
+    .filter((s) => orderStatusMapping[s])
+    .map((stage) => ({
+      title: orderStatusMapping[stage],
+      status: stage,
+      orders: filteredOrders.filter((order) => getVisualStage(order) === stage),
+    }));
 
   // Calcular ranking de produtos mais vendidos hoje
-  const calculateProductRanking = () => {
-    const today = new Date().toDateString();
-    const todayOrders = orders.filter((order) => {
-      const orderDate = new Date(
-        order.created_at || order.timestamp
-      ).toDateString();
-      return (
-        orderDate === today &&
-        (order.status === "entregue" ||
-          order.status === "a_caminho" ||
-          order.status === "pronto_para_entrega")
-      );
-    });
+  const calculateProductRanking = (period = "day") => {
+    // Intervalo do período em horário local
+    const now = new Date();
+    let start;
+    if (period === "week") {
+      // início da semana (segunda-feira)
+      const d = new Date(now);
+      const day = d.getDay(); // 0 (Dom) .. 6 (Sáb)
+      const diffToMonday = ((day + 6) % 7); // 0 se segunda
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - diffToMonday);
+      start = d;
+    } else {
+      // hoje
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    }
+    const end = now;
+
+    const insideToday = (d) => {
+      const dt = d ? new Date(d) : null;
+      if (!dt || Number.isNaN(dt.getTime())) return false;
+      return dt >= start && dt <= end;
+    };
+
+    // Considera pedidos criados hoje e aceitos (status original 'aceito').
+    // Observação: na formatação mapeamos 'aceito' -> 'em_preparo' para as colunas,
+    // então usamos originalStatus para o ranking.
+    const todayOrders = orders.filter(
+      (o) => insideToday(o.created_at || o.timestamp) && (o.originalStatus === 'aceito')
+    );
 
     const productCount = {};
-
-    todayOrders.forEach((order) => {
-      if (order.items) {
-        order.items.forEach((item) => {
-          const productName = item.name;
-          productCount[productName] =
-            (productCount[productName] || 0) + (item.qty || 1);
-        });
-      }
+    todayOrders.forEach((o) => {
+      (o.items || []).forEach((it) => {
+        const name = it.name || 'Item';
+        const qty = Number(it.qty || 1);
+        productCount[name] = (productCount[name] || 0) + qty;
+      });
     });
 
-    // Converter para array e ordenar por quantidade
-    const ranking = Object.entries(productCount)
+    return Object.entries(productCount)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 3); // Top 3
-
-    return ranking;
+      .slice(0, 3);
   };
 
-  const productRanking = calculateProductRanking();
+  const productRanking = useMemo(() => calculateProductRanking(rankingPeriod), [orders, rankingPeriod]);
+
+  const rankingSinceLabel = useMemo(() => {
+    const now = new Date();
+    if (rankingPeriod === "week") {
+      const d = new Date(now);
+      const day = d.getDay();
+      const diffToMonday = ((day + 6) % 7);
+      d.setHours(0,0,0,0);
+      d.setDate(d.getDate() - diffToMonday);
+      return `desde ${d.toLocaleDateString('pt-BR')} 00:00`;
+    }
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
+    return `desde ${start.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+  }, [rankingPeriod]);
+
+  // removido duplicado - usamos o productRanking do useMemo acima
 
   // Atualizar status do pedido
   const handleStatusChange = async (orderId, newStatus) => {
@@ -436,9 +469,9 @@ const Dashboard = () => {
     try {
       const updates = { status: newStatus };
 
-      // Adicionar timestamp quando aceitar o pedido
-      if (newStatus === "em_preparo") {
-        updates.iniciado_em = new Date().toISOString();
+      // Adicionar timestamp quando iniciar preparo
+      if (newStatus === "aceito") {
+        updates.started_at = new Date().toISOString();
       }
 
       // Atualizar no banco
@@ -449,10 +482,7 @@ const Dashboard = () => {
 
       if (error) throw error;
 
-      // Se mudou para "pronto_para_entrega", copiar para entregas
-      if (newStatus === "pronto_para_entrega") {
-        await copyToEntregas(orderId);
-      }
+      // Sincronização com entregas é feita pela trigger no banco
 
       // Atualizar estado local imediatamente
       setOrders((prevOrders) =>
@@ -462,7 +492,7 @@ const Dashboard = () => {
                 ...order,
                 status: newStatus,
                 started_at:
-                  newStatus === "em_preparo"
+                  newStatus === "aceito"
                     ? new Date().toISOString()
                     : order.started_at,
               }
@@ -470,39 +500,18 @@ const Dashboard = () => {
         )
       );
 
-      // Impressão automática ao aceitar missão
-      if (newStatus === "em_preparo") {
-        try {
-          const pedidoBase = orders.find((o) => o.id === orderId);
-          if (pedidoBase) {
-            const pedidoParaImpressao = {
-              id: pedidoBase.id,
-              numero_pedido: pedidoBase.numero_pedido,
-              nome_cliente: pedidoBase.customerName,
-              telefone_cliente: pedidoBase.telefone_cliente,
-              tipo_pedido: pedidoBase.tipo_pedido || "Balcão",
-              criado_em: pedidoBase.created_at,
-              itens_pedido: (pedidoBase.items || []).map((it) => ({
-                quantidade: it.qty,
-                itens_cardapio: { nome: it.name },
-                preco_unitario: it.price,
-              })),
-              subtotal: pedidoBase.total,
-              valor_total: pedidoBase.total,
-              metodo_pagamento: pedidoBase.paymentMethod,
-              prep_time: pedidoBase.prepTime,
-            };
-            setPrintJob({ pedido: pedidoParaImpressao, restaurante });
-          }
-        } catch (e) {
-          console.warn("Falha ao preparar comanda para impressão:", e);
+      // Parar som de notificação se aceitar um pedido e limpar da lista de tocados
+      if (newStatus === "aceito") {
+        if (notificationSoundRef.current) {
+          notificationSoundRef.current.pause();
+          notificationSoundRef.current.currentTime = 0;
         }
-      }
-
-      // Parar som de notificação se aceitar um pedido
-      if (newStatus === "em_preparo" && notificationSoundRef.current) {
-        notificationSoundRef.current.pause();
-        notificationSoundRef.current.currentTime = 0;
+        // Remover da lista de notificações tocadas
+        setPlayedNotifications((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(orderId);
+          return newSet;
+        });
       }
 
       console.log(`Status do pedido ${orderId} atualizado para ${newStatus}`);
@@ -523,6 +532,13 @@ const Dashboard = () => {
   // Abrir modal de detalhes
   const handleCardClick = (order) => {
     setSelectedOrder(order);
+    // Ao abrir, remover badge de "via entregador"
+    setDriverUpdatedAt((prev) => {
+      if (!prev[order.id]) return prev;
+      const copy = { ...prev };
+      delete copy[order.id];
+      return copy;
+    });
   };
 
   // Fechar modal
@@ -530,32 +546,43 @@ const Dashboard = () => {
     setSelectedOrder(null);
   };
 
-  // Renderizar botão de status
+  // Renderizar botão de status conforme fluxo solicitado
   const renderStatusButton = (order) => {
-    const buttonConfig = {
-      disponivel: {
+    const stage = getVisualStage(order);
+    const buttonConfigByStage = {
+      novas_missoes: {
         text: "Aceitar Missão",
-        nextStatus: "em_preparo",
+        nextStatus: "aceito", // disponivel -> aceito
         className: "bg-green-600 hover:bg-green-700 text-white",
       },
       em_preparo: {
         text: "Pronto para Entrega",
-        nextStatus: "pronto_para_entrega",
-        className: "bg-blue-600 hover:bg-blue-700 text-white",
-      },
-      pronto_para_entrega: {
-        text: "Coletado",
-        nextStatus: "a_caminho",
+        nextStatus: "pronto_para_entrega", // aceito/em_preparo -> pronto_para_entrega
         className: "bg-yellow-600 hover:bg-yellow-700 text-white",
       },
-      a_caminho: {
-        text: "Entregue",
-        nextStatus: "entregue",
-        className: "bg-gray-600 hover:bg-gray-700 text-white",
+      pronto: {
+        text: "Aguardando Entregador",
+        nextStatus: null,
+        className: "bg-green-700 text-white cursor-not-allowed",
+      },
+      coletado: {
+        text: "Aguardando Conclusão",
+        nextStatus: null,
+        className: "bg-orange-700 text-white cursor-not-allowed",
+      },
+      concluido: {
+        text: "Concluído",
+        nextStatus: null,
+        className: "bg-gray-700 text-white cursor-not-allowed",
+      },
+      cancelado: {
+        text: "Cancelado",
+        nextStatus: null,
+        className: "bg-red-700 text-white cursor-not-allowed",
       },
     };
 
-    const config = buttonConfig[order.status];
+    const config = buttonConfigByStage[stage];
     if (!config) return null;
 
     const isUpdating = updatingOrders.has(order.id);
@@ -564,11 +591,11 @@ const Dashboard = () => {
       <button
         onClick={(e) => {
           e.stopPropagation();
-          if (!isUpdating) {
+          if (!isUpdating && config.nextStatus) {
             handleStatusChange(order.id, config.nextStatus);
           }
         }}
-        disabled={isUpdating}
+        disabled={isUpdating || !config.nextStatus}
         className={`w-full px-3 py-2 text-sm font-semibold rounded-md transition-colors flex items-center justify-center gap-2 ${
           isUpdating ? "bg-gray-500 cursor-not-allowed" : config.className
         }`}
@@ -583,7 +610,7 @@ const Dashboard = () => {
 
   // Renderizar barra de progresso
   const renderProgressBar = (order) => {
-    if (order.status !== "em_preparo" || !order.started_at || !order.prepTime)
+    if (order.status !== "aceito" || !order.started_at || !order.prepTime)
       return null;
 
     const { minutos, atrasado } = calcularTempoRestante(order.started_at, order.prepTime);
@@ -592,7 +619,9 @@ const Dashboard = () => {
     return (
       <div className="mt-3">
         <div className="flex justify-between items-center text-sm mb-1">
-          <span className="font-semibold">{getStatusTempo(minutos)}:</span>
+          <span className="font-semibold">
+            {atrasado ? "Atrasado" : "Tempo Restante"}:
+          </span>
           <span
             className={`flex items-center gap-1 ${
               atrasado ? "text-red-500 font-bold" : "text-orange-500"
@@ -605,7 +634,7 @@ const Dashboard = () => {
         <div className="w-full bg-gray-700 rounded">
           <div
             className={`h-2 rounded transition-all duration-1000 ease-linear ${
-              atrasado ? "bg-red-500" : "bg-orange-500"
+              atrasado ? "bg-red-500" : "bg-yellow-500"
             }`}
             style={{ width: `${progressPercentage}%` }}
           ></div>
@@ -613,30 +642,6 @@ const Dashboard = () => {
       </div>
     );
   };
-
-  // Atualização do progresso em tempo real a cada segundo
-  useEffect(() => {
-    const hasActive = orders.some(
-      (o) => o.status === "em_preparo" && o.started_at && o.prepTime > 0
-    );
-    if (hasActive) {
-      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-      progressTimerRef.current = setInterval(() => {
-        setProgressTick((t) => t + 1);
-      }, 1000);
-    } else {
-      if (progressTimerRef.current) {
-        clearInterval(progressTimerRef.current);
-        progressTimerRef.current = null;
-      }
-    }
-    return () => {
-      if (progressTimerRef.current) {
-        clearInterval(progressTimerRef.current);
-        progressTimerRef.current = null;
-      }
-    };
-  }, [orders]);
 
   if (isLoading) {
     return (
@@ -718,12 +723,20 @@ const Dashboard = () => {
           </div>
 
           {/* Ranking de Produtos */}
-          <div className="w-80 bg-gray-800 rounded-lg p-4 border border-gray-600">
+            <div className="w-80 bg-gray-800 rounded-lg p-4 border border-gray-600">
             <div className="flex items-center gap-2 mb-3">
               <Icons.BarChart3Icon className="w-5 h-5 text-orange-500" />
               <h3 className="text-white font-bold">
-                Ranking de Produtos (Hoje)
+                Ranking de Produtos ({rankingPeriod === 'week' ? 'Semana' : 'Hoje'})
               </h3>
+            </div>
+
+            <div className="flex items-center justify-between mb-2 text-xs text-gray-400">
+              <span>{rankingSinceLabel}</span>
+              <select value={rankingPeriod} onChange={(e)=> setRankingPeriod(e.target.value)} className="bg-gray-700 text-white rounded px-2 py-1 border border-gray-600">
+                <option value="day">Hoje</option>
+                <option value="week">Semana</option>
+              </select>
             </div>
 
             <div className="space-y-2">
@@ -742,6 +755,7 @@ const Dashboard = () => {
                         <span className="text-white text-sm font-medium">
                           {index + 1}. {product.name}
                         </span>
+                        <span className="text-gray-300 text-xs">{product.count}</span>
                       </div>
                       <div className="w-full bg-gray-700 rounded-full h-1.5">
                         <div
@@ -782,9 +796,30 @@ const Dashboard = () => {
             <option value="cash">Dinheiro</option>
           </select>
 
-          <button className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded-lg flex items-center gap-2 border border-gray-600 text-sm">
-            <Icons.BellIcon className="w-4 h-4" />
-            Sons
+          <select
+            value={deliveryType}
+            onChange={(e) => setDeliveryType(e.target.value)}
+            className="bg-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 border border-gray-600"
+          >
+            <option value="all">Tipo de Entrega</option>
+            <option value="delivery">🚚 Entrega</option>
+            <option value="balcao">🏪 Retirada</option>
+            <option value="mesa">🍽️ Consumo Local</option>
+            <option value="online">💻 Online</option>
+          </select>
+
+          <button
+            onClick={() => {
+              if (!soundEnabled) {
+                enableSound && enableSound();
+              } else {
+                disableSound && disableSound();
+              }
+            }}
+            className={`bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded-lg flex items-center gap-2 border border-gray-600 text-sm ${soundEnabled ? 'ring-2 ring-green-500' : ''}`}
+          >
+            <Icons.BellIcon className={`w-4 h-4 ${soundEnabled ? 'text-green-400' : ''}`} />
+            {soundEnabled ? 'Sons ON' : 'Sons OFF'}
           </button>
 
           <button className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded-lg flex items-center gap-2 border border-gray-600 text-sm">
@@ -836,9 +871,21 @@ const Dashboard = () => {
                     {column.orders.map((order) => (
                       <div
                         key={order.id}
-                        className="bg-gray-800 rounded-lg p-3 space-y-2 cursor-pointer hover:bg-gray-700 transition-colors border border-gray-600"
+                        className="bg-gray-800 rounded-lg p-3 space-y-2 cursor-pointer hover:bg-gray-700 transition-colors border border-gray-600 relative"
                         onClick={() => handleCardClick(order)}
                       >
+                        {/* Badge via entregador */}
+                        {driverUpdatedAt[order.id] && ['aceito','coletado','concluido'].includes(order.status) && (
+                          <span
+                            title={`Atualizado às ${new Date(driverUpdatedAt[order.id]).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} pelo entregador`}
+                            className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 
+                              ${order.status === 'aceito' ? 'bg-blue-600' : order.status === 'coletado' ? 'bg-orange-600' : 'bg-gray-600'} text-white`}
+                            aria-label="Atualizado pelo entregador"
+                          >
+                            <Icons.TruckIcon className="w-3 h-3" />
+                            <span className="hidden sm:inline">via entregador</span>
+                          </span>
+                        )}
                         <div className="flex justify-between items-start">
                           <div className="min-w-0 flex-1">
                             <h3 className="font-bold text-white text-sm truncate">
@@ -847,9 +894,26 @@ const Dashboard = () => {
                             <p className="text-xs text-gray-300 truncate">
                               {order.customerName}
                             </p>
-                            <p className="text-xs text-orange-400 font-semibold">
-                              {order.paymentType?.toUpperCase() || "N/A"}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-xs text-orange-400 font-semibold">
+                                {order.paymentType?.toUpperCase() || "N/A"}
+                              </p>
+                              {order.tipo_pedido && (
+                                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                                  order.tipo_pedido === 'delivery' ? 'bg-blue-600 text-white' :
+                                  order.tipo_pedido === 'balcao' ? 'bg-green-600 text-white' :
+                                  order.tipo_pedido === 'mesa' ? 'bg-purple-600 text-white' :
+                                  order.tipo_pedido === 'online' ? 'bg-indigo-600 text-white' :
+                                  'bg-gray-600 text-white'
+                                }`}>
+                                  {order.tipo_pedido === 'delivery' ? '🚚' :
+                                   order.tipo_pedido === 'balcao' ? '🏪' :
+                                   order.tipo_pedido === 'mesa' ? '🍽️' :
+                                   order.tipo_pedido === 'online' ? '💻' :
+                                   '📦'}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <div className="text-right ml-2">
                             <p className="font-bold text-orange-400 text-sm">
@@ -884,7 +948,7 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Modal de detalhes - novo design */}
+        {/* Modal de detalhes - novo componente */}
         <OrderDetailModal
           isOpen={!!selectedOrder}
           onClose={handleCloseModal}
@@ -892,19 +956,10 @@ const Dashboard = () => {
         />
 
         {/* Áudio de notificação */}
-        <audio ref={notificationSoundRef} preload="none">
+        <audio ref={notificationSoundRef} preload="auto">
           <source src="/sounds/Notificação_Pedidos.wav" type="audio/wav" />
-          <source src="/sounds/notification.mp3" type="audio/mpeg" />
         </audio>
       </div>
-    {printJob && (
-      <ImprimirComanda
-        pedido={printJob.pedido}
-        restaurante={printJob.restaurante}
-        auto={true}
-        onAfterPrint={() => setPrintJob(null)}
-      />
-    )}
     </ErrorBoundary>
   );
 };

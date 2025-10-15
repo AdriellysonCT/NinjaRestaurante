@@ -113,14 +113,12 @@ export const Sidebar = () => {
     { name: 'Dashboard', icon: LayoutDashboardIcon, path: '/dashboard' },
     { name: 'Pedidos', icon: ClipboardListIcon, path: '/pedidos' },
     { name: 'PDV Balcão', icon: CashRegisterIcon, path: '/pdv' },
-    { name: 'Caixa', icon: DollarSignIcon, path: '/caixa' },
     { name: 'Pedidos Mesa', icon: TableIcon, path: '/mesas' },
     { name: 'Agendados', icon: CalendarIcon, path: '/agendados' },
     { name: 'Cardápio', icon: BookOpenIcon, path: '/cardapio' },
     { name: 'Financeiro', icon: TrendingUpIcon, path: '/financeiro' },
     { name: 'Configurações', icon: SettingsIcon, path: '/configuracoes' },
-    { name: 'Demo Comanda', icon: ReceiptIcon, path: '/comanda-demo' },
-    { name: 'Teste Comanda', icon: ReceiptIcon, path: '/teste-comanda' },
+    
   ];
   
   return (

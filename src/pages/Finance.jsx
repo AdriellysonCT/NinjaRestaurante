@@ -1,7 +1,530 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
+import DashboardFinanceiro from '../components/DashboardFinanceiro';
+import * as financeService from '../services/financeService';
+import { TransactionModal, AccountModal, SupplierModal, GoalModal } from '../components/FinanceModals';
+
+// Listas simples (somente leitura) para sincronizar com dados reais
+const TransactionsList = ({ onEdit, onChanged }) => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({ tipo: 'all', status: 'all', startDate: '', endDate: '' });
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  const load = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { tipo, status, startDate, endDate } = filters;
+      const data = await financeService.fetchTransactions({
+        ...(tipo !== 'all' ? { tipo } : {}),
+        ...(status !== 'all' ? { status } : {}),
+        ...(startDate ? { startDate } : {}),
+        ...(endDate ? { endDate } : {})
+      });
+      setItems(Array.isArray(data) ? data : []);
+      setPage(1);
+    } catch (e) {
+      setError(e?.message || 'Erro ao carregar');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Deseja excluir esta transação?')) return;
+    try {
+      await financeService.deleteTransaction(id);
+      await load();
+      onChanged && onChanged();
+    } catch (e) {
+      alert(e?.message || 'Erro ao excluir');
+    }
+  };
+
+  if (loading) return <p className="text-muted-foreground">Carregando...</p>;
+  if (error) return <p className="text-destructive">{error}</p>;
+
+  const start = (page - 1) * pageSize;
+  const paged = items.slice(start, start + pageSize);
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2 items-end">
+        <div>
+          <label className="block text-xs mb-1">Tipo</label>
+          <select
+            value={filters.tipo}
+            onChange={(e)=> setFilters((f)=> ({...f, tipo: e.target.value}))}
+            className="px-2 py-1 border border-border rounded-md text-sm"
+          >
+            <option value="all">Todos</option>
+            <option value="entrada">Entrada</option>
+            <option value="saida">Saída</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs mb-1">Status</label>
+          <select
+            value={filters.status}
+            onChange={(e)=> setFilters((f)=> ({...f, status: e.target.value}))}
+            className="px-2 py-1 border border-border rounded-md text-sm"
+          >
+            <option value="all">Todos</option>
+            <option value="confirmada">Confirmada</option>
+            <option value="pendente">Pendente</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs mb-1">De</label>
+          <input type="date" value={filters.startDate} onChange={(e)=> setFilters((f)=> ({...f, startDate: e.target.value}))} className="px-2 py-1 border border-border rounded-md text-sm" />
+        </div>
+        <div>
+          <label className="block text-xs mb-1">Até</label>
+          <input type="date" value={filters.endDate} onChange={(e)=> setFilters((f)=> ({...f, endDate: e.target.value}))} className="px-2 py-1 border border-border rounded-md text-sm" />
+        </div>
+        <button onClick={load} className="px-3 py-2 border border-border rounded-md">Filtrar</button>
+      </div>
+
+      {paged.map((t) => (
+        <div key={t.id} className="border border-border p-3 rounded-md flex justify-between items-center">
+          <div className="min-w-0">
+            <p className="font-medium text-foreground truncate">{t.descricao || 'Sem descrição'}</p>
+            <p className="text-xs text-muted-foreground">{t.data_transacao} • {t.tipo}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className={t.tipo === 'entrada' ? 'text-success font-semibold' : 'text-destructive font-semibold'}>
+              R$ {Number(t.valor || 0).toFixed(2)}
+            </div>
+            <button onClick={()=> onEdit && onEdit(t)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button onClick={()=> handleDelete(t.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
+          </div>
+        </div>
+      ))}
+
+      <div className="flex items-center justify-between pt-2 text-sm text-muted-foreground">
+        <span>Página {page} de {totalPages}</span>
+        <div className="flex gap-2">
+          <button disabled={page<=1} onClick={()=> setPage((p)=> Math.max(1, p-1))} className="px-2 py-1 border border-border rounded disabled:opacity-50">Anterior</button>
+          <button disabled={page>=totalPages} onClick={()=> setPage((p)=> Math.min(totalPages, p+1))} className="px-2 py-1 border border-border rounded disabled:opacity-50">Próxima</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AccountsList = ({ onEdit, onChanged }) => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({ tipo: 'all', status: 'all' });
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await financeService.fetchAccounts(
+          filters.tipo !== 'all' ? filters.tipo : null,
+          filters.status !== 'all' ? filters.status : null
+        );
+        setItems(Array.isArray(data) ? data : []);
+        setPage(1);
+      } catch (e) {
+        setError(e?.message || 'Erro ao carregar');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [filters]);
+
+  if (loading) return <p className="text-muted-foreground">Carregando...</p>;
+  if (error) return <p className="text-destructive">{error}</p>;
+
+  const start = (page - 1) * pageSize;
+  const paged = items.slice(start, start + pageSize);
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Deseja excluir esta conta?')) return;
+    try {
+      await financeService.deleteAccount(id);
+      setFilters({...filters});
+      onChanged && onChanged();
+    } catch (e) {
+      alert(e?.message || 'Erro ao excluir');
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2 items-end">
+        <div>
+          <label className="block text-xs mb-1">Tipo</label>
+          <select value={filters.tipo} onChange={(e)=> setFilters((f)=> ({...f, tipo: e.target.value}))} className="px-2 py-1 border border-border rounded-md text-sm">
+            <option value="all">Todos</option>
+            <option value="pagar">A Pagar</option>
+            <option value="receber">A Receber</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs mb-1">Status</label>
+          <select value={filters.status} onChange={(e)=> setFilters((f)=> ({...f, status: e.target.value}))} className="px-2 py-1 border border-border rounded-md text-sm">
+            <option value="all">Todos</option>
+            <option value="pendente">Pendente</option>
+            <option value="paga">Paga</option>
+            <option value="vencida">Vencida</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+      </div>
+
+      {paged.map((c) => (
+        <div key={c.id} className="border border-border p-3 rounded-md flex justify-between items-center">
+          <div>
+            <p className="font-medium text-foreground">{c.descricao || 'Sem descrição'}</p>
+            <p className="text-xs text-muted-foreground">Venc: {c.data_vencimento || '-'} • {c.tipo}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className={c.tipo === 'receber' ? 'text-success font-semibold' : 'text-destructive font-semibold'}>
+                R$ {Number(c.valor || 0).toFixed(2)}
+              </p>
+              <span className="text-xs text-muted-foreground">{c.status}</span>
+            </div>
+            <button onClick={()=> onEdit && onEdit(c)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button onClick={()=> handleDelete(c.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
+          </div>
+        </div>
+      ))}
+
+      <div className="flex items-center justify-between pt-2 text-sm text-muted-foreground">
+        <span>Página {page} de {totalPages}</span>
+        <div className="flex gap-2">
+          <button disabled={page<=1} onClick={()=> setPage((p)=> Math.max(1, p-1))} className="px-2 py-1 border border-border rounded disabled:opacity-50">Anterior</button>
+          <button disabled={page>=totalPages} onClick={()=> setPage((p)=> Math.min(totalPages, p+1))} className="px-2 py-1 border border-border rounded disabled:opacity-50">Próxima</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SuppliersList = ({ onEdit, onChanged }) => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await financeService.fetchSuppliers();
+        setItems(Array.isArray(data) ? data : []);
+      } catch (e) {
+        setError(e?.message || 'Erro ao carregar');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  if (loading) return <p className="text-muted-foreground">Carregando...</p>;
+  if (error) return <p className="text-destructive">{error}</p>;
+
+  const filtered = items.filter(s => !search || (s.nome || '').toLowerCase().includes(search.toLowerCase()));
+  const start = (page - 1) * pageSize;
+  const paged = filtered.slice(start, start + pageSize);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Deseja excluir este fornecedor?')) return;
+    try {
+      await financeService.deleteSupplier(id);
+      const data = await financeService.fetchSuppliers();
+      setItems(Array.isArray(data) ? data : []);
+      onChanged && onChanged();
+    } catch (e) {
+      alert(e?.message || 'Erro ao excluir');
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-end gap-2">
+        <div>
+          <label className="block text-xs mb-1">Buscar</label>
+          <input value={search} onChange={(e)=> setSearch(e.target.value)} className="px-2 py-1 border border-border rounded-md text-sm" placeholder="Nome do fornecedor" />
+        </div>
+      </div>
+
+      {paged.map((s) => (
+        <div key={s.id} className="border border-border p-3 rounded-md flex justify-between items-center">
+          <div>
+            <p className="font-medium text-foreground">{s.nome || 'Sem nome'}</p>
+            <p className="text-xs text-muted-foreground">{s.categoria || s.segmento || 'Fornecedor'}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={s.ativo ? 'text-success' : 'text-muted-foreground'}>{s.ativo ? 'Ativo' : 'Inativo'}</span>
+            <button onClick={()=> onEdit && onEdit(s)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button onClick={()=> handleDelete(s.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
+          </div>
+        </div>
+      ))}
+
+      <div className="flex items-center justify-between pt-2 text-sm text-muted-foreground">
+        <span>Página {page} de {totalPages}</span>
+        <div className="flex gap-2">
+          <button disabled={page<=1} onClick={()=> setPage((p)=> Math.max(1, p-1))} className="px-2 py-1 border border-border rounded disabled:opacity-50">Anterior</button>
+          <button disabled={page>=totalPages} onClick={()=> setPage((p)=> Math.min(totalPages, p+1))} className="px-2 py-1 border border-border rounded disabled:opacity-50">Próxima</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const GoalsList = ({ onEdit, onChanged }) => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await financeService.fetchFinancialGoals();
+        setItems(Array.isArray(data) ? data : []);
+      } catch (e) {
+        setError(e?.message || 'Erro ao carregar');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  if (loading) return <p className="text-muted-foreground">Carregando...</p>;
+  if (error) return <p className="text-destructive">{error}</p>;
+
+  const filtered = items.filter(g => !year || Number(g.ano_referencia) === Number(year));
+  const start = (page - 1) * pageSize;
+  const paged = filtered.slice(start, start + pageSize);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Deseja excluir esta meta?')) return;
+    try {
+      await financeService.deleteFinancialGoal(id);
+      const data = await financeService.fetchFinancialGoals();
+      setItems(Array.isArray(data) ? data : []);
+      onChanged && onChanged();
+    } catch (e) {
+      alert(e?.message || 'Erro ao excluir');
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-xs mb-1">Ano</label>
+        <input type="number" value={year} onChange={(e)=> setYear(e.target.value)} className="px-2 py-1 border border-border rounded-md text-sm" />
+      </div>
+
+      {paged.map((g) => (
+        <div key={g.id} className="border border-border p-3 rounded-md flex justify-between items-center">
+          <div>
+            <p className="font-medium text-foreground">Meta {g.mes_referencia?.toString().padStart(2, '0')}/{g.ano_referencia}</p>
+            <p className="text-xs text-muted-foreground">{g.nome || g.descricao || 'Sem descrição'}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-primary font-semibold">R$ {Number(g.valor_meta || 0).toFixed(2)}</p>
+              <span className="text-xs text-muted-foreground">{g.ativa ? 'Ativa' : 'Inativa'}</span>
+            </div>
+            <button onClick={()=> onEdit && onEdit(g)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button onClick={()=> handleDelete(g.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
+          </div>
+        </div>
+      ))}
+
+      <div className="flex items-center justify-between pt-2 text-sm text-muted-foreground">
+        <span>Página {page} de {totalPages}</span>
+        <div className="flex gap-2">
+          <button disabled={page<=1} onClick={()=> setPage((p)=> Math.max(1, p-1))} className="px-2 py-1 border border-border rounded disabled:opacity-50">Anterior</button>
+          <button disabled={page>=totalPages} onClick={()=> setPage((p)=> Math.min(totalPages, p+1))} className="px-2 py-1 border border-border rounded disabled:opacity-50">Próxima</button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Finance = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [restaurantId, setRestaurantId] = useState(null);
+  const [isLoadingRestaurant, setIsLoadingRestaurant] = useState(true);
+  const [restaurantError, setRestaurantError] = useState(null);
+
+  // Estados de dados reais por aba (sem mock)
+  const [transactionsCount, setTransactionsCount] = useState(null);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
+  const [transactionsError, setTransactionsError] = useState(null);
+
+  const [accountsCount, setAccountsCount] = useState(null);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [accountsError, setAccountsError] = useState(null);
+
+  const [suppliersCount, setSuppliersCount] = useState(null);
+  const [suppliersLoading, setSuppliersLoading] = useState(false);
+  const [suppliersError, setSuppliersError] = useState(null);
+
+  const [goalsCount, setGoalsCount] = useState(null);
+  const [goalsLoading, setGoalsLoading] = useState(false);
+  const [goalsError, setGoalsError] = useState(null);
+
+  // Modais
+  const [transactionModalOpen, setTransactionModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [editingAccount, setEditingAccount] = useState(null);
+  const [supplierModalOpen, setSupplierModalOpen] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState(null);
+  const [goalModalOpen, setGoalModalOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(null);
+
+  const [categoriesEntrada, setCategoriesEntrada] = useState([]);
+  const [categoriesSaida, setCategoriesSaida] = useState([]);
+  const [suppliersList, setSuppliersList] = useState([]);
+
+  useEffect(() => {
+    const fetchRestaurantId = async () => {
+      try {
+        setIsLoadingRestaurant(true);
+        setRestaurantError(null);
+        if (!user?.id) return;
+
+        const { data, error } = await supabase
+          .from('restaurantes_app')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          setRestaurantError(error);
+          return;
+        }
+
+        if (data?.id) setRestaurantId(data.id);
+      } catch (err) {
+        setRestaurantError(err);
+      } finally {
+        setIsLoadingRestaurant(false);
+      }
+    };
+
+    fetchRestaurantId();
+  }, [user]);
+
+  // Carregadores por aba (apenas contagens, sem dados mock)
+  useEffect(() => {
+    const loadTransactions = async () => {
+      try {
+        setTransactionsLoading(true);
+        setTransactionsError(null);
+        const data = await financeService.fetchTransactions({});
+        setTransactionsCount(Array.isArray(data) ? data.length : 0);
+      } catch (err) {
+        setTransactionsError(err?.message || 'Dados indisponíveis');
+        setTransactionsCount(null);
+      } finally {
+        setTransactionsLoading(false);
+      }
+    };
+
+    const loadAccounts = async () => {
+      try {
+        setAccountsLoading(true);
+        setAccountsError(null);
+        const data = await financeService.fetchAccounts();
+        setAccountsCount(Array.isArray(data) ? data.length : 0);
+      } catch (err) {
+        setAccountsError(err?.message || 'Dados indisponíveis');
+        setAccountsCount(null);
+      } finally {
+        setAccountsLoading(false);
+      }
+    };
+
+    const loadSuppliers = async () => {
+      try {
+        setSuppliersLoading(true);
+        setSuppliersError(null);
+        const data = await financeService.fetchSuppliers();
+        setSuppliersCount(Array.isArray(data) ? data.length : 0);
+      } catch (err) {
+        setSuppliersError(err?.message || 'Dados indisponíveis');
+        setSuppliersCount(null);
+      } finally {
+        setSuppliersLoading(false);
+      }
+    };
+
+    const loadGoals = async () => {
+      try {
+        setGoalsLoading(true);
+        setGoalsError(null);
+        const data = await financeService.fetchFinancialGoals();
+        setGoalsCount(Array.isArray(data) ? data.length : 0);
+      } catch (err) {
+        setGoalsError(err?.message || 'Dados indisponíveis');
+        setGoalsCount(null);
+      } finally {
+        setGoalsLoading(false);
+      }
+    };
+
+    if (!restaurantId) return;
+
+    if (activeTab === 'transactions') loadTransactions();
+    if (activeTab === 'accounts') loadAccounts();
+    if (activeTab === 'suppliers') loadSuppliers();
+    if (activeTab === 'goals') loadGoals();
+  }, [activeTab, restaurantId]);
+
+  // Pré-carregar categorias e fornecedores para modais
+  useEffect(() => {
+    const preload = async () => {
+      try {
+        const [catsEntrada, catsSaida, sups] = await Promise.all([
+          financeService.fetchFinancialCategories('entrada'),
+          financeService.fetchFinancialCategories('saida'),
+          financeService.fetchSuppliers()
+        ]);
+        setCategoriesEntrada(catsEntrada || []);
+        setCategoriesSaida(catsSaida || []);
+        setSuppliersList(sups || []);
+      } catch (_e) {}
+    };
+    preload();
+  }, [restaurantId]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
@@ -10,17 +533,24 @@ const Finance = () => {
       {/* Navegação simples */}
       <div className="ninja-card p-0 overflow-hidden">
         <div className="flex border-b border-border overflow-x-auto">
-          {['dashboard', 'transactions', 'accounts', 'suppliers', 'goals', 'reports'].map((tab) => (
+          {[
+            { key: 'dashboard', label: 'Dashboard' },
+            { key: 'transactions', label: 'Transações' },
+            { key: 'accounts', label: 'Contas' },
+            { key: 'suppliers', label: 'Fornecedores' },
+            { key: 'goals', label: 'Metas' },
+            { key: 'reports', label: 'Relatórios' }
+          ].map(({ key, label }) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={key}
+              onClick={() => setActiveTab(key)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap ${
-                activeTab === tab 
+                activeTab === key 
                   ? 'bg-primary text-primary-foreground' 
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {label}
             </button>
           ))}
         </div>
@@ -31,24 +561,22 @@ const Finance = () => {
         {activeTab === 'dashboard' && (
           <div>
             <h2 className="text-2xl font-bold mb-4 text-foreground">Dashboard Financeiro</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="ninja-card p-4 bg-success/10 border-success/20">
-                <h3 className="font-semibold text-success">Entradas</h3>
-                <p className="text-2xl font-bold text-success">R$ 15.000,00</p>
+            {isLoadingRestaurant ? (
+              <div className="flex items-center justify-center py-10 text-muted-foreground">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mr-2"></div>
+                Carregando dados do restaurante...
               </div>
-              <div className="ninja-card p-4 bg-destructive/10 border-destructive/20">
-                <h3 className="font-semibold text-destructive">Saídas</h3>
-                <p className="text-2xl font-bold text-destructive">R$ 8.500,00</p>
+            ) : restaurantError ? (
+              <div className="text-center text-destructive py-10">
+                Ocorreu um erro ao carregar o restaurante.
               </div>
-              <div className="ninja-card p-4 bg-primary/10 border-primary/20">
-                <h3 className="font-semibold text-primary">Saldo</h3>
-                <p className="text-2xl font-bold text-primary">R$ 6.500,00</p>
+            ) : !restaurantId ? (
+              <div className="text-center text-muted-foreground py-10">
+                Configurando seu restaurante...
               </div>
-              <div className="ninja-card p-4 bg-secondary/10 border-secondary/20">
-                <h3 className="font-semibold text-foreground">Transações</h3>
-                <p className="text-2xl font-bold text-foreground">25</p>
-              </div>
-            </div>
+            ) : (
+              <DashboardFinanceiro restauranteId={restaurantId} />
+            )}
           </div>
         )}
 
@@ -56,25 +584,36 @@ const Finance = () => {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-foreground">Transações</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setEditingTransaction({ tipo: 'saida', descricao: 'Sangria', status: 'confirmada' }); setTransactionModalOpen(true); }}
+                  className="px-3 py-2 border border-destructive text-destructive rounded-md hover:bg-destructive/10"
+                >
+                  Registrar Sangria
+                </button>
+                <button
+                  onClick={() => { setEditingTransaction({ tipo: 'entrada', descricao: 'Reforço', status: 'confirmada' }); setTransactionModalOpen(true); }}
+                  className="px-3 py-2 border border-success text-success rounded-md hover:bg-success/10"
+                >
+                  Registrar Reforço
+                </button>
               <button 
-                onClick={() => alert('Modal de transação abriria aqui!')}
-                className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
+                  onClick={() => { setEditingTransaction(null); setTransactionModalOpen(true); }}
+                  className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
-                + Nova Transação
+                  Nova Transação
               </button>
-            </div>
-            <div className="space-y-3">
-              <div className="border border-border p-4 rounded-md">
-                <h3 className="font-semibold text-foreground">Venda Balcão - Cliente João</h3>
-                <p className="text-sm text-muted-foreground">Vendas Balcão • 05/01/2024</p>
-                <p className="text-success font-bold">+R$ 150,00</p>
-              </div>
-              <div className="border border-border p-4 rounded-md">
-                <h3 className="font-semibold text-foreground">Compra de Ingredientes</h3>
-                <p className="text-sm text-muted-foreground">Ingredientes • 04/01/2024</p>
-                <p className="text-destructive font-bold">-R$ 280,00</p>
               </div>
             </div>
+            {transactionsLoading ? (
+              <p className="text-muted-foreground">Carregando transações...</p>
+            ) : transactionsError ? (
+              <p className="text-destructive">{transactionsError}</p>
+            ) : transactionsCount === 0 ? (
+              <p className="text-muted-foreground">Nenhuma transação encontrada.</p>
+            ) : (
+              <TransactionsList onEdit={(t)=> { setEditingTransaction(t); setTransactionModalOpen(true); }} onChanged={async ()=> { const data = await financeService.fetchTransactions({}); setTransactionsCount(Array.isArray(data) ? data.length : 0); }} />
+            )}
           </div>
         )}
 
@@ -83,18 +622,21 @@ const Finance = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-foreground">Contas a Pagar/Receber</h2>
               <button 
-                onClick={() => alert('Modal de conta abriria aqui!')}
-                className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
+                onClick={() => { setEditingAccount(null); setAccountModalOpen(true); }}
+                className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
-                + Nova Conta
+                Nova Conta
               </button>
             </div>
-            <div className="border border-border p-4 rounded-md">
-              <h3 className="font-semibold text-foreground">Fornecedor - Distribuidora Central</h3>
-              <p className="text-sm text-muted-foreground">Vencimento: 15/01/2024</p>
-              <p className="text-destructive font-bold">R$ 1.200,00</p>
-              <span className="bg-warning/20 text-warning px-2 py-1 rounded text-xs">Pendente</span>
-            </div>
+            {accountsLoading ? (
+              <p className="text-muted-foreground">Carregando contas...</p>
+            ) : accountsError ? (
+              <p className="text-destructive">{accountsError}</p>
+            ) : accountsCount === 0 ? (
+              <p className="text-muted-foreground">Nenhuma conta encontrada.</p>
+            ) : (
+              <AccountsList onEdit={(c)=> { setEditingAccount(c); setAccountModalOpen(true); }} onChanged={async ()=> { const data = await financeService.fetchAccounts(); setAccountsCount(Array.isArray(data) ? data.length : 0); }} />
+            )}
           </div>
         )}
 
@@ -103,18 +645,21 @@ const Finance = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-foreground">Fornecedores</h2>
               <button 
-                onClick={() => alert('Modal de fornecedor abriria aqui!')}
-                className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
+                onClick={() => { setEditingSupplier(null); setSupplierModalOpen(true); }}
+                className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
-                + Novo Fornecedor
+                Novo Fornecedor
               </button>
             </div>
-            <div className="border border-border p-4 rounded-md">
-              <h3 className="font-semibold text-foreground">Distribuidora Central</h3>
-              <p className="text-sm text-muted-foreground">Alimentícios</p>
-              <p className="text-sm text-muted-foreground">(11) 99999-9999</p>
-              <span className="bg-success/20 text-success px-2 py-1 rounded text-xs">Ativo</span>
-            </div>
+            {suppliersLoading ? (
+              <p className="text-muted-foreground">Carregando fornecedores...</p>
+            ) : suppliersError ? (
+              <p className="text-destructive">{suppliersError}</p>
+            ) : suppliersCount === 0 ? (
+              <p className="text-muted-foreground">Nenhum fornecedor encontrado.</p>
+            ) : (
+              <SuppliersList onEdit={(s)=> { setEditingSupplier(s); setSupplierModalOpen(true); }} onChanged={async ()=> { const data = await financeService.fetchSuppliers(); setSuppliersCount(Array.isArray(data) ? data.length : 0); }} />
+            )}
           </div>
         )}
 
@@ -123,24 +668,21 @@ const Finance = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-foreground">Metas Financeiras</h2>
               <button 
-                onClick={() => alert('Modal de meta abriria aqui!')}
-                className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
+                onClick={() => { setEditingGoal(null); setGoalModalOpen(true); }}
+                className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
-                + Nova Meta
+                Nova Meta
               </button>
             </div>
-            <div className="border border-border p-4 rounded-md">
-              <h3 className="font-semibold text-foreground">Receita Mensal Janeiro</h3>
-              <div className="mt-2">
-                <div className="flex justify-between text-sm mb-1 text-muted-foreground">
-                  <span>Progresso: 75.0%</span>
-                  <span>R$ 15.000,00 / R$ 20.000,00</span>
-                </div>
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div className="bg-primary h-2 rounded-full transition-all duration-300" style={{ width: '75%' }}></div>
-                </div>
-              </div>
-            </div>
+            {goalsLoading ? (
+              <p className="text-muted-foreground">Carregando metas...</p>
+            ) : goalsError ? (
+              <p className="text-destructive">{goalsError}</p>
+            ) : goalsCount === 0 ? (
+              <p className="text-muted-foreground">Nenhuma meta cadastrada.</p>
+            ) : (
+              <GoalsList onEdit={(g)=> { setEditingGoal(g); setGoalModalOpen(true); }} onChanged={async ()=> { const data = await financeService.fetchFinancialGoals(); setGoalsCount(Array.isArray(data) ? data.length : 0); }} />
+            )}
           </div>
         )}
 
@@ -151,6 +693,85 @@ const Finance = () => {
           </div>
         )}
       </div>
+      {/* Modais */}
+      <TransactionModal
+        isOpen={transactionModalOpen}
+        onClose={() => setTransactionModalOpen(false)}
+        transaction={editingTransaction}
+        categories={[...categoriesEntrada, ...categoriesSaida]}
+        onSave={async (payload) => {
+          try {
+            if (editingTransaction) await financeService.updateTransaction(editingTransaction.id, payload);
+            else await financeService.createTransaction(payload);
+            setTransactionModalOpen(false);
+            if (activeTab === 'transactions') {
+              const data = await financeService.fetchTransactions({});
+              setTransactionsCount(Array.isArray(data) ? data.length : 0);
+            }
+          } catch (e) {
+            alert(e?.message || 'Erro ao salvar transação');
+          }
+        }}
+      />
+
+      <AccountModal
+        isOpen={accountModalOpen}
+        onClose={() => setAccountModalOpen(false)}
+        account={editingAccount}
+        categories={[...categoriesEntrada, ...categoriesSaida]}
+        suppliers={suppliersList}
+        onSave={async (payload) => {
+          try {
+            if (editingAccount) await financeService.updateAccount ? await financeService.updateAccount(editingAccount.id, payload) : await financeService.createAccount(payload);
+            else await financeService.createAccount(payload);
+            setAccountModalOpen(false);
+            if (activeTab === 'accounts') {
+              const data = await financeService.fetchAccounts();
+              setAccountsCount(Array.isArray(data) ? data.length : 0);
+            }
+          } catch (e) {
+            alert(e?.message || 'Erro ao salvar conta');
+          }
+        }}
+      />
+
+      <SupplierModal
+        isOpen={supplierModalOpen}
+        onClose={() => setSupplierModalOpen(false)}
+        supplier={editingSupplier}
+        onSave={async (payload) => {
+          try {
+            if (editingSupplier) await financeService.updateSupplier ? await financeService.updateSupplier(editingSupplier.id, payload) : await financeService.createSupplier(payload);
+            else await financeService.createSupplier(payload);
+            setSupplierModalOpen(false);
+            if (activeTab === 'suppliers') {
+              const data = await financeService.fetchSuppliers();
+              setSuppliersCount(Array.isArray(data) ? data.length : 0);
+            }
+          } catch (e) {
+            alert(e?.message || 'Erro ao salvar fornecedor');
+          }
+        }}
+      />
+
+      <GoalModal
+        isOpen={goalModalOpen}
+        onClose={() => setGoalModalOpen(false)}
+        goal={editingGoal}
+        onSave={async (payload) => {
+          try {
+            if (editingGoal) await financeService.updateFinancialGoal ? await financeService.updateFinancialGoal(editingGoal.id, payload) : await financeService.createFinancialGoal(payload);
+            else await financeService.createFinancialGoal(payload);
+            setGoalModalOpen(false);
+            if (activeTab === 'goals') {
+              const data = await financeService.fetchFinancialGoals();
+              setGoalsCount(Array.isArray(data) ? data.length : 0);
+            }
+          } catch (e) {
+            alert(e?.message || 'Erro ao salvar meta');
+          }
+        }}
+      />
     </div>
   );
 };

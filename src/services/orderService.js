@@ -20,6 +20,7 @@ const mapOrder = (order) => {
     timestamp: order.criado_em,
     total: parseFloat(order.valor_total) || 0,
     status: order.status,
+    tipo_pedido: order.tipo_pedido || 'delivery', // Incluir tipo de pedido
     items: items,
     isVip: order.is_vip,
     prepTime: totalPrepTime,
@@ -50,6 +51,7 @@ export async function fetchOrders() {
       .select(`
         id,
         numero_pedido,
+        tipo_pedido,
         status,
         valor_total,
         criado_em,
@@ -70,7 +72,8 @@ export async function fetchOrders() {
         )
       `)
       .eq('id_restaurante', restaurante.id)
-      .in('status', ['disponivel', 'aceito', 'em_preparo', 'pronto_para_entrega', 'a_caminho'])
+      .or('tipo_pedido.is.null,tipo_pedido.neq.mesa')
+      .in('status', ['disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido'])
       .order('criado_em', { ascending: false });
       
     if (error) throw error;
@@ -101,6 +104,7 @@ export async function fetchOrderById(id) {
       .select(`
         id,
         numero_pedido,
+        tipo_pedido,
         status,
         valor_total,
         criado_em,
@@ -122,7 +126,8 @@ export async function fetchOrderById(id) {
       `)
       .eq('id', id)
       .eq('id_restaurante', restaurante.id)
-      .in('status', ['disponivel', 'aceito', 'em_preparo', 'pronto_para_entrega', 'a_caminho'])
+      .or('tipo_pedido.is.null,tipo_pedido.neq.mesa')
+      .in('status', ['disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido'])
       .single();
       
     if (error) throw error;
@@ -148,26 +153,57 @@ export async function createOrder(order) {
 
     if (restauranteError) throw new Error('Restaurante não encontrado');
 
+    // Validação obrigatória do tipo de pedido
+    const providedTipo = order.tipo_pedido ?? order.tipoPedido;
+    const allowedTipos = ['delivery', 'mesa', 'balcao', 'online'];
+    if (!providedTipo) {
+      throw new Error('Selecione o tipo de pedido antes de continuar.');
+    }
+    if (!allowedTipos.includes(providedTipo)) {
+      throw new Error('Tipo de pedido inválido. Escolha delivery, mesa, balcao ou online.');
+    }
+
+    // Gerar número sequencial básico por restaurante (fallback)
+    let numeroSequencial = null;
+    let numeroPedidoCalc = null;
+    try {
+      const { data: ult, error: ultError } = await supabase
+        .from('pedidos_padronizados')
+        .select('numero_pedido, numero_pedido_sequencial')
+        .eq('id_restaurante', restaurante.id)
+        .order('numero_pedido_sequencial', { ascending: false })
+        .limit(1);
+      if (!ultError && Array.isArray(ult) && ult.length > 0) {
+        numeroSequencial = (Number(ult[0]?.numero_pedido_sequencial) || 0) + 1;
+        numeroPedidoCalc = (Number(ult[0]?.numero_pedido) || 0) + 1;
+      } else {
+        numeroSequencial = 1;
+        numeroPedidoCalc = 1;
+      }
+    } catch (_) {}
+
     const { data, error } = await supabase
       .from('pedidos_padronizados')
       .insert([{
-        id_cliente: order.idCliente || null,
+        id_cliente: order.id_cliente ?? order.idCliente ?? null,
         id_restaurante: restaurante.id,
-        id_entregador: order.idEntregador || null,
-        numero_pedido: order.numeroPedido,
-        tipo_pedido: order.tipoPedido || 'delivery',
-        status: order.status || 'disponivel',
-        total: order.total,
-        subtotal: order.subtotal,
-        taxa_entrega: order.taxaEntrega || 0,
-        desconto: order.desconto || 0,
-        payment_method: order.paymentMethod,
-        pagamento_recebido_pelo_sistema: order.pagamentoRecebido || false,
-        prep_time: order.prepTime || 30,
-        delivery_time: order.deliveryTime || null,
-        is_vip: order.isVip || false,
-        mesa_numero: order.mesaNumero,
-        observacoes: order.observacoes
+        id_entregador: order.id_entregador ?? order.idEntregador ?? null,
+        numero_pedido: order.numero_pedido ?? order.numeroPedido ?? numeroPedidoCalc ?? 1,
+        tipo_pedido: providedTipo,
+        status: order.status ?? 'disponivel',
+        valor_total: order.valor_total ?? order.total ?? 0,
+        subtotal: order.subtotal ?? order.total ?? 0,
+        taxa_entrega: order.taxa_entrega ?? order.taxaEntrega ?? 0,
+        desconto: order.desconto ?? 0,
+        metodo_pagamento: order.metodo_pagamento ?? order.paymentMethod ?? null,
+        pagamento_recebido_pelo_sistema: order.pagamento_recebido_pelo_sistema ?? order.pagamentoRecebido ?? false,
+        prep_time: order.prep_time ?? order.prepTime ?? null,
+        delivery_time: order.delivery_time ?? order.deliveryTime ?? null,
+        is_vip: order.is_vip ?? order.isVip ?? false,
+        mesa_numero: order.mesa_numero ?? order.mesaNumero ?? null,
+        observacoes: order.observacoes ?? null,
+        numero_pedido_sequencial: order.numero_pedido_sequencial ?? numeroSequencial,
+        criado_em: new Date().toISOString()
       }])
       .select();
       
@@ -289,6 +325,108 @@ export async function finalizeOrder(orderId) {
     return data[0];
   } catch (error) {
     console.error('Erro ao finalizar pedido:', error);
+    throw error;
+  }
+}
+
+// Adicionar item ao pedido (mesa ou delivery)
+export async function addItemToOrder({ orderId, restaurantId, menuItemId, quantity, note }) {
+  try {
+    const qty = Number(quantity || 1);
+    if (!orderId) throw new Error('Pedido não informado');
+    if (!restaurantId) throw new Error('Restaurante não informado');
+    if (!menuItemId) throw new Error('Item do cardápio não informado');
+
+    const { data: cardapioItem, error: cardapioError } = await supabase
+      .from('itens_cardapio')
+      .select('id, preco')
+      .eq('id', menuItemId)
+      .eq('id_restaurante', restaurantId)
+      .single();
+    if (cardapioError) throw cardapioError;
+    const precoUnit = Number(cardapioItem?.preco || 0);
+
+    const basePayload = {
+      id_pedido: orderId,
+      id_item_cardapio: menuItemId,
+      quantidade: qty,
+      preco_unitario: precoUnit,
+      id_restaurante: restaurantId,
+    };
+
+    if (note && note.trim()) {
+      const { error: errWithNote } = await supabase
+        .from('itens_pedido')
+        .insert([{ ...basePayload, observacao_item: note }]);
+      if (errWithNote) {
+        const { error: errFallback } = await supabase
+          .from('itens_pedido')
+          .insert([basePayload]);
+        if (errFallback) throw errFallback;
+      }
+    } else {
+      const { error: insertError } = await supabase
+        .from('itens_pedido')
+        .insert([basePayload]);
+      if (insertError) throw insertError;
+    }
+
+    const { data: sumData, error: sumError } = await supabase
+      .from('itens_pedido')
+      .select('quantidade, preco_unitario, preco_total')
+      .eq('id_pedido', orderId);
+    if (sumError) throw sumError;
+
+    const subtotal = (sumData || []).reduce((acc, it) => {
+      const linha = it.preco_total != null ? Number(it.preco_total) : Number(it.quantidade||0) * Number(it.preco_unitario||0);
+      return acc + linha;
+    }, 0);
+
+    const { error: updError } = await supabase
+      .from('pedidos_padronizados')
+      .update({ subtotal, valor_total: subtotal })
+      .eq('id', orderId);
+    if (updError) throw updError;
+
+    return { success: true, subtotal };
+  } catch (error) {
+    console.error('Erro ao adicionar item ao pedido:', error);
+    throw error;
+  }
+}
+
+// Remover item do pedido e recalcular total
+export async function removeItemFromOrder({ orderItemId, orderId }) {
+  try {
+    if (!orderItemId) throw new Error('Item do pedido não informado');
+    if (!orderId) throw new Error('Pedido não informado');
+
+    const { error: delError } = await supabase
+      .from('itens_pedido')
+      .delete()
+      .eq('id', orderItemId);
+    if (delError) throw delError;
+
+    const { data: sumData, error: sumError } = await supabase
+      .from('itens_pedido')
+      .select('quantidade, preco_unitario, preco_total')
+      .eq('id_pedido', orderId);
+    if (sumError) throw sumError;
+
+    const subtotal = (sumData || []).reduce((acc, it) => {
+      const linha = it.preco_total != null ? Number(it.preco_total) : Number(it.quantidade||0) * Number(it.preco_unitario||0);
+      return acc + linha;
+    }, 0);
+
+    const { error: updError } = await supabase
+      .from('pedidos_padronizados')
+      .update({ subtotal, valor_total: subtotal })
+      .eq('id', orderId);
+    if (updError) throw updError;
+
+    return { success: true, subtotal };
+  } catch (error) {
+    console.error('Erro ao remover item do pedido:', error);
     throw error;
   }
 }

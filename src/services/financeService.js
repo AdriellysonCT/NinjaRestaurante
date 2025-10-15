@@ -1,10 +1,24 @@
 import { supabase } from '../lib/supabase';
 
+// Helper para obter o id do restaurante (tabela restaurantes_app)
+async function getRestauranteIdOrThrow() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Usuário não autenticado');
+
+  const { data, error } = await supabase
+    .from('restaurantes_app')
+    .select('id')
+    .eq('user_id', user.id)
+    .single();
+
+  if (error || !data?.id) throw new Error('Restaurante não encontrado');
+  return data.id;
+}
+
 // Função para buscar resumo financeiro
-export async function fetchFinancialSummary(startDate = null, endDate = null) {
+export async function fetchFinancialSummary(startDate = null, endDate = null, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     // Se não fornecidas, usar o mês atual
     if (!startDate) {
@@ -18,7 +32,7 @@ export async function fetchFinancialSummary(startDate = null, endDate = null) {
 
     // Chamar função do banco para calcular resumo
     const { data, error } = await supabase.rpc('calcular_resumo_financeiro', {
-      p_id_restaurante: user.id,
+      p_id_restaurante: restauranteId,
       p_data_inicio: startDate,
       p_data_fim: endDate
     });
@@ -32,10 +46,9 @@ export async function fetchFinancialSummary(startDate = null, endDate = null) {
 }
 
 // Função para buscar transações financeiras
-export async function fetchTransactions(filters = {}) {
+export async function fetchTransactions(filters = {}, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     let query = supabase
       .from('transacoes_financeiras')
@@ -43,7 +56,7 @@ export async function fetchTransactions(filters = {}) {
         *,
         categoria:categorias_financeiras(nome, cor, icone)
       `)
-      .eq('id_restaurante', user.id)
+      .eq('id_restaurante', restauranteId)
       .order('data_transacao', { ascending: false });
 
     // Aplicar filtros
@@ -73,16 +86,15 @@ export async function fetchTransactions(filters = {}) {
 }
 
 // Função para criar transação financeira
-export async function createTransaction(transaction) {
+export async function createTransaction(transaction, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     const { data, error } = await supabase
       .from('transacoes_financeiras')
       .insert([{
         ...transaction,
-        id_restaurante: user.id
+        id_restaurante: restauranteId
       }])
       .select(`
         *,
@@ -98,16 +110,15 @@ export async function createTransaction(transaction) {
 }
 
 // Função para atualizar transação financeira
-export async function updateTransaction(id, updates) {
+export async function updateTransaction(id, updates, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     const { data, error } = await supabase
       .from('transacoes_financeiras')
       .update(updates)
       .eq('id', id)
-      .eq('id_restaurante', user.id)
+      .eq('id_restaurante', restauranteId)
       .select(`
         *,
         categoria:categorias_financeiras(nome, cor, icone)
@@ -122,16 +133,15 @@ export async function updateTransaction(id, updates) {
 }
 
 // Função para excluir transação financeira
-export async function deleteTransaction(id) {
+export async function deleteTransaction(id, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     const { error } = await supabase
       .from('transacoes_financeiras')
       .delete()
       .eq('id', id)
-      .eq('id_restaurante', user.id);
+      .eq('id_restaurante', restauranteId);
 
     if (error) throw error;
     return true;
@@ -142,15 +152,14 @@ export async function deleteTransaction(id) {
 }
 
 // Função para buscar categorias financeiras
-export async function fetchFinancialCategories(tipo = null) {
+export async function fetchFinancialCategories(tipo = null, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     let query = supabase
       .from('categorias_financeiras')
       .select('*')
-      .eq('id_restaurante', user.id)
+      .eq('id_restaurante', restauranteId)
       .eq('ativa', true)
       .order('nome');
 
@@ -168,16 +177,15 @@ export async function fetchFinancialCategories(tipo = null) {
 }
 
 // Função para criar categoria financeira
-export async function createFinancialCategory(category) {
+export async function createFinancialCategory(category, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     const { data, error } = await supabase
       .from('categorias_financeiras')
       .insert([{
         ...category,
-        id_restaurante: user.id
+        id_restaurante: restauranteId
       }])
       .select();
 
@@ -190,15 +198,14 @@ export async function createFinancialCategory(category) {
 }
 
 // Função para buscar fornecedores
-export async function fetchSuppliers() {
+export async function fetchSuppliers(restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     const { data, error } = await supabase
       .from('fornecedores')
       .select('*')
-      .eq('id_restaurante', user.id)
+      .eq('id_restaurante', restauranteId)
       .eq('ativo', true)
       .order('nome');
 
@@ -211,16 +218,15 @@ export async function fetchSuppliers() {
 }
 
 // Função para criar fornecedor
-export async function createSupplier(supplier) {
+export async function createSupplier(supplier, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     const { data, error } = await supabase
       .from('fornecedores')
       .insert([{
         ...supplier,
-        id_restaurante: user.id
+        id_restaurante: restauranteId
       }])
       .select();
 
@@ -232,11 +238,45 @@ export async function createSupplier(supplier) {
   }
 }
 
-// Função para buscar contas a pagar/receber
-export async function fetchAccounts(tipo = null, status = null) {
+// Atualizar fornecedor
+export async function updateSupplier(id, updates, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
+    const { data, error } = await supabase
+      .from('fornecedores')
+      .update(updates)
+      .eq('id', id)
+      .eq('id_restaurante', restauranteId)
+      .select();
+    if (error) throw error;
+    return data?.[0] || null;
+  } catch (error) {
+    console.error('Erro ao atualizar fornecedor:', error);
+    throw error;
+  }
+}
+
+// Excluir fornecedor
+export async function deleteSupplier(id, restauranteIdParam = null) {
+  try {
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
+    const { error } = await supabase
+      .from('fornecedores')
+      .delete()
+      .eq('id', id)
+      .eq('id_restaurante', restauranteId);
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Erro ao excluir fornecedor:', error);
+    throw error;
+  }
+}
+
+// Função para buscar contas a pagar/receber
+export async function fetchAccounts(tipo = null, status = null, restauranteIdParam = null) {
+  try {
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     let query = supabase
       .from('contas')
@@ -245,7 +285,7 @@ export async function fetchAccounts(tipo = null, status = null) {
         categoria:categorias_financeiras(nome, cor),
         fornecedor:fornecedores(nome)
       `)
-      .eq('id_restaurante', user.id)
+      .eq('id_restaurante', restauranteId)
       .order('data_vencimento');
 
     if (tipo) {
@@ -265,16 +305,15 @@ export async function fetchAccounts(tipo = null, status = null) {
 }
 
 // Função para criar conta a pagar/receber
-export async function createAccount(account) {
+export async function createAccount(account, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     const { data, error } = await supabase
       .from('contas')
       .insert([{
         ...account,
-        id_restaurante: user.id
+        id_restaurante: restauranteId
       }])
       .select(`
         *,
@@ -290,11 +329,51 @@ export async function createAccount(account) {
   }
 }
 
-// Função para marcar conta como paga
-export async function payAccount(id, paymentData) {
+// Atualizar conta a pagar/receber
+export async function updateAccount(id, updates, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
+
+    const { data, error } = await supabase
+      .from('contas')
+      .update(updates)
+      .eq('id', id)
+      .eq('id_restaurante', restauranteId)
+      .select(`
+        *,
+        categoria:categorias_financeiras(nome, cor),
+        fornecedor:fornecedores(nome)
+      `);
+
+    if (error) throw error;
+    return data?.[0] || null;
+  } catch (error) {
+    console.error('Erro ao atualizar conta:', error);
+    throw error;
+  }
+}
+
+// Excluir conta
+export async function deleteAccount(id, restauranteIdParam = null) {
+  try {
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
+    const { error } = await supabase
+      .from('contas')
+      .delete()
+      .eq('id', id)
+      .eq('id_restaurante', restauranteId);
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Erro ao excluir conta:', error);
+    throw error;
+  }
+}
+
+// Função para marcar conta como paga
+export async function payAccount(id, paymentData, restauranteIdParam = null) {
+  try {
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     // Atualizar conta
     const { data: conta, error: contaError } = await supabase
@@ -307,7 +386,7 @@ export async function payAccount(id, paymentData) {
         observacoes: paymentData.observacoes
       })
       .eq('id', id)
-      .eq('id_restaurante', user.id)
+      .eq('id_restaurante', restauranteId)
       .select(`
         *,
         categoria:categorias_financeiras(nome, cor),
@@ -327,7 +406,7 @@ export async function payAccount(id, paymentData) {
         forma_pagamento: paymentData.forma_pagamento,
         observacoes: `Ref. conta #${conta[0].id}`,
         status: 'confirmada'
-      });
+      }, restauranteId);
     }
 
     return conta[0];
@@ -338,15 +417,14 @@ export async function payAccount(id, paymentData) {
 }
 
 // Função para buscar metas financeiras
-export async function fetchFinancialGoals() {
+export async function fetchFinancialGoals(restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     const { data, error } = await supabase
       .from('metas_financeiras')
       .select('*')
-      .eq('id_restaurante', user.id)
+      .eq('id_restaurante', restauranteId)
       .eq('ativa', true)
       .order('ano_referencia', { ascending: false })
       .order('mes_referencia');
@@ -360,16 +438,15 @@ export async function fetchFinancialGoals() {
 }
 
 // Função para criar meta financeira
-export async function createFinancialGoal(goal) {
+export async function createFinancialGoal(goal, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     const { data, error } = await supabase
       .from('metas_financeiras')
       .insert([{
         ...goal,
-        id_restaurante: user.id
+        id_restaurante: restauranteId
       }])
       .select();
 
@@ -381,17 +458,51 @@ export async function createFinancialGoal(goal) {
   }
 }
 
-// Função para registrar venda do POS automaticamente
-export async function registerSaleTransaction(order) {
+// Atualizar meta
+export async function updateFinancialGoal(id, updates, restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
+    const { data, error } = await supabase
+      .from('metas_financeiras')
+      .update(updates)
+      .eq('id', id)
+      .eq('id_restaurante', restauranteId)
+      .select();
+    if (error) throw error;
+    return data?.[0] || null;
+  } catch (error) {
+    console.error('Erro ao atualizar meta financeira:', error);
+    throw error;
+  }
+}
+
+// Excluir meta
+export async function deleteFinancialGoal(id, restauranteIdParam = null) {
+  try {
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
+    const { error } = await supabase
+      .from('metas_financeiras')
+      .delete()
+      .eq('id', id)
+      .eq('id_restaurante', restauranteId);
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Erro ao excluir meta financeira:', error);
+    throw error;
+  }
+}
+
+// Função para registrar venda do POS automaticamente
+export async function registerSaleTransaction(order, restauranteIdParam = null) {
+  try {
+    const restauranteId = order?.id_restaurante || restauranteIdParam || await getRestauranteIdOrThrow();
 
     // Buscar categoria de vendas baseada no tipo de pedido
     const { data: categories } = await supabase
       .from('categorias_financeiras')
       .select('id')
-      .eq('id_restaurante', user.id)
+      .eq('id_restaurante', restauranteId)
       .eq('tipo', 'entrada')
       .ilike('nome', order.type === 'delivery' ? '%delivery%' : 
                     order.type === 'comanda' ? '%comanda%' : '%balcão%')
@@ -413,7 +524,7 @@ export async function registerSaleTransaction(order) {
       status: 'confirmada'
     };
 
-    return await createTransaction(transaction);
+    return await createTransaction(transaction, restauranteId);
   } catch (error) {
     console.error('Erro ao registrar venda:', error);
     // Não falhar o pedido se não conseguir registrar a transação
@@ -422,10 +533,9 @@ export async function registerSaleTransaction(order) {
 }
 
 // Função para obter dados para gráficos
-export async function getChartData(period = 'month') {
+export async function getChartData(period = 'month', restauranteIdParam = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     let startDate, endDate;
     const now = new Date();
@@ -455,7 +565,7 @@ export async function getChartData(period = 'month') {
         *,
         categoria:categorias_financeiras(nome, cor)
       `)
-      .eq('id_restaurante', user.id)
+      .eq('id_restaurante', restauranteId)
       .eq('status', 'confirmada')
       .gte('data_transacao', startDate.toISOString().split('T')[0])
       .lte('data_transacao', endDate.toISOString().split('T')[0])

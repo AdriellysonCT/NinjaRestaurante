@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabase';
 import * as orderService from '../services/orderService';
 import * as menuService from '../services/menuService';
 import * as settingsService from '../services/settingsService';
-import * as cashService from '../services/cashService';
 import { useAuth } from './AuthContext';
 import { configurarRealtimePedidos, removerRealtimePedidos } from '../services/dashboardFinanceiroService';
 
@@ -27,6 +26,52 @@ export const AppProvider = ({ children }) => {
   const [restaurantId, setRestaurantId] = useState(null);
   const notificationSoundRef = useRef(null);
   const notificationIntervalRef = useRef(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // Controles de som (habilitar/desabilitar mediante interação do usuário)
+  const enableSound = async () => {
+    try {
+      console.log('AppContext - Habilitando som...');
+      setSoundEnabled(true);
+      // Tentar desbloquear o áudio após gesto do usuário
+      // Alguns navegadores exigem um play/resume explícito
+      if (notificationSoundRef.current) {
+        console.log('AppContext - Elemento de áudio encontrado, testando...');
+        notificationSoundRef.current.currentTime = 0;
+        await notificationSoundRef.current.play().catch(() => {});
+        notificationSoundRef.current.pause();
+        notificationSoundRef.current.currentTime = 0;
+        console.log('AppContext - Teste de áudio concluído');
+      }
+      // WebAudio API: tentar resumir se existir
+      // @ts-ignore
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) {
+        const ctx = new AC();
+        if (ctx.state === 'suspended') {
+          await ctx.resume().catch(() => {});
+        }
+        // Encerrar imediatamente para não manter recursos
+        try { ctx.close(); } catch (_) {}
+      }
+    } catch (error) {
+      console.warn('AppContext - Erro ao habilitar som:', error);
+    }
+  };
+
+  const disableSound = () => {
+    setSoundEnabled(false);
+    if (notificationIntervalRef.current) {
+      clearInterval(notificationIntervalRef.current);
+      notificationIntervalRef.current = null;
+    }
+    if (notificationSoundRef.current) {
+      try {
+        notificationSoundRef.current.pause();
+        notificationSoundRef.current.currentTime = 0;
+      } catch (_) {}
+    }
+  };
 
   // Monitorar estado da conexão
   useEffect(() => {
@@ -192,8 +237,13 @@ export const AppProvider = ({ children }) => {
       console.log('Payload recebido:', payload);
 
       if (payload.eventType === 'INSERT') {
-        if (notificationSoundRef.current) {
-          notificationSoundRef.current.play().catch(e => console.error("Erro ao tocar áudio:", e));
+        // Tocar som apenas se for "Novas Missões" (disponível sem started_at)
+        if (soundEnabled && notificationSoundRef.current) {
+          const isNewMission = payload?.new?.status === 'disponivel' && !payload?.new?.started_at;
+          if (isNewMission) {
+            notificationSoundRef.current.currentTime = 0;
+            notificationSoundRef.current.play().catch(() => {});
+          }
         }
         
         const newOrder = await orderService.fetchOrderById(payload.new.id);
@@ -230,21 +280,33 @@ export const AppProvider = ({ children }) => {
     if (!isInitialized) return;
 
     const checkUnreadOrders = () => {
-      const unreadOrders = orders.filter(order => order.status === 'disponivel');
+      // Apenas "Novas Missões": disponivel sem started_at
+      const unreadOrders = orders.filter(order => order.status === 'disponivel' && !order.started_at);
       
-      if (unreadOrders.length > 0 && notificationSoundRef.current) {
+      console.log('AppContext - Verificando pedidos não lidos:', unreadOrders.length, 'Som habilitado:', soundEnabled);
+      
+      if (unreadOrders.length > 0 && soundEnabled && notificationSoundRef.current) {
+        console.log('AppContext - Tocando som para pedidos:', unreadOrders.map(o => o.numero_pedido));
         // Tocar som imediatamente
-        notificationSoundRef.current.play().catch(e => console.error("Erro ao tocar áudio:", e));
+        notificationSoundRef.current.currentTime = 0;
+        notificationSoundRef.current.play().catch(() => {});
         
         // Configurar intervalo para tocar a cada 5 segundos
         if (!notificationIntervalRef.current) {
           notificationIntervalRef.current = setInterval(() => {
+            if (!soundEnabled) return;
             if (notificationSoundRef.current) {
-              notificationSoundRef.current.play().catch(e => console.error("Erro ao tocar áudio:", e));
+              const hasNewMission = orders.some(o => o.status === 'disponivel' && !o.started_at);
+              if (hasNewMission) {
+                console.log('AppContext - Loop: Tocando som novamente');
+                notificationSoundRef.current.currentTime = 0;
+                notificationSoundRef.current.play().catch(() => {});
+              }
             }
           }, 5000); // 5 segundos
         }
       } else {
+        console.log('AppContext - Parando som, pedidos:', unreadOrders.length, 'som:', soundEnabled);
         // Parar o intervalo se não houver pedidos não lidos
         if (notificationIntervalRef.current) {
           clearInterval(notificationIntervalRef.current);
@@ -271,6 +333,16 @@ export const AppProvider = ({ children }) => {
   // Funções para manipular pedidos
   const addOrder = async (order) => {
     try {
+      // Validar tipo_pedido antes de criar
+      const tipo = order?.tipo_pedido ?? order?.tipoPedido;
+      const allowed = ['delivery', 'mesa', 'balcao', 'online'];
+      if (!tipo) {
+        throw new Error('Selecione o tipo de pedido antes de continuar.');
+      }
+      if (!allowed.includes(tipo)) {
+        throw new Error('Tipo de pedido inválido.');
+      }
+
       if (isOnline) {
         // Adicionar no Supabase
         const newOrder = await orderService.createOrder(order);
@@ -499,6 +571,9 @@ export const AppProvider = ({ children }) => {
     orders,
     menuItems,
     settings,
+    soundEnabled,
+    enableSound,
+    disableSound,
     addOrder,
     updateOrderStatus,
     deleteOrder,

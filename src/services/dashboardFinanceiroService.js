@@ -43,12 +43,12 @@ export async function fetchPedidosFinanceiros(restauranteId, periodo = 'hoje') {
     // Buscar pedidos concluídos do período
     const { data: pedidos, error: pedidosError } = await supabase
       .from("pedidos_padronizados")
-      .select("valor_total, metodo_pagamento, data_pedido, status, tipo_pedido")
+      .select("valor_total, metodo_pagamento, criado_em, status, tipo_pedido")
       .eq("id_restaurante", restauranteId)
-      .in("status", ["concluido", "entregue"])
-      .gte("data_pedido", dataInicio.toISOString())
-      .lte("data_pedido", dataFim.toISOString())
-      .order("data_pedido", { ascending: false });
+      .in("status", ["entregue"]) // considerar apenas pedidos entregues para faturamento
+      .gte("criado_em", dataInicio.toISOString())
+      .lte("criado_em", dataFim.toISOString())
+      .order("criado_em", { ascending: false });
 
     if (pedidosError) {
       throw new Error(`Erro ao buscar pedidos: ${pedidosError.message}`);
@@ -100,7 +100,7 @@ export function processarDadosFinanceiros(pedidos) {
     porTipo[tipo] = (porTipo[tipo] || 0) + valor;
     
     // Agrupar por dia
-    const dia = pedido.data_pedido.split('T')[0];
+    const dia = (pedido.criado_em || '').split('T')[0];
     if (!pedidosPorDia[dia]) {
       pedidosPorDia[dia] = { quantidade: 0, valor: 0 };
     }
@@ -156,11 +156,11 @@ export async function fetchDadosComparacao(restauranteId, periodo = 'hoje') {
 
     const { data: pedidos, error } = await supabase
       .from("pedidos_padronizados")
-      .select("valor_total, metodo_pagamento")
+      .select("valor_total, metodo_pagamento, criado_em")
       .eq("id_restaurante", restauranteId)
-      .in("status", ["concluido", "entregue"])
-      .gte("data_pedido", dataInicio.toISOString())
-      .lte("data_pedido", dataFim.toISOString());
+      .in("status", ["entregue"]) // período anterior, também só entregues
+      .gte("criado_em", dataInicio.toISOString())
+      .lte("criado_em", dataFim.toISOString());
 
     if (error) {
       console.warn('Erro ao buscar dados de comparação:', error);
@@ -210,19 +210,23 @@ export async function fetchTopItens(restauranteId, periodo = 'mes', limite = 5) 
     const { data: itens, error } = await supabase
       .from("itens_pedido")
       .select(`
-        nome_item,
         quantidade,
         preco_unitario,
+        preco_total,
+        itens_cardapio:itens_cardapio!fk_itens_pedido_itens_cardapio(
+          nome,
+          preco
+        ),
         pedido:pedidos_padronizados!inner(
-          data_pedido,
+          criado_em,
           status,
           id_restaurante
         )
       `)
       .eq("pedido.id_restaurante", restauranteId)
-      .in("pedido.status", ["concluido", "entregue"])
-      .gte("pedido.data_pedido", dataInicio.toISOString())
-      .lte("pedido.data_pedido", agora.toISOString());
+      .in("pedido.status", ["entregue"]) // top itens com base em pedidos entregues
+      .gte("pedido.criado_em", dataInicio.toISOString())
+      .lte("pedido.criado_em", agora.toISOString());
 
     if (error) {
       console.warn('Erro ao buscar top itens:', error);
@@ -234,7 +238,7 @@ export async function fetchTopItens(restauranteId, periodo = 'mes', limite = 5) 
     
     if (itens && itens.length > 0) {
       itens.forEach(item => {
-        const nome = item.nome_item;
+        const nome = item?.itens_cardapio?.nome || 'Item';
         if (!itensAgrupados[nome]) {
           itensAgrupados[nome] = {
             nome,
@@ -243,8 +247,13 @@ export async function fetchTopItens(restauranteId, periodo = 'mes', limite = 5) 
           };
         }
         
-        itensAgrupados[nome].quantidade += parseInt(item.quantidade) || 0;
-        itensAgrupados[nome].faturamento += (parseFloat(item.preco_unitario) || 0) * (parseInt(item.quantidade) || 0);
+        const qtd = parseInt(item.quantidade) || 0;
+        const precoBase = (item.preco_total != null)
+          ? parseFloat(item.preco_total)
+          : (parseFloat(item.preco_unitario) || parseFloat(item?.itens_cardapio?.preco) || 0) * qtd;
+
+        itensAgrupados[nome].quantidade += qtd;
+        itensAgrupados[nome].faturamento += precoBase;
       });
     }
 
