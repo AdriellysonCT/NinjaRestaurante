@@ -23,17 +23,19 @@ const Dashboard = () => {
   const progressTimerRef = useRef(null);
   const [progressTick, setProgressTick] = useState(0);
   const [driverUpdatedAt, setDriverUpdatedAt] = useState({}); // { [orderId]: timestamp }
+  const [autoAcceptEnabled, setAutoAcceptEnabled] = useState(() => {
+    try {
+      return localStorage.getItem('fome-ninja-auto-accept') === 'true';
+    } catch (_) {
+      return false;
+    }
+  });
+  const [processingAutoAccept, setProcessingAutoAccept] = useState(false);
 
   // Obter controle de som do contexto
   const { soundEnabled, enableSound, disableSound } = useAppContext?.() || {};
 
-  // Habilitar som automaticamente quando componente monta
-  useEffect(() => {
-    if (soundEnabled === false && enableSound) {
-      console.log('Habilitando som automaticamente...');
-      enableSound();
-    }
-  }, [soundEnabled, enableSound]);
+  // Removido: não forçar auto-enable; respeitar preferência + desbloqueio por gesto
 
   // Mapeamento das "etapas visuais" (não são novos status no banco)
   const orderStatusMapping = {
@@ -53,7 +55,8 @@ const Dashboard = () => {
     console.log(`Mapeando pedido ${order.numero_pedido}: status="${order.status}", tipo_pedido="${order.tipo_pedido}"`);
     
     // Para pedidos de retirada/consumo local, fluxo simplificado
-    if (order.tipo_pedido === 'balcao' || order.tipo_pedido === 'mesa') {
+    const isLocalOrPickup = order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local';
+    if (isLocalOrPickup) {
       switch (order.status) {
         case 'disponivel':
           console.log(`  -> Pedido LOCAL ${order.numero_pedido} mapeado para: novas_missoes`);
@@ -73,7 +76,7 @@ const Dashboard = () => {
       }
     }
     
-    // Para pedidos de entrega, fluxo completo
+    // Para pedidos de entrega (delivery), fluxo completo
     switch (order.status) {
       case 'disponivel':
         console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: novas_missoes`);
@@ -82,6 +85,7 @@ const Dashboard = () => {
         console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: em_preparo`);
         return 'em_preparo';
       case 'aceito':
+        // No backend, 'aceito' significa em preparo
         console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: em_preparo`);
         return 'em_preparo';
       case 'pronto_para_entrega':
@@ -171,7 +175,6 @@ const Dashboard = () => {
           )
         `)
         .eq("id_restaurante", restaurantId)
-        .or("tipo_pedido.is.null,tipo_pedido.neq.mesa")
         .order("criado_em", { ascending: false });
 
       if (pedidosError) {
@@ -213,7 +216,9 @@ const Dashboard = () => {
           total: parseFloat(pedido.valor_total || pedido.total || 0),
           paymentType: pedido.metodo_pagamento || pedido.forma_pagamento || "N/A",
           paymentMethod: pedido.metodo_pagamento || pedido.forma_pagamento || "N/A",
-          tipo_pedido: pedido.tipo_pedido || "delivery", // Incluir tipo de pedido
+          paymentStatus: pedido.status_pagamento || (pedido.pagamento_recebido_pelo_sistema ? 'pago' : 'pendente'),
+          troco: pedido.troco || 0,
+          tipo_pedido: pedido.tipo_pedido, // Tipo agora é obrigatório e vem do front
           created_at: pedido.criado_em,
           started_at: pedido.started_at,
           prepTime:
@@ -267,8 +272,35 @@ const Dashboard = () => {
           table: "pedidos_padronizados",
           filter: `id_restaurante=eq.${restaurantId}`,
         },
-        (payload) => {
+        async (payload) => {
           console.log("Mudança detectada nos pedidos:", payload);
+          
+          // Aceitar automaticamente novos pedidos se a opção estiver ativada
+          if (payload?.eventType === 'INSERT' && autoAcceptEnabled) {
+            const newOrder = payload.new;
+            if (newOrder.status === 'disponivel') {
+              console.log('🤖 Aceitação automática ativada - aceitando pedido:', newOrder.numero_pedido);
+              try {
+                // Atualizar diretamente no banco
+                const { error: updateError } = await supabase
+                  .from("pedidos_padronizados")
+                  .update({ 
+                    status: 'aceito',
+                    started_at: new Date().toISOString()
+                  })
+                  .eq("id", newOrder.id);
+
+                if (updateError) {
+                  console.error('❌ Erro ao aceitar pedido automaticamente:', updateError);
+                } else {
+                  console.log('✅ Pedido aceito automaticamente:', newOrder.numero_pedido);
+                }
+              } catch (error) {
+                console.error('❌ Erro ao aceitar pedido automaticamente:', error);
+              }
+            }
+          }
+          
           // Marcar badge quando mudança vier (UPDATE) com status do entregador
           try {
             if (payload?.eventType === 'UPDATE') {
@@ -288,7 +320,7 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [restaurantId, fetchOrders]);
+  }, [restaurantId, fetchOrders, autoAcceptEnabled]);
 
   // Limpar badges antigos (expiram em 5 minutos)
   useEffect(() => {
@@ -567,10 +599,52 @@ const Dashboard = () => {
     setSelectedOrder(null);
   };
 
-  // Renderizar botão de status conforme fluxo solicitado
+  // Toggle de aceitação automática
+  const toggleAutoAccept = async () => {
+    const newValue = !autoAcceptEnabled;
+    setAutoAcceptEnabled(newValue);
+    try {
+      localStorage.setItem('fome-ninja-auto-accept', newValue ? 'true' : 'false');
+    } catch (_) {}
+    console.log('Aceitação automática:', newValue ? 'ATIVADA' : 'DESATIVADA');
+
+    // Se ativou, aceitar pedidos pendentes automaticamente
+    if (newValue) {
+      console.log('🔄 Verificando pedidos pendentes para aceitar automaticamente...');
+      const pedidosPendentes = orders.filter(order => order.status === 'disponivel' && !order.started_at);
+      
+      if (pedidosPendentes.length > 0) {
+        setProcessingAutoAccept(true);
+        console.log(`📋 Encontrados ${pedidosPendentes.length} pedidos pendentes para aceitar`);
+        
+        // Processar pedidos em lote com pequeno delay entre cada um
+        for (let i = 0; i < pedidosPendentes.length; i++) {
+          const pedido = pedidosPendentes[i];
+          try {
+            console.log(`⏳ Aceitando pedido ${i + 1}/${pedidosPendentes.length}: #${pedido.numero_pedido}...`);
+            await handleStatusChange(pedido.id, 'aceito');
+            console.log(`✅ Pedido #${pedido.numero_pedido} aceito com sucesso`);
+            // Pequeno delay para não sobrecarregar
+            if (i < pedidosPendentes.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 300));
+            }
+          } catch (error) {
+            console.error(`❌ Erro ao aceitar pedido #${pedido.numero_pedido}:`, error);
+          }
+        }
+        
+        setProcessingAutoAccept(false);
+        console.log('✅ Todos os pedidos pendentes foram processados!');
+      } else {
+        console.log('ℹ️ Não há pedidos pendentes para aceitar');
+      }
+    }
+  };
+
+  // Renderizar botão de status conforme fluxo solicitado por tipo_pedido
   const renderStatusButton = (order) => {
     const stage = getVisualStage(order);
-    const isLocalOrder = order.tipo_pedido === 'balcao' || order.tipo_pedido === 'mesa';
+    const isLocalOrder = order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local';
     
     // Configuração baseada no tipo de pedido
     const buttonConfigByStage = {
@@ -580,9 +654,8 @@ const Dashboard = () => {
         className: "bg-green-600 hover:bg-green-700 text-white",
       },
       em_preparo: {
-        // Para pedidos locais: vai direto para concluído
-        // Para pedidos de entrega: vai para pronto_para_entrega
-        text: isLocalOrder ? "Finalizar Pedido" : "Pronto para Entrega",
+        // Retirada/Local: finaliza direto; Delivery: vai para pronto_para_entrega
+        text: isLocalOrder ? "Concluir" : "Pronto para Entrega",
         nextStatus: isLocalOrder ? "concluido" : "pronto_para_entrega",
         className: isLocalOrder ? "bg-green-600 hover:bg-green-700 text-white" : "bg-yellow-600 hover:bg-yellow-700 text-white",
       },
@@ -748,6 +821,42 @@ const Dashboard = () => {
             </button>
           </div>
 
+          {/* Resumo de Pagamentos */}
+          <div className="w-80 bg-gray-800 rounded-lg p-4 border border-gray-600">
+            <div className="flex items-center gap-2 mb-3">
+              <Icons.CreditCardIcon className="w-5 h-5 text-orange-500" />
+              <h3 className="text-white font-bold">Status de Pagamentos</h3>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-green-400 text-sm font-medium">🟢 Pagos (PIX/Cartão)</span>
+                <span className="text-white font-bold">
+                  {orders.filter(o => o.paymentStatus === 'pago').length}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-yellow-400 text-sm font-medium">🟡 Pendentes (Dinheiro)</span>
+                <span className="text-white font-bold">
+                  {orders.filter(o => o.paymentStatus === 'pendente').length}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-red-400 text-sm font-medium">🔴 Estornados</span>
+                <span className="text-white font-bold">
+                  {orders.filter(o => o.paymentStatus === 'estornado').length}
+                </span>
+              </div>
+              <div className="border-t border-gray-600 pt-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-white text-sm font-medium">Total de Pedidos</span>
+                  <span className="text-orange-400 font-bold text-lg">
+                    {orders.length}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Ranking de Produtos */}
             <div className="w-80 bg-gray-800 rounded-lg p-4 border border-gray-600">
             <div className="flex items-center gap-2 mb-3">
@@ -803,7 +912,7 @@ const Dashboard = () => {
             <Icons.SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Filtrar por nome ou ID..."
+              placeholder="Filtrar por nome ou número do pedido..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-gray-700 text-white rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 border border-gray-600 w-64"
@@ -829,9 +938,8 @@ const Dashboard = () => {
           >
             <option value="all">Tipo de Entrega</option>
             <option value="delivery">🚚 Entrega</option>
-            <option value="balcao">🏪 Retirada</option>
-            <option value="mesa">🍽️ Consumo Local</option>
-            <option value="online">💻 Online</option>
+            <option value="retirada">🏪 Retirada</option>
+            <option value="local">🍽️ Consumo Local</option>
           </select>
 
           <button
@@ -848,24 +956,28 @@ const Dashboard = () => {
             {soundEnabled ? 'Sons ON' : 'Sons OFF'}
           </button>
 
-          <button className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded-lg flex items-center gap-2 border border-gray-600 text-sm">
-            <Icons.PrinterIcon className="w-4 h-4" />
-            Imprimir Lote
-          </button>
-
-          <button className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded-lg flex items-center gap-2 border border-gray-600 text-sm">
-            <Icons.FileTextIcon className="w-4 h-4" />
-            Histórico
-          </button>
-
-          <button className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded-lg flex items-center gap-2 border border-gray-600 text-sm">
-            <Icons.SettingsIcon className="w-4 h-4" />
-            Config. Impressão
-          </button>
-
-          <button className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded-lg flex items-center gap-2 border border-gray-600 text-sm">
-            <Icons.DownloadIcon className="w-4 h-4" />
-            Exportar CSV
+          <button
+            onClick={toggleAutoAccept}
+            disabled={processingAutoAccept}
+            className={`py-2 px-3 rounded-lg flex items-center gap-2 border text-sm font-semibold transition-all ${
+              processingAutoAccept
+                ? 'bg-orange-600 text-white border-orange-500 cursor-wait'
+                : autoAcceptEnabled 
+                  ? 'bg-green-600 hover:bg-green-700 text-white border-green-500 ring-2 ring-green-400' 
+                  : 'bg-gray-700 hover:bg-gray-600 text-white border-gray-600'
+            }`}
+          >
+            {processingAutoAccept ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Processando...
+              </>
+            ) : (
+              <>
+                <Icons.CheckCircleIcon className={`w-4 h-4 ${autoAcceptEnabled ? 'text-green-200' : ''}`} />
+                {autoAcceptEnabled ? 'Aceitar Auto: ON' : 'Aceitar Auto: OFF'}
+              </>
+            )}
           </button>
         </div>
 
@@ -924,18 +1036,26 @@ const Dashboard = () => {
                               <p className="text-xs text-orange-400 font-semibold">
                                 {order.paymentType?.toUpperCase() || "N/A"}
                               </p>
+                              {/* Indicador de status de pagamento */}
+                              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                                order.paymentStatus === 'pago' ? 'bg-green-600 text-white' :
+                                order.paymentStatus === 'pendente' ? 'bg-yellow-600 text-white' :
+                                'bg-red-600 text-white'
+                              }`}>
+                                {order.paymentStatus === 'pago' ? '🟢 Pago' :
+                                 order.paymentStatus === 'pendente' ? '🟡 Pendente' :
+                                 '🔴 Estornado'}
+                              </span>
                               {order.tipo_pedido && (
                                 <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
                                   order.tipo_pedido === 'delivery' ? 'bg-blue-600 text-white' :
-                                  order.tipo_pedido === 'balcao' ? 'bg-green-600 text-white' :
-                                  order.tipo_pedido === 'mesa' ? 'bg-purple-600 text-white' :
-                                  order.tipo_pedido === 'online' ? 'bg-indigo-600 text-white' :
+                                  order.tipo_pedido === 'retirada' ? 'bg-green-600 text-white' :
+                                  order.tipo_pedido === 'local' ? 'bg-purple-600 text-white' :
                                   'bg-gray-600 text-white'
                                 }`}>
                                   {order.tipo_pedido === 'delivery' ? '🚚' :
-                                   order.tipo_pedido === 'balcao' ? '🏪' :
-                                   order.tipo_pedido === 'mesa' ? '🍽️' :
-                                   order.tipo_pedido === 'online' ? '💻' :
+                                   order.tipo_pedido === 'retirada' ? '🏪' :
+                                   order.tipo_pedido === 'local' ? '🍽️' :
                                    '📦'}
                                 </span>
                               )}
@@ -961,6 +1081,18 @@ const Dashboard = () => {
                             </li>
                           )) || <li>Sem itens</li>}
                         </ul>
+
+                        {/* Mostrar troco para pedidos pendentes (dinheiro) */}
+                        {order.paymentStatus === 'pendente' && order.troco > 0 && (
+                          <div className="mt-2 p-2 bg-yellow-900/20 border border-yellow-600/30 rounded">
+                            <div className="flex items-center gap-2">
+                              <Icons.CoinIcon className="w-4 h-4 text-yellow-400" />
+                              <span className="text-yellow-400 text-xs font-semibold">
+                                Troco: R$ {order.troco.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
 
                         {renderProgressBar(order)}
 

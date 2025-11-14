@@ -103,3 +103,4 @@ O sistema estava mostrando todos os pedidos como "delivery" no painel do restaur
 
 ---
 **Status**: ✅ **CONCLUÍDO** - Dashboard preparado para receber as modificações de tipos de entrega
+

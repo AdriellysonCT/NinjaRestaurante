@@ -35,10 +35,10 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
     if (onReady) {
       onReady(order.id);
     } else if (onUpdateStatus) {
-      // Para pedidos locais (retirada/consumo), vai direto para concluído
-      // Para pedidos de entrega, vai para coletado (pronto para entrega)
-      const isLocalOrder = order.tipo_pedido === 'balcao' || order.tipo_pedido === 'mesa';
-      const nextStatus = isLocalOrder ? 'concluido' : 'coletado';
+      // Para retirada/local: vai direto para concluído
+      // Para delivery: vai para pronto_para_entrega
+      const isLocalOrder = order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local';
+      const nextStatus = isLocalOrder ? 'concluido' : 'pronto_para_entrega';
       onUpdateStatus(order.id, nextStatus);
     }
   };
@@ -85,25 +85,36 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
           <h3 className="font-bold text-card-foreground">Pedido #{order.numero_pedido}</h3>
           <p className="text-sm text-muted-foreground">{order.customerName}</p>
           <div className="flex items-center gap-2">
-            <p className="text-sm text-orange-500 font-semibold">{order.paymentType.toUpperCase()}</p>
+            <p className="text-sm text-orange-500 font-semibold">{(order.paymentType || order.paymentMethod || 'DINHEIRO').toUpperCase()}</p>
+            {/* Indicador de status de pagamento */}
+            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+              order.paymentStatus === 'pago' ? 'bg-green-600 text-white' :
+              order.paymentStatus === 'pendente' ? 'bg-yellow-600 text-white' :
+              'bg-red-600 text-white'
+            }`}>
+              {order.paymentStatus === 'pago' ? '🟢 Pago' :
+               order.paymentStatus === 'pendente' ? '🟡 Pendente' :
+               '🔴 Estornado'}
+            </span>
             {order.tipo_pedido && (
               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                 order.tipo_pedido === 'delivery' ? 'bg-blue-600 text-white' :
-                order.tipo_pedido === 'balcao' ? 'bg-green-600 text-white' :
-                order.tipo_pedido === 'mesa' ? 'bg-purple-600 text-white' :
+                order.tipo_pedido === 'retirada' ? 'bg-green-600 text-white' :
+                order.tipo_pedido === 'local' ? 'bg-purple-600 text-white' :
                 'bg-gray-600 text-white'
               }`}>
                 {order.tipo_pedido === 'delivery' ? '🚚 Entrega' :
-                 order.tipo_pedido === 'balcao' ? '🏪 Retirada' :
-                 order.tipo_pedido === 'mesa' ? '🍽️ Mesa' :
-                 order.tipo_pedido === 'online' ? '💻 Online' :
+                 order.tipo_pedido === 'retirada' ? '🏪 Retirada' :
+                 order.tipo_pedido === 'local' ? '🍽️ Local' :
                  order.tipo_pedido}
               </span>
             )}
           </div>
         </div>
         <div className="text-right">
-          <p className="font-bold text-lg text-orange-500">R$ {order.total.toFixed(2)}</p>
+          <p className="font-bold text-lg text-orange-500">
+            R$ {(parseFloat(order.total) || 0).toFixed(2)}
+          </p>
           {order.isVip && (
             <div className="flex items-center justify-end gap-1 text-xs text-yellow-400 mt-1">
               <Icons.NinjaStarIcon className="w-3 h-3 fill-current" />
@@ -117,6 +128,19 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
         {order.items.map((item, index) => <li key={index}>{item.qty}x {item.name}</li>)}
       </ul>
 
+      {/* Mostrar troco para pedidos pendentes (dinheiro) */}
+      {order.paymentStatus === 'pendente' && order.troco > 0 && (
+        <div className="mt-2 p-2 bg-yellow-900/20 border border-yellow-600/30 rounded">
+          <div className="flex items-center gap-2">
+            <Icons.CoinIcon className="w-4 h-4 text-yellow-400" />
+            <span className="text-yellow-400 text-xs font-semibold">
+              Troco: R$ {order.troco.toFixed(2)}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Barra de tempo de preparo */}
       {order.status === 'aceito' && order.started_at && order.prepTime > 0 && (
         <div>
           <div className="flex justify-between items-center text-sm mb-1">
@@ -153,7 +177,7 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
               className="w-full px-3 py-2 text-sm font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center justify-center gap-1"
             >
               <Icons.CheckCircleIcon className="w-4 h-4" />
-              {(order.tipo_pedido === 'balcao' || order.tipo_pedido === 'mesa') ? 'Finalizar Pedido' : 'Pronto Para Entrega'}
+              {(order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local') ? 'Finalizar Pedido' : 'Pronto Para Entrega'}
             </button>
         )}
       </div>

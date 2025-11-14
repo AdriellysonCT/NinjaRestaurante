@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 
 // Fluxo de status baseado no tipo de pedido
 const getStatusFlow = (tipo_pedido) => {
-  const isLocalOrder = tipo_pedido === 'balcao' || tipo_pedido === 'mesa';
+  const isLocalOrder = tipo_pedido === 'retirada' || tipo_pedido === 'local';
   
   if (isLocalOrder) {
     // Fluxo simplificado para pedidos locais
@@ -13,7 +13,7 @@ const getStatusFlow = (tipo_pedido) => {
       concluido: { next: null, text: 'Finalizado', color: 'bg-gray-400', disabled: true },
     };
   } else {
-    // Fluxo completo para pedidos de entrega
+    // Fluxo completo para pedidos de entrega (delivery)
     return {
       disponivel: { next: 'aceito', text: 'Aceitar Missão', color: 'bg-green-500 hover:bg-green-600' },
       aceito: { next: 'pronto_para_entrega', text: 'Pronto para Entrega', color: 'bg-blue-500 hover:bg-blue-600' },
@@ -79,7 +79,7 @@ const StatusManager = ({ order, onUpdateStatus }) => {
   const currentAction = statusFlow[currentStatus];
 
   if (!currentAction || currentAction.disabled || currentStatus === 'aceito') {
-    const isLocalOrder = order.tipo_pedido === 'balcao' || order.tipo_pedido === 'mesa';
+    const isLocalOrder = order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local';
     const displayText = currentStatus === 'aceito' 
       ? (isLocalOrder ? 'Preparando Pedido Local' : 'Em Preparo') 
       : (currentAction ? currentAction.text : 'Status Desconhecido');

@@ -40,12 +40,13 @@ export async function fetchPedidosFinanceiros(restauranteId, periodo = 'hoje') {
         dataFim = agora;
     }
 
-    // Buscar pedidos concluídos do período
+    // Buscar pedidos concluídos do período com status de pagamento
     const { data: pedidos, error: pedidosError } = await supabase
       .from("pedidos_padronizados")
-      .select("valor_total, metodo_pagamento, criado_em, status, tipo_pedido")
+      .select("valor_total, metodo_pagamento, criado_em, status, tipo_pedido, status_pagamento, troco")
       .eq("id_restaurante", restauranteId)
-      .in("status", ["entregue"]) // considerar apenas pedidos entregues para faturamento
+      .in("status", ["concluido"]) // considerar apenas pedidos concluídos para faturamento
+      .in("status_pagamento", ["pago", "pendente"]) // apenas pedidos pagos ou pendentes (nunca estornados)
       .gte("criado_em", dataInicio.toISOString())
       .lte("criado_em", dataFim.toISOString())
       .order("criado_em", { ascending: false });
@@ -89,23 +90,28 @@ export function processarDadosFinanceiros(pedidos) {
 
   pedidos.forEach(pedido => {
     const valor = parseFloat(pedido.valor_total) || 0;
-    totalFaturado += valor;
     
-    // Agrupar por método de pagamento
-    const metodo = pedido.metodo_pagamento || 'Não informado';
-    porMetodo[metodo] = (porMetodo[metodo] || 0) + valor;
-    
-    // Agrupar por tipo de pedido
-    const tipo = pedido.tipo_pedido || 'Não informado';
-    porTipo[tipo] = (porTipo[tipo] || 0) + valor;
-    
-    // Agrupar por dia
-    const dia = (pedido.criado_em || '').split('T')[0];
-    if (!pedidosPorDia[dia]) {
-      pedidosPorDia[dia] = { quantidade: 0, valor: 0 };
+    // Só incluir no faturamento se o pagamento foi aprovado (pago)
+    // Pedidos pendentes (dinheiro) não entram no faturamento até serem pagos
+    if (pedido.status_pagamento === 'pago') {
+      totalFaturado += valor;
+      
+      // Agrupar por método de pagamento
+      const metodo = pedido.metodo_pagamento || 'Não informado';
+      porMetodo[metodo] = (porMetodo[metodo] || 0) + valor;
+      
+      // Agrupar por tipo de pedido
+      const tipo = pedido.tipo_pedido || 'Não informado';
+      porTipo[tipo] = (porTipo[tipo] || 0) + valor;
+      
+      // Agrupar por dia
+      const dia = (pedido.criado_em || '').split('T')[0];
+      if (!pedidosPorDia[dia]) {
+        pedidosPorDia[dia] = { quantidade: 0, valor: 0 };
+      }
+      pedidosPorDia[dia].quantidade += 1;
+      pedidosPorDia[dia].valor += valor;
     }
-    pedidosPorDia[dia].quantidade += 1;
-    pedidosPorDia[dia].valor += valor;
   });
 
   const ticketMedio = pedidos.length > 0 ? totalFaturado / pedidos.length : 0;
@@ -156,9 +162,10 @@ export async function fetchDadosComparacao(restauranteId, periodo = 'hoje') {
 
     const { data: pedidos, error } = await supabase
       .from("pedidos_padronizados")
-      .select("valor_total, metodo_pagamento, criado_em")
+      .select("valor_total, metodo_pagamento, criado_em, status_pagamento")
       .eq("id_restaurante", restauranteId)
-      .in("status", ["entregue"]) // período anterior, também só entregues
+      .in("status", ["concluido"]) // período anterior, também só concluídos
+      .in("status_pagamento", ["pago"]) // apenas pedidos pagos para comparação
       .gte("criado_em", dataInicio.toISOString())
       .lte("criado_em", dataFim.toISOString());
 

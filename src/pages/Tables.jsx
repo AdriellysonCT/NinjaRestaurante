@@ -178,7 +178,7 @@ const Tables = () => {
     const novo = await createOrder({
       id_restaurante: restaurante.id,
       mesa_numero: table.numero,
-      tipo_pedido: 'mesa',
+      tipo_pedido: 'local',
       status: 'disponivel',
     });
     await associateOrderToTable(table.id, novo.id);

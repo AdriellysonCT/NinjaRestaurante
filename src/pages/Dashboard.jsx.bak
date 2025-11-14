@@ -1,0 +1,46 @@
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useAppContext } from "../context/AppContext";
+import ErrorBoundary from "../components/ErrorBoundary";
+import * as Icons from "../components/icons/index.jsx";
+import { OrderDetailModal } from "../components/OrderDetailModal";
+import { supabase } from "../lib/supabase";
+
+const Dashboard = () => {
+  const { user } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [paymentType, setPaymentType] = useState("all");
+  const [deliveryType, setDeliveryType] = useState("all");
+  const notificationSoundRef = useRef(null);
+  const [playedNotifications, setPlayedNotifications] = useState(new Set());
+  const [restaurantId, setRestaurantId] = useState(null);
+  const [updatingOrders, setUpdatingOrders] = useState(new Set());
+  const [rankingPeriod, setRankingPeriod] = useState("day"); // 'day' | 'week'
+  const progressTimerRef = useRef(null);
+  const [progressTick, setProgressTick] = useState(0);
+  const [driverUpdatedAt, setDriverUpdatedAt] = useState({}); // { [orderId]: timestamp }
+
+  // Obter controle de som do contexto
+  const { soundEnabled, enableSound, disableSound } = useAppContext?.() || {};
+
+  // Habilitar som automaticamente quando componente monta
+  useEffect(() => {
+    if (soundEnabled === false && enableSound) {
+      console.log('Habilitando som automaticamente...');
+      enableSound();
+    }
+  }, [soundEnabled, enableSound]);
+
+  // ... restante do arquivo original ...
+}
+
+export default Dashboard;
+
+
+
+
+

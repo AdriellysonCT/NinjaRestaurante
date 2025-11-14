@@ -9,25 +9,48 @@ const mapOrder = (order) => {
     prepTime: item.itens_cardapio?.tempo_preparo || 0
   }));
 
-  // Calculate total prep time by summing up prepTime of all items
-  const totalPrepTime = items.reduce((sum, item) => sum + item.prepTime, 0);
+  // Calculate total prep time with intelligent logic
+  // Instead of summing all times (unrealistic), we use the longest item as base
+  // and add buffers for additional complex items
+  let totalPrepTime = 0;
+  let sortedItems = [];
+  let complexItems = [];
+  
+  if (items.length === 0) {
+    totalPrepTime = 0;
+  } else {
+    // Sort items by prep time (descending)
+    sortedItems = [...items].sort((a, b) => b.prepTime - a.prepTime);
+    
+    // Base time is the longest item
+    totalPrepTime = sortedItems[0].prepTime || 0;
+    
+    // Count items with 25+ minutes (excluding the first/longest one)
+    complexItems = sortedItems.slice(1).filter(item => item.prepTime >= 25);
+    
+    // For each additional complex item, add only 15 minutes (parallel cooking)
+    totalPrepTime += complexItems.length * 15;
+  }
 
   return {
     id: order.id,
     numero_pedido: order.numero_pedido || order.id.substring(0, 8),
-    customerName: order.clientes_app?.nome || 'Anônimo',
+    customerName: order.nome_cliente || order.clientes_app?.nome || 'Cliente não informado',
     customerPhone: order.telefone_cliente || order.clientes_app?.telefone || 'Telefone não cadastrado',
     timestamp: order.criado_em,
-    total: parseFloat(order.valor_total) || 0,
+    total: parseFloat(order.valor_total) || parseFloat(order.subtotal) || 0,
     status: order.status,
-    tipo_pedido: order.tipo_pedido || 'delivery', // Incluir tipo de pedido
+    tipo_pedido: order.tipo_pedido, // Front agora deve enviar explicitamente
     items: items,
     isVip: order.is_vip,
     prepTime: totalPrepTime,
     started_at: order.started_at,
     comments: order.observacoes,
     deliveryTime: order.delivery_time,
-    paymentMethod: order.metodo_pagamento
+    paymentMethod: order.metodo_pagamento,
+    paymentStatus: order.status_pagamento || (order.pagamento_recebido_pelo_sistema ? 'pago' : 'pendente'),
+    troco: parseFloat(order.troco) || 0,
+    paymentType: order.metodo_pagamento || 'Não informado'
   };
 };
 
@@ -51,9 +74,11 @@ export async function fetchOrders() {
       .select(`
         id,
         numero_pedido,
+        nome_cliente,
         tipo_pedido,
         status,
         valor_total,
+        subtotal,
         criado_em,
         is_vip,
         mesa_numero,
@@ -62,6 +87,9 @@ export async function fetchOrders() {
         telefone_cliente,
         prep_time,
         started_at,
+        pagamento_recebido_pelo_sistema,
+        status_pagamento,
+        troco,
         itens_pedido!itens_pedido_id_pedido_fkey(
           id,
           quantidade,
@@ -72,7 +100,8 @@ export async function fetchOrders() {
         )
       `)
       .eq('id_restaurante', restaurante.id)
-      .or('tipo_pedido.is.null,tipo_pedido.neq.mesa')
+      // Filtrar apenas pedidos com status_pagamento válido (pago ou pendente)
+      .in('status_pagamento', ['pago', 'pendente'])
       .in('status', ['disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido'])
       .order('criado_em', { ascending: false });
       
@@ -104,9 +133,11 @@ export async function fetchOrderById(id) {
       .select(`
         id,
         numero_pedido,
+        nome_cliente,
         tipo_pedido,
         status,
         valor_total,
+        subtotal,
         criado_em,
         is_vip,
         mesa_numero,
@@ -115,6 +146,9 @@ export async function fetchOrderById(id) {
         telefone_cliente,
         prep_time,
         started_at,
+        pagamento_recebido_pelo_sistema,
+        status_pagamento,
+        troco,
         itens_pedido!itens_pedido_id_pedido_fkey(
           id,
           quantidade,
@@ -126,7 +160,8 @@ export async function fetchOrderById(id) {
       `)
       .eq('id', id)
       .eq('id_restaurante', restaurante.id)
-      .or('tipo_pedido.is.null,tipo_pedido.neq.mesa')
+      // Filtrar apenas pedidos com status_pagamento válido (pago ou pendente)
+      .in('status_pagamento', ['pago', 'pendente'])
       .in('status', ['disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido'])
       .single();
       
@@ -155,12 +190,12 @@ export async function createOrder(order) {
 
     // Validação obrigatória do tipo de pedido
     const providedTipo = order.tipo_pedido ?? order.tipoPedido;
-    const allowedTipos = ['delivery', 'mesa', 'balcao', 'online'];
+    const allowedTipos = ['delivery', 'retirada', 'local'];
     if (!providedTipo) {
       throw new Error('Selecione o tipo de pedido antes de continuar.');
     }
     if (!allowedTipos.includes(providedTipo)) {
-      throw new Error('Tipo de pedido inválido. Escolha delivery, mesa, balcao ou online.');
+      throw new Error('Tipo de pedido inválido. Use delivery, retirada ou local.');
     }
 
     // Gerar número sequencial básico por restaurante (fallback)

@@ -373,6 +373,27 @@ export const AuthProvider = ({ children }) => {
       // Definir o usuário no estado
       setUser(data.user);
       
+      // Atualizar status ativo para true
+      try {
+        const { data: restaurante } = await supabase
+          .from('restaurantes_app')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .single();
+        
+        if (restaurante?.id) {
+          await supabase
+            .from('restaurantes_app')
+            .update({ ativo: true })
+            .eq('id', restaurante.id);
+          
+          console.log('Status do restaurante atualizado para ativo');
+        }
+      } catch (updateError) {
+        console.error('Erro ao atualizar status ativo:', updateError);
+        // Não impedir login se falhar ao atualizar status
+      }
+      
       // Carregar dados reais do restaurante após login
       await carregarDadosRestaurante(data.user);
       
@@ -398,6 +419,29 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       
       console.log('Iniciando processo de logout...');
+      
+      // Atualizar status ativo para false antes de deslogar
+      if (user?.id) {
+        try {
+          const { data: restaurante } = await supabase
+            .from('restaurantes_app')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (restaurante?.id) {
+            await supabase
+              .from('restaurantes_app')
+              .update({ ativo: false })
+              .eq('id', restaurante.id);
+            
+            console.log('Status do restaurante atualizado para inativo');
+          }
+        } catch (updateError) {
+          console.error('Erro ao atualizar status ativo:', updateError);
+          // Não impedir logout se falhar ao atualizar status
+        }
+      }
       
       // Limpar estado local imediatamente
       setUser(null);

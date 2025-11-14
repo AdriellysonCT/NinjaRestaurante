@@ -180,19 +180,37 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
               <p className="font-medium text-white">{order.metodo_pagamento || order.paymentMethod || 'Não informado'}</p>
             </div>
             <div>
+              <p className="text-xs text-gray-400">Status do Pagamento</p>
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  order.paymentStatus === 'pago' ? 'bg-green-600 text-white' :
+                  order.paymentStatus === 'pendente' ? 'bg-yellow-600 text-white' :
+                  'bg-red-600 text-white'
+                }`}>
+                  {order.paymentStatus === 'pago' ? '🟢 Pago' :
+                   order.paymentStatus === 'pendente' ? '🟡 Pendente' :
+                   '🔴 Estornado'}
+                </span>
+                {/* Mostrar troco para pedidos pendentes */}
+                {order.paymentStatus === 'pendente' && order.troco > 0 && (
+                  <span className="text-yellow-400 text-xs font-semibold">
+                    Troco: R$ {order.troco.toFixed(2)}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div>
               <p className="text-xs text-gray-400">Tipo de Entrega</p>
               <div className="flex items-center gap-2">
                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                   order.tipo_pedido === 'delivery' ? 'bg-blue-600 text-white' :
-                  order.tipo_pedido === 'balcao' ? 'bg-green-600 text-white' :
-                  order.tipo_pedido === 'mesa' ? 'bg-purple-600 text-white' :
-                  order.tipo_pedido === 'online' ? 'bg-indigo-600 text-white' :
+                  order.tipo_pedido === 'retirada' ? 'bg-green-600 text-white' :
+                  order.tipo_pedido === 'local' ? 'bg-purple-600 text-white' :
                   'bg-gray-600 text-white'
                 }`}>
                   {order.tipo_pedido === 'delivery' ? '🚚 Entrega' :
-                   order.tipo_pedido === 'balcao' ? '🏪 Retirada' :
-                   order.tipo_pedido === 'mesa' ? '🍽️ Consumo Local' :
-                   order.tipo_pedido === 'online' ? '💻 Online' :
+                   order.tipo_pedido === 'retirada' ? '🏪 Retirada' :
+                   order.tipo_pedido === 'local' ? '🍽️ Consumo Local' :
                    order.tipo_pedido || 'Não informado'}
                 </span>
               </div>
@@ -217,7 +235,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
           )}
           
           {/* Informação específica para pedidos locais */}
-          {(order.tipo_pedido === 'balcao' || order.tipo_pedido === 'mesa') && order.status === 'concluido' && (
+          {(order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local') && order.status === 'concluido' && (
             <div className="border-t border-gray-700 pt-3">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -225,7 +243,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
                   <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/>
                 </svg>
                 <span className="text-base font-semibold text-white">
-                  {order.tipo_pedido === 'balcao' ? 'Pedido retirado pelo cliente' : 'Pedido consumido no local'}
+                  {order.tipo_pedido === 'retirada' ? 'Pedido retirado pelo cliente' : 'Pedido consumido no local'}
                 </span>
               </div>
             </div>

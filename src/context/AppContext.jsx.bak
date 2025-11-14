@@ -26,32 +26,19 @@ export const AppProvider = ({ children }) => {
   const [restaurantId, setRestaurantId] = useState(null);
   const notificationSoundRef = useRef(null);
   const notificationIntervalRef = useRef(null);
-  const [soundPreference, setSoundPreference] = useState(() => {
-    try { return localStorage.getItem('fome-ninja-sound-pref') === 'true'; } catch (_) { return false; }
-  });
-  const [soundUnlocked, setSoundUnlocked] = useState(false);
-  const soundEnabled = soundPreference && soundUnlocked;
-  const ordersRef = useRef([]);
-
-  // Manter referência do estado atual de pedidos para uso em handlers de evento
-  useEffect(() => {
-    ordersRef.current = orders;
-  }, [orders]);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   // Controles de som (habilitar/desabilitar mediante interação do usuário)
   const enableSound = async () => {
     try {
-      console.log('AppContext - Habilitando som (preferência ON)...');
-      setSoundPreference(true);
-      try { localStorage.setItem('fome-ninja-sound-pref', 'true'); } catch (_) {}
+      console.log('AppContext - Habilitando som...');
+      setSoundEnabled(true);
       // Tentar desbloquear o áudio após gesto do usuário
       // Alguns navegadores exigem um play/resume explícito
       if (notificationSoundRef.current) {
         console.log('AppContext - Elemento de áudio encontrado, testando...');
         notificationSoundRef.current.currentTime = 0;
-        await notificationSoundRef.current.play().then(() => {
-          setSoundUnlocked(true);
-        }).catch(() => {});
+        await notificationSoundRef.current.play().catch(() => {});
         notificationSoundRef.current.pause();
         notificationSoundRef.current.currentTime = 0;
         console.log('AppContext - Teste de áudio concluído');
@@ -61,7 +48,9 @@ export const AppProvider = ({ children }) => {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (AC) {
         const ctx = new AC();
-        if (ctx.state === 'suspended') { await ctx.resume().catch(() => {}); }
+        if (ctx.state === 'suspended') {
+          await ctx.resume().catch(() => {});
+        }
         // Encerrar imediatamente para não manter recursos
         try { ctx.close(); } catch (_) {}
       }
@@ -71,8 +60,7 @@ export const AppProvider = ({ children }) => {
   };
 
   const disableSound = () => {
-    setSoundPreference(false);
-    try { localStorage.setItem('fome-ninja-sound-pref', 'false'); } catch (_) {}
+    setSoundEnabled(false);
     if (notificationIntervalRef.current) {
       clearInterval(notificationIntervalRef.current);
       notificationIntervalRef.current = null;
@@ -96,29 +84,6 @@ export const AppProvider = ({ children }) => {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  // Desbloquear áudio no primeiro gesto do usuário e tocar imediatamente se já houver "Novas Missões"
-  useEffect(() => {
-    const events = ['click', 'pointerdown', 'touchstart', 'keydown'];
-
-    const onFirstInteraction = async () => {
-      try {
-        await enableSound();
-        const hasNewMission = (ordersRef.current || []).some(o => o.status === 'disponivel' && !o.started_at);
-        if (hasNewMission && notificationSoundRef.current) {
-          notificationSoundRef.current.currentTime = 0;
-          notificationSoundRef.current.play().catch(() => {});
-        }
-      } finally {
-        events.forEach(evt => window.removeEventListener(evt, onFirstInteraction, true));
-      }
-    };
-
-    events.forEach(evt => window.addEventListener(evt, onFirstInteraction, true));
-    return () => {
-      events.forEach(evt => window.removeEventListener(evt, onFirstInteraction, true));
     };
   }, []);
 
@@ -264,45 +229,6 @@ export const AppProvider = ({ children }) => {
     initializeData();
   }, [isOnline, isInitialized, user, authLoading]);
 
-  // Desbloquear áudio no primeiro gesto do usuário sem alterar preferência do usuário
-  useEffect(() => {
-    const events = ['click', 'pointerdown', 'touchstart', 'keydown'];
-
-    const tryUnlock = async () => {
-      if (soundUnlocked) return;
-      try {
-        if (notificationSoundRef.current) {
-          notificationSoundRef.current.currentTime = 0;
-          await notificationSoundRef.current.play().then(() => {
-            setSoundUnlocked(true);
-          }).catch(() => {});
-          notificationSoundRef.current.pause();
-          notificationSoundRef.current.currentTime = 0;
-        }
-        // WebAudio API
-        // @ts-ignore
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (AC) {
-          const ctx = new AC();
-          if (ctx.state === 'suspended') { await ctx.resume().catch(() => {}); }
-          try { ctx.close(); } catch (_) {}
-        }
-
-        // Se já houver "Novas Missões" e preferência ON, tocar imediatamente
-        const hasNewMission = (ordersRef.current || []).some(o => o.status === 'disponivel' && !o.started_at);
-        if (hasNewMission && soundPreference && notificationSoundRef.current) {
-          notificationSoundRef.current.currentTime = 0;
-          notificationSoundRef.current.play().catch(() => {});
-        }
-      } finally {
-        events.forEach(evt => window.removeEventListener(evt, tryUnlock, true));
-      }
-    };
-
-    events.forEach(evt => window.addEventListener(evt, tryUnlock, true));
-    return () => { events.forEach(evt => window.removeEventListener(evt, tryUnlock, true)); };
-  }, [soundUnlocked, soundPreference]);
-
   // Real-time de pedidos
   useEffect(() => {
     if (!isInitialized || !restaurantId) return;
@@ -402,14 +328,14 @@ export const AppProvider = ({ children }) => {
         notificationIntervalRef.current = null;
       }
     };
-  }, [orders, isInitialized, soundEnabled]);
+  }, [orders, isInitialized]);
 
   // Funções para manipular pedidos
   const addOrder = async (order) => {
     try {
       // Validar tipo_pedido antes de criar
       const tipo = order?.tipo_pedido ?? order?.tipoPedido;
-      const allowed = ['delivery', 'retirada', 'local'];
+      const allowed = ['delivery', 'mesa', 'balcao', 'online'];
       if (!tipo) {
         throw new Error('Selecione o tipo de pedido antes de continuar.');
       }
@@ -667,3 +593,8 @@ export const AppProvider = ({ children }) => {
 };
 
 export default AppProvider;
+
+
+
+
+
