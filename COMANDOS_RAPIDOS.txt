@@ -1,0 +1,57 @@
+===========================================
+COMANDOS PARA COPIAR E COLAR
+===========================================
+
+1. FAZER COMMIT E PUSH
+-----------------------
+git add vercel.json
+git commit -m "fix: adicionar configuração SPA para Vercel"
+git push origin main
+
+
+2. VARIÁVEIS DE AMBIENTE NO VERCEL
+-----------------------------------
+Nome: VITE_SUPABASE_URL
+Valor: https://eaeggaondfefgwhseswn.supabase.co
+
+Nome: VITE_SUPABASE_ANON_KEY
+Valor: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhZWdnYW9uZGZlZmd3aHNlc3duIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNzkyNjUsImV4cCI6MjA2MTk1NTI2NX0.DFMOYzqO1m3KYALmoEbvOFIwmzuxsQxtKaKl8q81NSo
+
+
+3. REDIRECT URLs NO SUPABASE (substitua SEU-DOMINIO)
+-----------------------------------------------------
+https://SEU-DOMINIO.vercel.app/**
+https://SEU-DOMINIO.vercel.app/login
+https://SEU-DOMINIO.vercel.app/dashboard
+http://localhost:5173/**
+
+
+4. SITE URL NO SUPABASE (substitua SEU-DOMINIO)
+------------------------------------------------
+https://SEU-DOMINIO.vercel.app
+
+
+5. TESTAR LOCALMENTE ANTES DO DEPLOY
+-------------------------------------
+npm run build
+npm run preview
+
+
+6. SE PRECISAR FAZER DEPLOY MANUAL
+-----------------------------------
+npm run build
+vercel --prod
+
+
+===========================================
+LINKS ÚTEIS
+===========================================
+
+Vercel Dashboard:
+https://vercel.com
+
+Supabase Auth Config:
+https://supabase.com/dashboard/project/eaeggaondfefgwhseswn/auth/url-configuration
+
+Supabase Project:
+https://supabase.com/dashboard/project/eaeggaondfefgwhseswn
