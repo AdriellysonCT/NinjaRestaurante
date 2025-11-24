@@ -80,94 +80,37 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
 
   if (!order) return null;
 
-  const handlePrintTicket = async () => {
-    setIsPrinting(true);
-    setPrintMessage(null);
-    
-    try {
-      const result = await printService.reprintOrderTicket(order);
-      setPrintMessage({
-        type: result.success ? 'success' : 'error',
-        text: result.message
-      });
-      
-      // Mostrar prévia da comanda no console
-      console.log('Prévia da comanda:');
-      console.log(result.ticketContent);
-    } catch (error) {
-      setPrintMessage({
-        type: 'error',
-        text: 'Erro ao imprimir comanda: ' + error.message
-      });
-    } finally {
-      setIsPrinting(false);
-      
-      // Limpar mensagem após 3 segundos
-      setTimeout(() => {
-        setPrintMessage(null);
-      }, 3000);
-    }
-  };
-
-  const handleAccept = async () => {
-    // Imprimir comanda automaticamente ao aceitar
-    setIsPrinting(true);
-    
-    try {
-      const result = await printService.printOrderTicket(order);
-      console.log('Resultado da impressão:', result);
-      
-      // Mostrar prévia da comanda no console
-      console.log('Prévia da comanda:');
-      console.log(result.ticketContent);
-      
-      // Chamar a função de aceitar do componente pai
-      onAccept(order.id);
-      onClose();
-    } catch (error) {
-      console.error('Erro ao imprimir comanda:', error);
-    } finally {
-      setIsPrinting(false);
-    }
-  };
-
-  const handleSaveComments = () => {
-    // Aqui seria implementada a lógica para salvar os comentários
-    // Por enquanto, apenas fechamos o modal de comentários
-    setShowComments(false);
-  };
-
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} title="">
-        <div className="space-y-4" style={{ backgroundColor: '#121212' }}>
-          <h2 className="text-center text-xl font-bold text-white">{`Detalhes do Pedido #${order.numero_pedido}`}</h2>
+        <div className="space-y-3">
+          <h2 className="text-center text-lg font-bold text-white mb-3">{`Detalhes do Pedido #${order.numero_pedido}`}</h2>
           {/* Cabeçalho do pedido */}
-          <div className="flex justify-between items-start text-white">
+          <div className="flex justify-between items-start text-white pb-3 border-b border-gray-700">
             <div>
-              <h3 className="font-bold">{order.nome_cliente || order.customerName}</h3>
-              <p className="text-xs text-gray-300">{formatDateBr(order.criado_em || order.created_at || order.timestamp)}</p>
+              <h3 className="font-bold text-base">{order.nome_cliente || order.customerName}</h3>
+              <p className="text-xs text-gray-400 mt-0.5">{formatDateBr(order.criado_em || order.created_at || order.timestamp)}</p>
             </div>
             <div className="text-right">
-              <p className="font-bold text-lg text-[#FF6B00]">R$ {(parseFloat(order.valor_total ?? order.total ?? 0)).toFixed(2)}</p>
+              <p className="font-bold text-xl text-[#FF6B00]">R$ {(parseFloat(order.valor_total ?? order.total ?? 0)).toFixed(2)}</p>
             </div>
           </div>
           
           {/* Itens do pedido */}
-          <div className="border-t border-gray-700 pt-3">
-            <h4 className="font-semibold mb-2 text-white">Itens do Pedido</h4>
-            <ul className="space-y-2 text-gray-200">
+          <div className="py-2">
+            <h4 className="font-semibold mb-2 text-white text-sm">Itens do Pedido</h4>
+            <ul className="space-y-1.5 text-gray-200">
               {(order.items || []).map((item, index) => (
                 <li key={index} className="flex justify-between text-sm">
                   <span>{(item.qty ?? item.quantidade ?? 1)}x {item.name ?? item?.itens_cardapio?.nome}</span>
-                  <span className="font-medium">R$ {(Number(item.price ?? item.preco_unitario ?? 0)).toFixed(2)}</span>
+                  <span className="font-medium text-[#FF6B00]">R$ {(Number(item.price ?? item.preco_unitario ?? 0)).toFixed(2)}</span>
                 </li>
               ))}
             </ul>
           </div>
           
           {/* Informações adicionais */}
-          <div className="border-t border-gray-700 pt-3 grid grid-cols-2 gap-3">
+          <div className="border-t border-gray-700 pt-3 grid grid-cols-2 gap-3 text-sm">
             <div>
               <p className="text-xs text-gray-400">Tempo de Preparo</p>
               <p className="font-medium flex items-center gap-1 text-white">
@@ -178,26 +121,6 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
             <div>
               <p className="text-xs text-gray-400">Forma de Pagamento</p>
               <p className="font-medium text-white">{order.metodo_pagamento || order.paymentMethod || 'Não informado'}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-400">Status do Pagamento</p>
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                  order.paymentStatus === 'pago' ? 'bg-green-600 text-white' :
-                  order.paymentStatus === 'pendente' ? 'bg-yellow-600 text-white' :
-                  'bg-red-600 text-white'
-                }`}>
-                  {order.paymentStatus === 'pago' ? '🟢 Pago' :
-                   order.paymentStatus === 'pendente' ? '🟡 Pendente' :
-                   '🔴 Estornado'}
-                </span>
-                {/* Mostrar troco para pedidos pendentes */}
-                {order.paymentStatus === 'pendente' && order.troco > 0 && (
-                  <span className="text-yellow-400 text-xs font-semibold">
-                    Troco: R$ {order.troco.toFixed(2)}
-                  </span>
-                )}
-              </div>
             </div>
             <div>
               <p className="text-xs text-gray-400">Tipo de Entrega</p>
@@ -215,6 +138,13 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
                 </span>
               </div>
             </div>
+            {/* Mostrar troco para pedidos em dinheiro */}
+            {order.troco > 0 && (
+              <div>
+                <p className="text-xs text-gray-400">Troco para</p>
+                <p className="font-medium text-yellow-400">R$ {order.troco.toFixed(2)}</p>
+              </div>
+            )}
           </div>
           
           {/* Entregador Responsável - apenas para pedidos de entrega */}
@@ -291,8 +221,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
           </div>
           
           {/* Ações */}
-          <div className="border-t border-gray-700 pt-4 flex flex-col gap-2">
-            <div className="flex flex-wrap gap-2">
+          <div className="border-t border-gray-700 pt-3 flex gap-2">
               <button
                 onClick={() => {
                   try {
@@ -320,24 +249,22 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
                   }
                 }}
                 disabled={isPrinting}
-                className="flex items-center justify-center gap-1 px-3 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium flex-1"
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium flex-1 transition-colors"
               >
-                <Icons.PrinterIcon className="w-5 h-5" />
-                {isPrinting ? 'Imprimindo...' : 'Imprimir Comanda'}
+                <Icons.PrinterIcon className="w-4 h-4" />
+                {isPrinting ? 'Imprimindo...' : 'Imprimir'}
               </button>
               
               <button
                 onClick={handleWhatsApp}
-                className="flex items-center justify-center gap-1 px-3 py-2 rounded-md bg-[#28A745] hover:bg-[#23913D] text-white text-sm font-medium flex-1"
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-[#25D366] hover:bg-[#20BA5A] text-white text-sm font-medium flex-1 transition-colors"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                  <path d="M11.999 1.99C6.47 1.99 1.99 6.47 1.99 12s4.48 10.01 10.009 10.01c5.53 0 10.01-4.48 10.01-10.01S17.53 1.99 11.999 1.99zm0 18.08c-4.46 0-8.08-3.62-8.08-8.08s3.62-8.08 8.08-8.08 8.08 3.62 8.08 8.08-3.62 8.08-8.08 8.08z"/>
                 </svg>
                 WhatsApp
               </button>
             </div>
-          </div>
         </div>
       </Modal>
       

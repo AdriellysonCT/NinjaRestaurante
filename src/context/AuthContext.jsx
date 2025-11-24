@@ -180,6 +180,12 @@ export const AuthProvider = ({ children }) => {
         if (dadosRestaurante.nome_fantasia) {
           localStorage.setItem('fome-ninja-restaurant-name', dadosRestaurante.nome_fantasia);
         }
+        
+        // ✅ SALVAR O ID DO RESTAURANTE NO LOCALSTORAGE
+        if (dadosRestaurante.id) {
+          localStorage.setItem('restaurante_id', dadosRestaurante.id);
+          console.log('✅ Restaurante ID salvo:', dadosRestaurante.id);
+        }
       } else {
         console.log('Dados do restaurante não encontrados, criando estrutura básica');
         // Se não houver dados, criar uma estrutura básica com o email do usuário
@@ -525,6 +531,7 @@ export const AuthProvider = ({ children }) => {
   const contextValue = {
     user,
     restaurante,
+    restauranteId: restaurante?.id || null,  // ✅ Expor restauranteId diretamente
     loading,
     error,
     isAuthenticated: !!user,

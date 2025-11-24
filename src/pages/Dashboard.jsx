@@ -206,6 +206,15 @@ const Dashboard = () => {
           "itens"
         );
 
+        // Calcular total a partir dos itens se valor_total estiver zerado ou nulo
+        const valorTotalBanco = parseFloat(pedido.valor_total || pedido.total || 0);
+        const totalCalculadoItens = pedido.itens_pedido?.reduce((sum, item) => {
+          const precoItem = parseFloat(item.preco_total || (item.preco_unitario * item.quantidade) || 0);
+          return sum + precoItem;
+        }, 0) || 0;
+        
+        const totalFinal = valorTotalBanco > 0 ? valorTotalBanco : totalCalculadoItens;
+
         return {
           id: pedido.id,
           numero_pedido: pedido.numero_pedido,
@@ -213,7 +222,8 @@ const Dashboard = () => {
           telefone_cliente: pedido.telefone_cliente || null,
           status: pedido.status,
           originalStatus: pedido.status,
-          total: parseFloat(pedido.valor_total || pedido.total || 0),
+          total: totalFinal,
+          valor_total: totalFinal, // Adicionar também como valor_total para o modal
           paymentType: pedido.metodo_pagamento || pedido.forma_pagamento || "N/A",
           paymentMethod: pedido.metodo_pagamento || pedido.forma_pagamento || "N/A",
           paymentStatus: pedido.status_pagamento || (pedido.pagamento_recebido_pelo_sistema ? 'pago' : 'pendente'),
@@ -1036,16 +1046,6 @@ const Dashboard = () => {
                               <p className="text-xs text-orange-400 font-semibold">
                                 {order.paymentType?.toUpperCase() || "N/A"}
                               </p>
-                              {/* Indicador de status de pagamento */}
-                              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                                order.paymentStatus === 'pago' ? 'bg-green-600 text-white' :
-                                order.paymentStatus === 'pendente' ? 'bg-yellow-600 text-white' :
-                                'bg-red-600 text-white'
-                              }`}>
-                                {order.paymentStatus === 'pago' ? '🟢 Pago' :
-                                 order.paymentStatus === 'pendente' ? '🟡 Pendente' :
-                                 '🔴 Estornado'}
-                              </span>
                               {order.tipo_pedido && (
                                 <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
                                   order.tipo_pedido === 'delivery' ? 'bg-blue-600 text-white' :
@@ -1106,7 +1106,7 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Modal de detalhes - novo componente */}
+        {/* Modal de detalhes */}
         <OrderDetailModal
           isOpen={!!selectedOrder}
           onClose={handleCloseModal}
