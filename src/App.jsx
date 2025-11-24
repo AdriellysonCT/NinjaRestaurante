@@ -14,6 +14,7 @@ import { Header } from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Orders from './pages/Orders';
 import Menu from './pages/Menu';
+import Complements from './pages/Complements';
 import Settings from './pages/Settings';
 import { Login } from './pages/Login';
 import { Cadastro } from './pages/Cadastro';
@@ -93,6 +94,7 @@ const MainLayout = () => {
                 <Route path="/pdv" element={<POS />} />
                 <Route path="/agendados" element={<Scheduled />} />
                 <Route path="/cardapio" element={<Menu />} />
+                <Route path="/complementos" element={<Complements />} />
                 <Route path="/financeiro" element={<Finance />} />
                 <Route path="/configuracoes" element={<Settings />} />
                 <Route path="/test" element={<Test />} />
