@@ -1,26 +1,35 @@
--- Script para verificar a estrutura completa da tabela itens_cardapio
--- Execute este script no painel SQL do Supabase
+-- Verificar estrutura das tabelas de complementos
 
--- Verificar estrutura da tabela
-SELECT 
-    column_name, 
-    data_type, 
-    is_nullable, 
-    column_default,
-    character_maximum_length
+-- 1. Verificar se as tabelas existem
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+  AND table_name IN ('complementos', 'grupos_complementos', 'grupos_complementos_itens', 'itens_complementos');
+
+-- 2. Verificar colunas da tabela complementos
+SELECT column_name, data_type, is_nullable
 FROM information_schema.columns
-WHERE table_name = 'itens_cardapio'
+WHERE table_name = 'complementos'
 ORDER BY ordinal_position;
 
--- Verificar se a extensão uuid-ossp está habilitada
-SELECT * FROM pg_extension WHERE extname = 'uuid-ossp';
+-- 3. Verificar colunas da tabela grupos_complementos
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'grupos_complementos'
+ORDER BY ordinal_position;
 
--- Verificar constraints da tabela
-SELECT 
-    tc.constraint_name, 
-    tc.constraint_type, 
-    kcu.column_name
-FROM information_schema.table_constraints tc
-JOIN information_schema.key_column_usage kcu 
-    ON tc.constraint_name = kcu.constraint_name
-WHERE tc.table_name = 'itens_cardapio';
+-- 4. Verificar colunas da tabela grupos_complementos_itens
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'grupos_complementos_itens'
+ORDER BY ordinal_position;
+
+-- 5. Verificar colunas da tabela itens_complementos
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'itens_complementos'
+ORDER BY ordinal_position;
+
+-- 6. Ver alguns registros de exemplo (se existirem)
+SELECT * FROM complementos LIMIT 3;
+SELECT * FROM grupos_complementos LIMIT 3;
