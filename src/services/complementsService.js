@@ -62,10 +62,9 @@ export const createComplement = async (restauranteId, complementData) => {
       .insert([{
         id_restaurante: restauranteId,
         nome: complementData.name,
-        descricao: complementData.description || null,
         preco: complementData.price,
-        imagem_url: complementData.image || null,
-        status: complementData.available ? 'disponivel' : 'indisponivel'
+        imagem: complementData.image || null,
+        disponivel: complementData.available ?? true
       }])
       .select()
       .single();
@@ -87,10 +86,9 @@ export const updateComplement = async (complementId, complementData) => {
       .from('complementos')
       .update({
         nome: complementData.name,
-        descricao: complementData.description || null,
         preco: complementData.price,
-        imagem_url: complementData.image || null,
-        status: complementData.available ? 'disponivel' : 'indisponivel'
+        imagem: complementData.image || null,
+        disponivel: complementData.available ?? true
       })
       .eq('id', complementId)
       .select()
@@ -130,17 +128,27 @@ export const toggleComplementAvailability = async (complementId) => {
     // Buscar estado atual
     const { data: current, error: fetchError } = await supabase
       .from('complementos')
-      .select('status')
+      .select('disponivel')
       .eq('id', complementId)
       .single();
 
-    if (fetchError) throw fetchError;
+    if (fetchError) {
+      // Se a coluna não existir, mostrar mensagem específica
+      if (fetchError.code === '42703' || fetchError.message.includes('does not exist')) {
+        console.error('❌ Coluna "disponivel" não existe na tabela complementos');
+        return { 
+          success: false, 
+          error: 'A coluna "disponivel" não existe. Execute o script: adicionar_coluna_disponivel.sql' 
+        };
+      }
+      throw fetchError;
+    }
 
     // Inverter disponibilidade
-    const newStatus = current.status === 'disponivel' ? 'indisponivel' : 'disponivel';
+    const newAvailability = !current.disponivel;
     const { data, error } = await supabase
       .from('complementos')
-      .update({ status: newStatus })
+      .update({ disponivel: newAvailability })
       .eq('id', complementId)
       .select()
       .single();
@@ -163,7 +171,7 @@ export const getGroups = async (restauranteId) => {
     const { data, error } = await supabase
       .from('grupos_complementos')
       .select('*')
-      .eq('id_restaurante', restauranteId)  // ✅ Corrigido: id_restaurante
+      .eq('id_restaurante', restauranteId)
       .order('nome');
 
     if (error) throw error;
@@ -184,8 +192,6 @@ export const createGroup = async (restauranteId, groupData) => {
       .insert([{
         id_restaurante: restauranteId,
         nome: groupData.name,
-        descricao: groupData.description || null,  // ✅ Agora salva descrição
-        secao: groupData.section || null,          // ✅ Novo: seção/categoria
         tipo_selecao: groupData.selectionType,
         obrigatorio: groupData.required ?? false
       }])
@@ -209,8 +215,6 @@ export const updateGroup = async (groupId, groupData) => {
       .from('grupos_complementos')
       .update({
         nome: groupData.name,
-        descricao: groupData.description || null,  // ✅ Agora atualiza descrição
-        secao: groupData.section || null,          // ✅ Novo: seção/categoria
         tipo_selecao: groupData.selectionType,
         obrigatorio: groupData.required
       })
@@ -306,16 +310,38 @@ export const associateComplementsToGroup = async (groupId, complementIds) => {
 
 /**
  * Associar grupos a um item do cardápio
+ * Usa apenas: item_complemento_grupo (singular)
+ * @param {string} menuItemId - ID do item do cardápio
+ * @param {Array} groupsData - Array de objetos { groupId, complementIds } ou array simples de IDs
  */
-export const associateGroupsToMenuItem = async (menuItemId, groupIds) => {
+export const associateGroupsToMenuItem = async (menuItemId, groupsData) => {
   try {
-    // Remover associações antigas
-    await supabase
+    console.log('💾 Salvando associação:', { menuItemId, groupsData });
+    
+    // Converter para array simples de IDs se necessário
+    let groupIds = [];
+    if (groupsData.length > 0) {
+      if (typeof groupsData[0] === 'string') {
+        // Já é array simples de IDs
+        groupIds = groupsData;
+      } else {
+        // É array de objetos, extrair os IDs
+        groupIds = groupsData.map(g => g.groupId);
+      }
+    }
+    
+    // 1. Remover associações antigas
+    const { error: deleteError } = await supabase
       .from('item_complemento_grupo')
       .delete()
       .eq('item_id', menuItemId);
 
-    // Criar novas associações
+    if (deleteError) {
+      console.error('Erro ao remover associações antigas:', deleteError);
+      throw deleteError;
+    }
+
+    // 2. Criar novas associações
     if (groupIds.length > 0) {
       const associations = groupIds.map(groupId => ({
         item_id: menuItemId,
@@ -323,25 +349,34 @@ export const associateGroupsToMenuItem = async (menuItemId, groupIds) => {
         ativo: true
       }));
 
-      const { error } = await supabase
+      console.log('📦 Inserindo associações:', associations);
+
+      const { error: insertError } = await supabase
         .from('item_complemento_grupo')
         .insert(associations);
 
-      if (error) throw error;
+      if (insertError) {
+        console.error('Erro ao inserir associações:', insertError);
+        throw insertError;
+      }
     }
 
+    console.log('✅ Grupos salvos com sucesso!');
     return { success: true };
   } catch (error) {
-    console.error('Erro ao associar grupos ao item:', error);
+    console.error('❌ Erro ao associar grupos ao item:', error);
     return { success: false, error: error.message };
   }
 };
 
 /**
  * Buscar grupos associados a um item do cardápio
+ * Usa: item_complemento_grupo (singular)
  */
 export const getMenuItemGroups = async (menuItemId) => {
   try {
+    console.log('🔍 Buscando grupos do item:', menuItemId);
+    
     const { data, error } = await supabase
       .from('item_complemento_grupo')
       .select(`
@@ -351,20 +386,26 @@ export const getMenuItemGroups = async (menuItemId) => {
       .eq('item_id', menuItemId)
       .eq('ativo', true);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Erro na query:', error);
+      throw error;
+    }
+    
+    console.log('📦 Grupos encontrados:', data);
     return { success: true, data };
   } catch (error) {
-    console.error('Erro ao buscar grupos do item:', error);
+    console.error('❌ Erro ao buscar grupos do item:', error);
     return { success: false, error: error.message };
   }
 };
 
 /**
  * Buscar grupos e complementos de um item do cardápio
+ * Usa: item_complemento_grupo (singular) + grupos_complementos_itens
  */
 export const getMenuItemComplements = async (menuItemId) => {
   try {
-    // Buscar grupos associados ao item
+    // Buscar grupos associados ao item com seus complementos
     const { data: grupos, error: gruposError } = await supabase
       .from('item_complemento_grupo')
       .select(`
@@ -388,6 +429,35 @@ export const getMenuItemComplements = async (menuItemId) => {
   }
 };
 
+/**
+ * Buscar complementos de um grupo específico
+ * Usa: grupos_complementos_itens
+ */
+export const getGroupComplementsWithDetails = async (groupId) => {
+  try {
+    console.log('🔍 Buscando complementos do grupo:', groupId);
+    
+    const { data, error } = await supabase
+      .from('grupos_complementos_itens')
+      .select(`
+        *,
+        complementos (*)
+      `)
+      .eq('id_grupo', groupId);
+
+    if (error) {
+      console.error('Erro na query:', error);
+      throw error;
+    }
+    
+    console.log('📦 Complementos do grupo encontrados:', data);
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error('❌ Erro ao buscar complementos do grupo:', error);
+    return { success: false, error: error.message, data: [] };
+  }
+};
+
 // Export default com todas as funções
 export default {
   // Complementos (complementos)
@@ -405,6 +475,7 @@ export default {
   
   // Associações
   getGroupComplements,
+  getGroupComplementsWithDetails,
   associateComplementsToGroup,
   associateGroupsToMenuItem,
   getMenuItemGroups,

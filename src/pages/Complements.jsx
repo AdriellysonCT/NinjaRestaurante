@@ -37,11 +37,11 @@ const ComplementCard = ({ complement, onEdit, onToggle }) => {
         )}
         <div className="flex justify-between items-center mb-3">
           <span className={`text-xs px-2 py-1 rounded-full ${
-            (complement.status === 'disponivel' || complement.available)
+            (complement.disponivel !== undefined ? complement.disponivel : complement.available)
               ? 'bg-[hsla(142,76%,36%,0.2)] text-[hsl(142,76%,36%)]' 
               : 'bg-[hsla(0,84%,60%,0.2)] text-[hsl(0,84%,60%)]'
           }`}>
-            {(complement.status === 'disponivel' || complement.available) ? 'Disponível' : 'Indisponível'}
+            {(complement.disponivel !== undefined ? complement.disponivel : complement.available) ? 'Disponível' : 'Indisponível'}
           </span>
         </div>
         <div className="flex gap-2">
@@ -54,12 +54,12 @@ const ComplementCard = ({ complement, onEdit, onToggle }) => {
           <button 
             onClick={() => onToggle(complement.id)}
             className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-              (complement.status === 'disponivel' || complement.available)
+              (complement.disponivel !== undefined ? complement.disponivel : complement.available)
                 ? 'bg-[hsla(0,84%,60%,0.1)] text-[hsl(0,84%,60%)] hover:bg-[hsla(0,84%,60%,0.2)]' 
                 : 'bg-[hsla(142,76%,36%,0.1)] text-[hsl(142,76%,36%)] hover:bg-[hsla(142,76%,36%,0.2)]'
             }`}
           >
-            {(complement.status === 'disponivel' || complement.available) ? 'Desativar' : 'Ativar'}
+            {(complement.disponivel !== undefined ? complement.disponivel : complement.available) ? 'Desativar' : 'Ativar'}
           </button>
         </div>
       </div>
@@ -198,8 +198,8 @@ const Complements = () => {
           name: c.nome || c.name,
           description: c.descricao || c.description,
           price: c.preco || c.price,
-          image: c.imagem_url || c.image,
-          available: c.status === 'disponivel' || c.available
+          image: c.imagem || c.imagem_url || c.image,
+          available: c.disponivel !== undefined ? c.disponivel : c.available
         }));
         setComplements(normalizedComplements);
       } else {
@@ -299,8 +299,8 @@ const Complements = () => {
             name: result.data.nome || result.data.name,
             description: result.data.descricao || result.data.description,
             price: result.data.preco || result.data.price,
-            image: result.data.imagem_url || result.data.image,
-            available: result.data.status === 'disponivel' || result.data.available
+            image: result.data.imagem || result.data.imagem_url || result.data.image,
+            available: result.data.disponivel !== undefined ? result.data.disponivel : result.data.available
           };
           setComplements(complements.map(c => 
             c.id === currentComplement.id ? normalizedComplement : c
@@ -329,8 +329,8 @@ const Complements = () => {
             name: result.data.nome || result.data.name,
             description: result.data.descricao || result.data.description,
             price: result.data.preco || result.data.price,
-            image: result.data.imagem_url || result.data.image,
-            available: result.data.status === 'disponivel' || result.data.available
+            image: result.data.imagem || result.data.imagem_url || result.data.image,
+            available: result.data.disponivel !== undefined ? result.data.disponivel : result.data.available
           };
           setComplements([...complements, normalizedComplement]);
           toast.success('Complemento criado com sucesso!');

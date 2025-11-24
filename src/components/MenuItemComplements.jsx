@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Modal } from './ui/Modal';
+import complementsService from '../services/complementsService';
+import { useToast } from '../hooks/useToast';
+import { ToastContainer } from './Toast';
 
 // Função auxiliar para normalizar dados do banco
 const normalizeGroup = (group) => ({
@@ -14,23 +17,75 @@ const normalizeGroup = (group) => ({
 const normalizeComplement = (complement) => ({
   id: complement.id,
   name: complement.nome || complement.name,
-  description: complement.descricao || complement.description,
   price: complement.preco || complement.price,
-  available: complement.status === 'disponivel' || complement.available,
-  image: complement.imagem_url || complement.image,
+  available: complement.disponivel !== undefined ? complement.disponivel : complement.available,
+  image: complement.imagem || complement.image,
   groupIds: complement.groupIds || []
 });
 
 // TELA 3 - Associação de Complementos a um Item do Cardápio
 const MenuItemComplements = ({ menuItem, groups, complements, onSave }) => {
-  const [activeGroups, setActiveGroups] = useState(menuItem.complementGroups || []);
+  const [activeGroups, setActiveGroups] = useState([]);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedComplements, setSelectedComplements] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const { toasts, addToast, removeToast } = useToast();
   
   // Normalizar dados
   const normalizedGroups = groups.map(normalizeGroup);
   const normalizedComplements = complements.map(normalizeComplement);
+
+  // Carregar grupos ativos do banco quando o componente montar
+  useEffect(() => {
+    loadMenuItemGroups();
+  }, [menuItem.id]);
+
+  const loadMenuItemGroups = async () => {
+    if (!menuItem.id) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('🔍 Carregando grupos do item:', menuItem.id);
+      
+      // Buscar grupos associados ao item
+      const groupsResult = await complementsService.getMenuItemGroups(menuItem.id);
+      
+      if (groupsResult.success && groupsResult.data) {
+        // Mapear os dados do banco para o formato esperado
+        const loadedGroups = groupsResult.data.map(item => {
+          const groupId = item.grupo_id;
+          
+          // Buscar todos os complementos deste grupo
+          // (não há seleção específica, todos os complementos do grupo estão disponíveis)
+          const groupComplements = normalizedComplements.filter(c => 
+            c.groupIds?.includes(groupId)
+          );
+          const complementIds = groupComplements.map(c => c.id);
+          
+          return {
+            groupId,
+            complementIds
+          };
+        });
+
+        console.log('✅ Grupos carregados:', loadedGroups);
+        setActiveGroups(loadedGroups);
+      } else {
+        console.log('ℹ️ Nenhum grupo associado ao item');
+        setActiveGroups([]);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar grupos do item:', error);
+      setActiveGroups([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Debug: ver o que está sendo recebido
   console.log('🔍 MenuItemComplements Debug:');
@@ -38,6 +93,7 @@ const MenuItemComplements = ({ menuItem, groups, complements, onSave }) => {
   console.log('  Complementos recebidos:', complements.length);
   console.log('  Groups normalizados:', normalizedGroups);
   console.log('  Complementos normalizados:', normalizedComplements);
+  console.log('  Active groups:', activeGroups);
 
   // Abrir modal para gerenciar complementos de um grupo
   const handleManageGroup = (group) => {
@@ -77,9 +133,37 @@ const MenuItemComplements = ({ menuItem, groups, complements, onSave }) => {
     }
   };
 
-  // Salvar todas as alterações
-  const handleSaveAll = () => {
-    onSave({ ...menuItem, complementGroups: activeGroups });
+  // Salvar todas as alterações no banco
+  const handleSaveAll = async () => {
+    if (!menuItem.id) {
+      console.error('❌ Item sem ID, não é possível salvar complementos');
+      addToast('Item sem ID, não é possível salvar complementos', 'error');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      console.log('💾 Salvando complementos do item:', menuItem.id);
+      console.log('📦 Grupos ativos:', activeGroups);
+
+      // Passar os dados completos (grupos + complementos selecionados)
+      const result = await complementsService.associateGroupsToMenuItem(menuItem.id, activeGroups);
+
+      if (result.success) {
+        console.log('✅ Complementos salvos com sucesso!');
+        addToast('Complementos salvos com sucesso!', 'success');
+        // Notificar o componente pai
+        onSave({ ...menuItem, complementGroups: activeGroups });
+      } else {
+        console.error('❌ Erro ao salvar complementos:', result.error);
+        addToast('Erro ao salvar: ' + result.error, 'error');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao salvar complementos:', error);
+      addToast('Erro ao salvar complementos', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Obter complementos de um grupo
@@ -88,7 +172,9 @@ const MenuItemComplements = ({ menuItem, groups, complements, onSave }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <div className="space-y-6">
       {/* Card do Item */}
       <div className="ninja-card p-6">
         <div className="flex items-center gap-4">
@@ -121,21 +207,28 @@ const MenuItemComplements = ({ menuItem, groups, complements, onSave }) => {
           </div>
           <button 
             onClick={handleSaveAll}
-            className="px-6 py-2 rounded-md bg-[#ff6f00] text-white font-semibold hover:bg-[#ff8c00] transition-colors"
+            disabled={saving || loading}
+            className="px-6 py-2 rounded-md bg-[#ff6f00] text-white font-semibold hover:bg-[#ff8c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Salvar Alterações
+            {saving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </div>
 
         {/* Lista de Grupos */}
         <div className="space-y-3">
-          {normalizedGroups.length === 0 && (
+          {loading && (
+            <div className="text-center py-8 text-gray-400">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6f00]"></div>
+              <p className="mt-4">Carregando...</p>
+            </div>
+          )}
+          {!loading && normalizedGroups.length === 0 && (
             <div className="text-center py-8 text-gray-400">
               <p>Nenhum grupo de complementos disponível.</p>
               <p className="text-sm mt-2">Crie grupos na seção de Complementos primeiro.</p>
             </div>
           )}
-          {normalizedGroups.map(group => {
+          {!loading && normalizedGroups.map(group => {
             const isActive = activeGroups.some(g => g.groupId === group.id);
             const groupData = activeGroups.find(g => g.groupId === group.id);
             const selectedCount = groupData?.complementIds.length || 0;
@@ -300,6 +393,7 @@ const MenuItemComplements = ({ menuItem, groups, complements, onSave }) => {
         )}
       </Modal>
     </div>
+    </>
   );
 };
 
