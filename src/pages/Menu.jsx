@@ -4,7 +4,10 @@ import * as Icons from '../components/icons/index.jsx';
 const { XIcon, StarIcon } = Icons;
 import { Modal } from '../components/ui/Modal';
 import { useAppContext } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import ExcelImport from '../components/ExcelImport';
+import MenuItemComplements from '../components/MenuItemComplements';
+import complementsService from '../services/complementsService';
 
 // Componente para o item do cardápio
 const initialMenuItems = [
@@ -174,6 +177,7 @@ const MenuItem = ({ item, onEdit, onToggleAvailability }) => {
 const Menu = () => {
   // Usar o contexto da aplicação
   const { menuItems, addMenuItem, updateMenuItem, toggleMenuItemAvailability, isOnline } = useAppContext();
+  const { restauranteId } = useAuth();  // ✅ Pegar do contexto de autenticação
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchTerm, setSearchTerm] = useState('');
@@ -181,6 +185,12 @@ const Menu = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
+  const [activeTab, setActiveTab] = useState('info'); // 'info' ou 'complements'
+  
+  // Estados para complementos (carregados do banco)
+  const [groups, setGroups] = useState([]);
+  const [complements, setComplements] = useState([]);
+  const [loadingComplements, setLoadingComplements] = useState(false);
 
   // Extrair categorias únicas dos itens do menu
   useEffect(() => {
@@ -192,6 +202,51 @@ const Menu = () => {
   useEffect(() => {
     localStorage.setItem('fome-ninja-menu', JSON.stringify(menuItems));
   }, [menuItems]);
+
+  // Carregar grupos e complementos quando restauranteId estiver disponível
+  useEffect(() => {
+    if (restauranteId) {
+      loadComplementsData();
+    }
+  }, [restauranteId]);
+
+  const loadComplementsData = async () => {
+    if (!restauranteId) {
+      console.warn('⚠️ Restaurante ID não disponível ainda. Aguardando autenticação...');
+      return;
+    }
+    
+    setLoadingComplements(true);
+    console.log('🔍 Carregando complementos para restaurante:', restauranteId);
+    
+    try {
+
+      // Buscar grupos
+      const groupsResult = await complementsService.getGroups(restauranteId);
+      if (groupsResult.success) {
+        setGroups(groupsResult.data || []);
+      } else {
+        console.error('Erro ao carregar grupos:', groupsResult.error);
+        setGroups([]);
+      }
+
+      // Buscar complementos (já vem com groupIds do service)
+      const complementsResult = await complementsService.getComplements(restauranteId);
+      if (complementsResult.success) {
+        console.log('✅ Complementos carregados com grupos:', complementsResult.data);
+        setComplements(complementsResult.data || []);
+      } else {
+        console.error('Erro ao carregar complementos:', complementsResult.error);
+        setComplements([]);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados de complementos:', error);
+      setGroups([]);
+      setComplements([]);
+    } finally {
+      setLoadingComplements(false);
+    }
+  };
 
   // Filtrar itens do menu
   const filteredItems = menuItems.filter(item => {
@@ -206,6 +261,7 @@ const Menu = () => {
   // Manipuladores de eventos
   const handleEdit = (item) => {
     setCurrentItem(item);
+    setActiveTab('info'); // Reset para aba de informações
     setIsModalOpen(true);
   };
 
@@ -234,10 +290,16 @@ const Menu = () => {
       available: true,
       featured: false,
       prepTime: 0,
-      ingredients: []
+      ingredients: [],
+      complementGroups: [] // Adicionar campo para complementos
     };
     setCurrentItem(newItem);
+    setActiveTab('info');
     setIsModalOpen(true);
+  };
+  
+  const handleSaveComplements = (updatedItem) => {
+    setCurrentItem(updatedItem);
   };
 
   return (
@@ -341,9 +403,37 @@ const Menu = () => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         title={currentItem && !menuItems.find(item => item.id === currentItem.id) ? "Adicionar Item" : "Editar Item"}
+        size="xl"
       >
         {currentItem && (
           <div className="space-y-4">
+            {/* Tabs */}
+            <div className="flex gap-2 border-b border-[#2a2a2a] pb-2">
+              <button
+                onClick={() => setActiveTab('info')}
+                className={`px-4 py-2 rounded-t-md font-semibold transition-colors ${
+                  activeTab === 'info'
+                    ? 'bg-[#ff6f00] text-white'
+                    : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a]'
+                }`}
+              >
+                📝 Informações
+              </button>
+              <button
+                onClick={() => setActiveTab('complements')}
+                className={`px-4 py-2 rounded-t-md font-semibold transition-colors ${
+                  activeTab === 'complements'
+                    ? 'bg-[#ff6f00] text-white'
+                    : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a]'
+                }`}
+              >
+                🍔 Complementos
+              </button>
+            </div>
+
+            {/* Conteúdo da aba Informações */}
+            {activeTab === 'info' && (
+              <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Nome</label>
               <input 
@@ -448,32 +538,53 @@ const Menu = () => {
                 onChange={(e) => setCurrentItem({...currentItem, ingredients: e.target.value ? e.target.value.split(',').map(i => i.trim()) : []})}
               />
             </div>
-            <div className="flex gap-2 pt-4">
-              <button 
-                onClick={() => setIsModalOpen(false)} 
-                className="w-full py-2 text-sm font-semibold rounded-md bg-[hsl(var(--color-secondary))] text-[hsl(var(--color-secondary-foreground))] hover:bg-[hsla(var(--color-secondary),0.8)]"
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={() => {
-                  // Verificar se é um novo item (não existe na lista atual)
-                  const isNewItem = !menuItems.find(item => item.id === currentItem.id);
-                  
-                  if (isNewItem) {
-                    // Adicionar novo item
-                    addMenuItem(currentItem);
-                  } else {
-                    // Atualizar item existente
-                    handleSaveItem(currentItem);
-                  }
-                  setIsModalOpen(false);
-                }} 
-                className="w-full py-2 text-sm font-semibold rounded-md bg-[hsl(var(--color-primary))] text-[hsl(var(--color-primary-foreground))] hover:bg-[hsla(var(--color-primary),0.9)]"
-              >
-                Salvar
-              </button>
-            </div>
+                <div className="flex gap-2 pt-4">
+                  <button 
+                    onClick={() => setIsModalOpen(false)} 
+                    className="w-full py-2 text-sm font-semibold rounded-md bg-[hsl(var(--color-secondary))] text-[hsl(var(--color-secondary-foreground))] hover:bg-[hsla(var(--color-secondary),0.8)]"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    onClick={() => {
+                      // Verificar se é um novo item (não existe na lista atual)
+                      const isNewItem = !menuItems.find(item => item.id === currentItem.id);
+                      
+                      if (isNewItem) {
+                        // Adicionar novo item
+                        addMenuItem(currentItem);
+                      } else {
+                        // Atualizar item existente
+                        handleSaveItem(currentItem);
+                      }
+                      setIsModalOpen(false);
+                    }} 
+                    className="w-full py-2 text-sm font-semibold rounded-md bg-[hsl(var(--color-primary))] text-[hsl(var(--color-primary-foreground))] hover:bg-[hsla(var(--color-primary),0.9)]"
+                  >
+                    Salvar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Conteúdo da aba Complementos */}
+            {activeTab === 'complements' && (
+              <div className="space-y-4">
+                {loadingComplements ? (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6f00]"></div>
+                    <p className="text-gray-400 mt-4">Carregando complementos...</p>
+                  </div>
+                ) : (
+                  <MenuItemComplements 
+                    menuItem={currentItem}
+                    groups={groups}
+                    complements={complements}
+                    onSave={handleSaveComplements}
+                  />
+                )}
+              </div>
+            )}
           </div>
         )}
       </Modal>
