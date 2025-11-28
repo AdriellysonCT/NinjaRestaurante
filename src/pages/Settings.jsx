@@ -8,8 +8,14 @@ import { PrintHistory } from '../components/PrintHistory';
 import { PrintSettingsSection as PrintSettings } from '../components/settings/PrintSettingsSection';
 import PrintConfig from '../components/PrintConfig';
 import PrintConfigModal from '../components/PrintConfigModal';
+import * as authService from '../services/authService';
+import { useToast } from '../hooks/useToast';
+import { ToastContainer } from '../components/Toast';
 
 const Settings = () => {
+  // Hook de toast para notificações
+  const { toasts, removeToast, success, error, info } = useToast();
+  
   // Estados para as configurações
   const [restaurantName, setRestaurantName] = useState(() => {
     return localStorage.getItem('fome-ninja-restaurant-name') || 'Fome Ninja';
@@ -81,7 +87,7 @@ const Settings = () => {
   
   const [activeTab, setActiveTab] = useState('general');
   const { theme } = React.useContext(ThemeContext);
-  const { restaurante, atualizarDadosRestaurante, loading: authLoading, atualizarEndereco } = useAuth();
+  const { restaurante, atualizarDadosRestaurante, loading: authLoading } = useAuth();
   const { orders } = useAppContext();
   
   // Estado para os dados do restaurante
@@ -108,7 +114,50 @@ const Settings = () => {
   // Validação do formulário de endereço
   const isEnderecoValido = formEndereco.rua && formEndereco.numero && formEndereco.bairro && formEndereco.cidade;
 
-  // Carregar dados do restaurante quando disponíveis
+  // Recarregar dados do restaurante ao montar o componente
+  useEffect(() => {
+    const recarregarDados = async () => {
+      try {
+        const dados = await authService.buscarDadosRestaurante();
+        if (dados) {
+          setDadosRestaurante({
+            nomeFantasia: dados.nome_fantasia || '',
+            tipoRestaurante: dados.tipo_restaurante || '',
+            cnpj: dados.cnpj || '',
+            telefone: dados.telefone || '',
+            email: dados.email || '',
+            nomeResponsavel: dados.nome_responsavel || '',
+            imagemUrl: dados.imagem_url || ''
+          });
+          
+          if (dados.nome_fantasia) {
+            setRestaurantName(dados.nome_fantasia);
+          }
+          
+          // Carregar endereço
+          const enderecoData = {
+            rua: dados.rua || '',
+            numero: dados.numero || '',
+            bairro: dados.bairro || '',
+            cidade: dados.cidade || '',
+            complemento: dados.complemento || ''
+          };
+          
+          if (enderecoData.rua) {
+            setEndereco(enderecoData);
+          }
+          
+          setFormEndereco(enderecoData);
+        }
+      } catch (error) {
+        console.error('Erro ao recarregar dados:', error);
+      }
+    };
+    
+    recarregarDados();
+  }, []); // Executa apenas uma vez ao montar
+  
+  // Carregar dados do restaurante quando disponíveis do contexto
   useEffect(() => {
     if (restaurante) {
       setDadosRestaurante({
@@ -117,7 +166,8 @@ const Settings = () => {
         cnpj: restaurante.cnpj || '',
         telefone: restaurante.telefone || '',
         email: restaurante.email || '',
-        nomeResponsavel: restaurante.nome_responsavel || ''
+        nomeResponsavel: restaurante.nome_responsavel || '',
+        imagemUrl: restaurante.imagem_url || ''
       });
       
       if (restaurante.nome_fantasia) {
@@ -166,13 +216,25 @@ const Settings = () => {
   // Handler para salvar endereço
   const handleSalvarEndereco = async () => {
     try {
-      const updated = await atualizarEndereco(formEndereco);
+      info('Salvando endereço e buscando coordenadas...', 2000);
+      
+      const updated = await authService.atualizarEndereco(formEndereco);
       setEndereco(updated);
       setIsEditingEndereco(false);
-      window.location.reload();
-    } catch (error) {
-      console.error('Erro ao salvar endereço:', error);
-      alert('Erro ao salvar endereço. Tente novamente.');
+      
+      if (updated.latitude && updated.longitude) {
+        success(`Endereço salvo com sucesso! Coordenadas: ${updated.latitude.toFixed(4)}, ${updated.longitude.toFixed(4)}`, 4000);
+      } else {
+        success('Endereço salvo com sucesso!', 3000);
+      }
+      
+      // Recarregar após um delay para o usuário ver o toast
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (err) {
+      console.error('Erro ao salvar endereço:', err);
+      error('Erro ao salvar endereço. Tente novamente.', 4000);
     }
   };
   
@@ -449,7 +511,116 @@ const Settings = () => {
               <label className="block text-sm font-medium mb-1">Nome do Responsável*</label>
               <input type="text" className="w-full bg-input px-3 py-2 rounded-md" value={dadosRestaurante.nomeResponsavel} onChange={(e) => handleRestauranteChange('nomeResponsavel', e.target.value)} placeholder="Nome da pessoa responsável pelo restaurante" />
             </div>
-            <div className="mt-8">
+            
+            {/* Seção de Logo */}
+            <div className="mt-8 border-t border-border pt-6">
+              <h3 className="text-lg font-medium mb-4">Logo do Restaurante</h3>
+              {dadosRestaurante.imagemUrl || restaurante?.imagem_url ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <img 
+                      src={dadosRestaurante.imagemUrl || restaurante.imagem_url} 
+                      alt="Logo do restaurante" 
+                      className="w-32 h-32 object-contain rounded-lg border-2 border-border bg-muted"
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/128?text=Logo';
+                      }}
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-2">Logo atual do restaurante</p>
+                      <button 
+                        onClick={async () => {
+                          const novaUrl = prompt('Cole o link da nova logo:', restaurante.imagem_url);
+                          if (novaUrl && novaUrl.trim()) {
+                            try {
+                              info('Salvando nova logo...', 2000);
+                              
+                              // Atualizar no banco
+                              await authService.atualizarDadosRestaurante({
+                                ...dadosRestaurante,
+                                imagemUrl: novaUrl.trim()
+                              });
+                              
+                              // Atualizar estado local
+                              handleRestauranteChange('imagemUrl', novaUrl.trim());
+                              
+                              success('Logo atualizada com sucesso!', 3000);
+                              
+                              // Recarregar página após delay
+                              setTimeout(() => {
+                                window.location.reload();
+                              }, 2000);
+                            } catch (err) {
+                              console.error('Erro ao atualizar logo:', err);
+                              error('Erro ao atualizar logo. Tente novamente.', 4000);
+                            }
+                          }
+                        }}
+                        className="bg-secondary text-secondary-foreground py-2 px-4 rounded-md hover:bg-secondary/90 transition-colors"
+                      >
+                        Editar Logo
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">Adicione uma logo para seu restaurante. Cole o link direto da imagem.</p>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Link da Logo (URL)</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="url" 
+                        className="flex-1 bg-input px-3 py-2 rounded-md" 
+                        placeholder="https://exemplo.com/logo.png"
+                        id="logoUrlInput"
+                      />
+                      <button 
+                        onClick={async () => {
+                          const input = document.getElementById('logoUrlInput');
+                          const url = input.value.trim();
+                          if (url) {
+                            try {
+                              info('Salvando logo...', 2000);
+                              
+                              // Atualizar no banco
+                              await authService.atualizarDadosRestaurante({
+                                ...dadosRestaurante,
+                                imagemUrl: url
+                              });
+                              
+                              // Atualizar estado local
+                              handleRestauranteChange('imagemUrl', url);
+                              input.value = '';
+                              
+                              success('Logo adicionada com sucesso!', 3000);
+                              
+                              // Recarregar página após delay
+                              setTimeout(() => {
+                                window.location.reload();
+                              }, 2000);
+                            } catch (err) {
+                              console.error('Erro ao adicionar logo:', err);
+                              error('Erro ao adicionar logo. Tente novamente.', 4000);
+                            }
+                          } else {
+                            error('Por favor, cole um link válido', 3000);
+                          }
+                        }}
+                        className="bg-primary text-primary-foreground py-2 px-6 rounded-md hover:bg-primary/90 transition-colors"
+                      >
+                        Adicionar
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Dica: Use serviços como Imgur, ImgBB ou hospede sua imagem e cole o link direto aqui.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-8 border-t border-border pt-6">
               <h3 className="text-lg font-medium mb-4">Endereço do Restaurante</h3>
               {endereco ? (
                 <div className="space-y-2 mb-4">
@@ -615,6 +786,8 @@ const Settings = () => {
         onClose={() => setIsPrintConfigModalOpen(false)}
         title="Configurações de Impressão"
       />
+      {/* Toast Container para notifica��es */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </div>
   );
 };

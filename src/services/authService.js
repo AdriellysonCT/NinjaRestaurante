@@ -1,52 +1,132 @@
 import { supabase } from '../lib/supabase';
 
 // Função para cadastrar um novo restaurante
+// Fluxo correto: Auth signUp com metadata → Trigger cria profile → Front-end cria restaurantes_app
 export async function cadastrarRestaurante(dadosRestaurante, senha) {
+  let userId = null;
+  
   try {
-    console.log('Iniciando processo de cadastro...');
+    console.log('🚀 Iniciando processo de cadastro de RESTAURANTE...');
     
     // 1. Verificar se o usuário já existe
-    console.log('Verificando se o email já está registrado...');
+    console.log('🔍 Verificando se o email já está registrado...');
     const { data: existingUser, error: checkError } = await supabase
       .from('profiles')
       .select('id')
       .eq('email', dadosRestaurante.email)
       .maybeSingle();
     
-    if (checkError) throw checkError;
+    if (checkError && checkError.code !== 'PGRST116') throw checkError;
     if (existingUser) {
       throw new Error('Email já cadastrado. Por favor, use outro email ou faça login.');
     }
     
-    // 1. Criar novo usuário no Supabase Auth com metadados
-    console.log('Criando novo usuário no Supabase Auth com metadados...');
+    // 2. Criar usuário no Supabase Auth COM METADATA tipo_usuario = "restaurante"
+    // IMPORTANTE: O trigger do banco vai criar automaticamente o profile com base nessa metadata
+    console.log('👤 Criando usuário no Supabase Auth com tipo_usuario = "restaurante"...');
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: dadosRestaurante.email,
       password: senha,
       options: {
         data: {
-          user_type: 'restaurante',
-          nome_fantasia: dadosRestaurante.nomeFantasia,
-          tipo_restaurante: dadosRestaurante.tipoRestaurante,
-          cnpj: dadosRestaurante.cnpj,
-          telefone: dadosRestaurante.telefone,
-          nome_responsavel: dadosRestaurante.nomeResponsavel
+          tipo_usuario: 'restaurante' // ✅ OBRIGATÓRIO para o trigger criar o profile corretamente
         }
       }
     });
+    
     if (authError) throw authError;
+    if (!authData.user) throw new Error('Falha ao criar usuário no Auth');
     
-    const user = authData.user;
-    if (!user) throw new Error('Falha ao criar usuário');
-    
-    const userId = authData.user.id;
+    userId = authData.user.id;
     const emailConfirmationRequired = !authData.session;
     
-    // O trigger cuidará da inserção em profiles e restaurantes_app
+    console.log('✅ Usuário criado no Auth. ID:', userId);
+    console.log('✅ Trigger do banco criou automaticamente o profile com tipo_usuario = "restaurante"');
     
-    return { userId, success: true, emailConfirmationRequired };
+    // 3. Aguardar um pouco para garantir que o trigger executou
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 4. Criar registro COMPLETO em restaurantes_app
+    // Este é o "galho" da árvore profiles que contém todos os dados específicos do restaurante
+    console.log('🏪 Criando registro em restaurantes_app...');
+    console.log('📋 Dados que serão inseridos:', {
+      id: userId,
+      user_id: userId,
+      nome_fantasia: dadosRestaurante.nomeFantasia || dadosRestaurante.nome_fantasia || '',
+      tipo_restaurante: dadosRestaurante.tipoRestaurante || dadosRestaurante.tipo_restaurante || '',
+      cnpj: dadosRestaurante.cnpj || '',
+      telefone: dadosRestaurante.telefone || '',
+      email: dadosRestaurante.email,
+      nome_responsavel: dadosRestaurante.nomeResponsavel || dadosRestaurante.nome_responsavel || '',
+      ativo: true
+    });
+    
+    const { data: restauranteData, error: restauranteError } = await supabase
+      .from('restaurantes_app')
+      .insert({
+        id: userId, // Mesmo ID do profiles
+        user_id: userId, // Cópia do ID para referência
+        nome_fantasia: dadosRestaurante.nomeFantasia || dadosRestaurante.nome_fantasia || '',
+        tipo_restaurante: dadosRestaurante.tipoRestaurante || dadosRestaurante.tipo_restaurante || '',
+        cnpj: dadosRestaurante.cnpj || '',
+        telefone: dadosRestaurante.telefone || '',
+        email: dadosRestaurante.email,
+        nome_responsavel: dadosRestaurante.nomeResponsavel || dadosRestaurante.nome_responsavel || '',
+        rua: dadosRestaurante.rua || '',
+        numero: dadosRestaurante.numero || '',
+        bairro: dadosRestaurante.bairro || '',
+        cidade: dadosRestaurante.cidade || '',
+        complemento: dadosRestaurante.complemento || '',
+        ativo: true,
+        imagem_url: dadosRestaurante.imagem_url || null,
+        latitude: dadosRestaurante.latitude || null,
+        longitude: dadosRestaurante.longitude || null,
+        conta_bancaria: dadosRestaurante.conta_bancaria || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select();
+    
+    if (restauranteError) {
+      console.error('❌ Erro ao criar restaurante em restaurantes_app:', restauranteError);
+      console.error('❌ Detalhes completos do erro:', JSON.stringify(restauranteError, null, 2));
+      console.error('❌ Código do erro:', restauranteError.code);
+      console.error('❌ Mensagem do erro:', restauranteError.message);
+      console.error('❌ Hint:', restauranteError.hint);
+      console.error('❌ Details:', restauranteError.details);
+      
+      // Compensação: deletar profile e auth user
+      console.log('🔄 Revertendo cadastro...');
+      console.log('🔄 Deletando profile...');
+      await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId)
+        .catch(err => console.error('Erro ao deletar profile:', err));
+      
+      console.log('🔄 Deletando usuário do Auth...');
+      await supabase.auth.admin.deleteUser(userId)
+        .catch(err => console.error('Erro ao deletar auth user:', err));
+      
+      throw new Error(`Erro ao criar registro do restaurante: ${restauranteError.message || 'Erro desconhecido'}. Verifique as permissões RLS. Por favor, tente novamente.`);
+    }
+    
+    console.log('✅ Restaurante criado com sucesso em restaurantes_app:', restauranteData);
+    console.log('🎉 Cadastro concluído com sucesso!');
+    console.log('📊 Estrutura criada:');
+    console.log('   - auth.users ✅');
+    console.log('   - profiles (tipo_usuario = "restaurante") ✅');
+    console.log('   - restaurantes_app (dados completos) ✅');
+    
+    return { 
+      userId, 
+      success: true, 
+      emailConfirmationRequired,
+      message: 'Cadastro realizado com sucesso!'
+    };
+    
   } catch (error) {
-    console.error('Erro ao cadastrar restaurante:', error);
+    console.error('❌ Erro no processo de cadastro:', error);
     throw error;
   }
 }
@@ -78,7 +158,8 @@ export async function buscarDadosRestaurante() {
 
     console.log('Buscando dados do restaurante para o usuário:', user.id);
 
-    // Buscar dados do restaurante
+    // Buscar dados do restaurante em restaurantes_app
+    // A trigger já deve ter criado o registro automaticamente
     const { data, error } = await supabase
       .from('restaurantes_app')
       .select('*')
@@ -87,41 +168,20 @@ export async function buscarDadosRestaurante() {
 
     if (error) {
       console.error('Erro ao buscar dados do restaurante:', error);
-      // Se for erro de "não encontrado", retornar null em vez de lançar erro
+      
+      // Se o restaurante não foi encontrado, pode ser que a trigger ainda não executou
+      // ou houve algum problema. Retornar null e deixar o usuário atualizar depois.
       if (error.code === 'PGRST116') {
-        console.log('Dados do restaurante não encontrados, criando registro vazio');
-        // Criar um registro vazio para o usuário
-        const { data: newData, error: insertError } = await supabase
-          .from('restaurantes_app')
-          .insert([
-            {
-              id: user.id,
-              nome_fantasia: '',
-              tipo_restaurante: '',
-              cnpj: '',
-              telefone: '',
-              email: user.email,
-              nome_responsavel: '',
-              rua: '',
-              numero: '',
-              bairro: '',
-              cidade: '',
-              complemento: ''
-            }
-          ])
-          .select();
-        
-        if (insertError) {
-          console.error('Erro ao criar registro vazio:', insertError);
-          return null;
-        }
-        
-        return newData[0];
+        console.warn('⚠️ Restaurante não encontrado em restaurantes_app');
+        console.warn('⚠️ A trigger pode não ter executado corretamente');
+        console.warn('⚠️ O usuário precisará atualizar os dados nas configurações');
+        return null;
       }
+      
       throw error;
     }
 
-    console.log('Dados do restaurante encontrados:', data);
+    console.log('✅ Dados do restaurante encontrados:', data);
     return data;
   } catch (error) {
     console.error('Erro ao buscar dados do restaurante:', error);
@@ -139,7 +199,7 @@ export async function atualizarDadosRestaurante(dadosAtualizados) {
     if (!user) throw new Error('Usuário não autenticado');
 
     // Atualizar dados do restaurante
-    const { data, error } = await supabase
+    const { data, error} = await supabase
       .from('restaurantes_app')
       .update({
         nome_fantasia: dadosAtualizados.nomeFantasia,
@@ -147,6 +207,8 @@ export async function atualizarDadosRestaurante(dadosAtualizados) {
         cnpj: dadosAtualizados.cnpj,
         telefone: dadosAtualizados.telefone,
         nome_responsavel: dadosAtualizados.nomeResponsavel,
+        imagem_url: dadosAtualizados.imagemUrl || null,
+        updated_at: new Date().toISOString()
       })
       .eq('id', user.id)
       .select();
@@ -192,12 +254,61 @@ export async function buscarEnderecoAtivo() {
   }
 }
 
+// Função para obter coordenadas (latitude/longitude) a partir do endereço
+async function obterCoordenadas(endereco) {
+  try {
+    // Montar endereço completo para geocoding
+    const enderecoCompleto = `${endereco.rua}, ${endereco.numero}, ${endereco.bairro}, ${endereco.cidade}, Brasil`;
+    
+    console.log('🌍 Buscando coordenadas para:', enderecoCompleto);
+    
+    // Usar API Nominatim (OpenStreetMap) - gratuita e sem necessidade de API key
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(enderecoCompleto)}&limit=1`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'FomeNinja/1.0' // Nominatim requer User-Agent
+      }
+    });
+    
+    if (!response.ok) {
+      console.warn('⚠️ Erro ao buscar coordenadas, continuando sem elas');
+      return { latitude: null, longitude: null };
+    }
+    
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      const latitude = parseFloat(data[0].lat);
+      const longitude = parseFloat(data[0].lon);
+      
+      console.log('✅ Coordenadas encontradas:', { latitude, longitude });
+      
+      return { latitude, longitude };
+    } else {
+      console.warn('⚠️ Nenhuma coordenada encontrada para o endereço');
+      return { latitude: null, longitude: null };
+    }
+  } catch (error) {
+    console.error('❌ Erro ao obter coordenadas:', error);
+    // Não falhar a atualização do endereço se o geocoding falhar
+    return { latitude: null, longitude: null };
+  }
+}
+
 // Função para atualizar o endereço do restaurante
 export async function atualizarEndereco(novoEndereco) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Usuário não autenticado');
 
+    console.log('📍 Atualizando endereço do restaurante...');
+    console.log('📋 Dados do endereço:', novoEndereco);
+    
+    // Obter coordenadas do endereço
+    const { latitude, longitude } = await obterCoordenadas(novoEndereco);
+    
+    // Atualizar endereço E coordenadas em restaurantes_app
     const { data, error } = await supabase
       .from('restaurantes_app')
       .update({
@@ -205,15 +316,30 @@ export async function atualizarEndereco(novoEndereco) {
         numero: novoEndereco.numero,
         bairro: novoEndereco.bairro,
         cidade: novoEndereco.cidade,
-        complemento: novoEndereco.complemento
+        complemento: novoEndereco.complemento || '',
+        latitude: latitude,
+        longitude: longitude,
+        updated_at: new Date().toISOString()
       })
       .eq('id', user.id)
       .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Erro ao atualizar endereço:', error);
+      throw error;
+    }
+    
+    console.log('✅ Endereço atualizado com sucesso:', data[0]);
+    
+    if (latitude && longitude) {
+      console.log('✅ Coordenadas salvas:', { latitude, longitude });
+    } else {
+      console.warn('⚠️ Endereço salvo, mas coordenadas não foram obtidas');
+    }
+    
     return data[0];
   } catch (error) {
-    console.error('Erro ao atualizar endereço:', error);
+    console.error('❌ Erro ao atualizar endereço:', error);
     throw error;
   }
 }

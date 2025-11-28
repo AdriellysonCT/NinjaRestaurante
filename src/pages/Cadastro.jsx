@@ -149,16 +149,13 @@ export function Cadastro() {
       if (resultado.emailConfirmationRequired) {
         setCadastroSucesso(true);
         setMensagemSucesso('Cadastro realizado com sucesso! Por favor, verifique seu email para confirmar sua conta antes de fazer login.');
-      } else if (resultado.partialSuccess) {
-        // Caso o usuário tenha sido criado, mas houve erro ao inserir na tabela
+      } else {
+        // Cadastro completo sem problemas
         setCadastroSucesso(true);
-        setMensagemSucesso('Cadastro parcialmente concluído. Você já pode fazer login, mas alguns dados podem precisar ser atualizados.');
+        setMensagemSucesso('Cadastro realizado com sucesso! Você já pode fazer login.');
         setTimeout(() => {
           navigate('/login');
         }, 3000);
-      } else {
-        // Cadastro completo sem problemas
-        navigate('/dashboard');
       }
     } catch (error) {
       console.error('Erro ao cadastrar:', error);

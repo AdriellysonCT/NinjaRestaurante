@@ -328,7 +328,6 @@ export const AuthProvider = ({ children }) => {
       // Após cadastro bem-sucedido, verificar se precisa de confirmação de email
       if (resultado.success) {
         // No Supabase, quando confirmEmail está habilitado, o usuário não pode fazer login imediatamente
-        // Então vamos apenas retornar o sucesso e informar que um email foi enviado
         if (resultado.emailConfirmationRequired) {
           return { 
             success: true, 
@@ -336,13 +335,13 @@ export const AuthProvider = ({ children }) => {
             message: 'Cadastro realizado com sucesso! Por favor, verifique seu email para confirmar sua conta.'
           };
         } else {
-          // Se não precisar de confirmação, fazer login automaticamente
-          try {
-            await authService.loginRestaurante(dadosRestaurante.email, senha);
-          } catch (loginError) {
-            console.error('Erro ao fazer login após cadastro:', loginError);
-            // Mesmo se o login falhar, consideramos o cadastro bem-sucedido
-          }
+          // Cadastro concluído sem necessidade de confirmação de email
+          // Retornar sucesso e deixar o usuário fazer login manualmente
+          return { 
+            success: true, 
+            emailConfirmationRequired: false,
+            message: 'Cadastro realizado com sucesso! Você já pode fazer login.'
+          };
         }
       }
       
