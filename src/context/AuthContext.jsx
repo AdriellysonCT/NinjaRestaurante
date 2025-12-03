@@ -360,7 +360,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
-      console.log('Iniciando processo de login super simplificado...');
+      console.log('🔐 Iniciando processo de login...');
       
       // Fazer login diretamente com o Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -369,47 +369,100 @@ export const AuthProvider = ({ children }) => {
       });
       
       if (error) {
-        console.error('Erro ao fazer login direto com Supabase:', error);
+        console.error('❌ Erro ao fazer login:', error);
         throw error;
       }
       
-      console.log('Login bem-sucedido direto com Supabase:', data.user);
+      console.log('✅ Login bem-sucedido:', data.user.id);
       
       // Definir o usuário no estado
       setUser(data.user);
       
-      // Atualizar status ativo para true
+      // ✅ PRIMEIRO: Atualizar status ativo para true
       try {
-        const { data: restaurante } = await supabase
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🔍 INICIANDO ATUALIZAÇÃO DE STATUS ATIVO');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📋 User ID:', data.user.id);
+        console.log('📋 Email:', data.user.email);
+        
+        console.log('\n🔎 PASSO 1: Buscando restaurante...');
+        const { data: restauranteData, error: selectError } = await supabase
           .from('restaurantes_app')
-          .select('id')
+          .select('id, user_id, nome_fantasia, ativo')
           .eq('user_id', data.user.id)
           .single();
         
-        if (restaurante?.id) {
-          await supabase
+        console.log('📊 Resultado da busca:', {
+          restauranteData,
+          selectError
+        });
+        
+        if (selectError) {
+          console.error('❌ ERRO AO BUSCAR RESTAURANTE:', selectError);
+          console.error('❌ Código do erro:', selectError.code);
+          console.error('❌ Mensagem:', selectError.message);
+          console.error('❌ Detalhes:', selectError.details);
+          throw selectError;
+        }
+        
+        if (restauranteData?.id) {
+          console.log('\n✅ RESTAURANTE ENCONTRADO!');
+          console.log('📋 ID do restaurante:', restauranteData.id);
+          console.log('📋 Nome:', restauranteData.nome_fantasia);
+          console.log('📋 Status atual (antes do update):', restauranteData.ativo);
+          
+          console.log('\n🔄 PASSO 2: Atualizando status para TRUE...');
+          const { data: updateData, error: updateError } = await supabase
             .from('restaurantes_app')
             .update({ ativo: true })
-            .eq('id', restaurante.id);
+            .eq('id', restauranteData.id)
+            .select();
           
-          console.log('Status do restaurante atualizado para ativo');
+          console.log('📊 Resultado do UPDATE:', {
+            updateData,
+            updateError
+          });
+          
+          if (updateError) {
+            console.error('❌ ERRO AO ATUALIZAR STATUS:', updateError);
+            console.error('❌ Código do erro:', updateError.code);
+            console.error('❌ Mensagem:', updateError.message);
+            console.error('❌ Detalhes:', updateError.details);
+            console.error('❌ Hint:', updateError.hint);
+            throw updateError;
+          }
+          
+          console.log('\n✅✅✅ SUCESSO! Restaurante marcado como ONLINE');
+          console.log('📋 Dados atualizados:', updateData);
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        } else {
+          console.warn('\n⚠️⚠️⚠️ NENHUM RESTAURANTE ENCONTRADO!');
+          console.warn('⚠️ User ID buscado:', data.user.id);
+          console.warn('⚠️ Resultado da query:', restauranteData);
+          console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         }
       } catch (updateError) {
-        console.error('Erro ao atualizar status ativo:', updateError);
+        console.error('\n❌❌❌ ERRO CAPTURADO NO CATCH:');
+        console.error('❌ Tipo:', updateError.constructor.name);
+        console.error('❌ Mensagem:', updateError.message);
+        console.error('❌ Stack:', updateError.stack);
+        console.error('❌ Objeto completo:', updateError);
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         // Não impedir login se falhar ao atualizar status
       }
       
-      // Carregar dados reais do restaurante após login
+      // DEPOIS: Carregar dados reais do restaurante
       await carregarDadosRestaurante(data.user);
       
       // Iniciar monitoramento de sessão
       startSessionMonitoring();
       
-      console.log('Processo de login super simplificado concluído com sucesso');
+      console.log('✅ Login concluído com sucesso');
       
       return { success: true };
     } catch (error) {
-      console.error('Erro no processo de login super simplificado:', error);
+      console.error('❌ Erro no login:', error);
       setError(error.message);
       throw error;
     } finally {
@@ -425,28 +478,31 @@ export const AuthProvider = ({ children }) => {
       
       console.log('Iniciando processo de logout...');
       
-      // Atualizar status ativo para false antes de deslogar
+      // ✅ Atualizar status ativo para false antes de deslogar
       if (user?.id) {
         try {
-          const { data: restaurante } = await supabase
+          const { data: restauranteData } = await supabase
             .from('restaurantes_app')
             .select('id')
             .eq('user_id', user.id)
             .single();
           
-          if (restaurante?.id) {
+          if (restauranteData?.id) {
             await supabase
               .from('restaurantes_app')
               .update({ ativo: false })
-              .eq('id', restaurante.id);
+              .eq('id', restauranteData.id);
             
-            console.log('Status do restaurante atualizado para inativo');
+            console.log('✅ Restaurante marcado como OFFLINE (ativo = false)');
           }
         } catch (updateError) {
-          console.error('Erro ao atualizar status ativo:', updateError);
+          console.error('⚠️ Erro ao atualizar status ativo:', updateError);
           // Não impedir logout se falhar ao atualizar status
         }
       }
+      
+      // Parar monitoramento de sessão
+      stopSessionMonitoring();
       
       // Limpar estado local imediatamente
       setUser(null);
@@ -455,11 +511,12 @@ export const AuthProvider = ({ children }) => {
       // Limpar localStorage
       localStorage.removeItem('supabase.auth.token');
       localStorage.removeItem('fome-ninja-active-page');
+      localStorage.removeItem('restaurante_id');
       
       // Fazer logout no Supabase
       await authService.logout();
       
-      console.log('Logout concluído com sucesso');
+      console.log('✅ Logout concluído com sucesso');
       
       // Forçar um refresh da página para garantir que tudo seja limpo
       setTimeout(() => {
@@ -468,7 +525,7 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      console.error('Erro no logout:', error);
+      console.error('❌ Erro no logout:', error);
       setError(error.message);
       
       // Mesmo com erro, limpar estado local e redirecionar
@@ -476,6 +533,7 @@ export const AuthProvider = ({ children }) => {
       setRestaurante(null);
       localStorage.removeItem('supabase.auth.token');
       localStorage.removeItem('fome-ninja-active-page');
+      localStorage.removeItem('restaurante_id');
       
       setTimeout(() => {
         window.location.href = '/login';

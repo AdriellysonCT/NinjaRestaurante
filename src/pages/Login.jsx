@@ -12,6 +12,7 @@ export function Login() {
   const [loginSucesso, setLoginSucesso] = useState(false);
   
   const navigate = useNavigate();
+  const { login } = useAuth(); // ✅ Pegar a função login do contexto
   
   // Verificar se o usuário já está autenticado
   useEffect(() => {
@@ -38,32 +39,24 @@ export function Login() {
       setLoading(true);
       setErro('');
       
-      console.log('Fazendo login diretamente com Supabase...');
+      console.log('🔐 Iniciando login através do AuthContext...');
       
-      // Fazer login diretamente com o Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: senha,
-      });
+      // ✅ USAR A FUNÇÃO login() DO AUTHCONTEXT
+      // Isso garante que o status ativo seja atualizado corretamente
+      await login(email, senha);
       
-      if (error) {
-        console.error('Erro ao fazer login:', error);
-        setErro('Email ou senha incorretos. Por favor, tente novamente.');
-        return;
-      }
-      
-      console.log('Login bem-sucedido:', data);
+      console.log('✅ Login concluído com sucesso!');
       setLoginSucesso(true);
       
       // Redirecionar para o dashboard após um breve atraso
       setTimeout(() => {
         console.log('Redirecionando para o dashboard...');
-        window.location.href = '/dashboard'; // Usar window.location para forçar um refresh completo
+        window.location.href = '/dashboard';
       }, 1000);
       
     } catch (error) {
-      console.error('Erro ao fazer login:', error);
-      setErro('Ocorreu um erro ao fazer login. Por favor, tente novamente.');
+      console.error('❌ Erro ao fazer login:', error);
+      setErro('Email ou senha incorretos. Por favor, tente novamente.');
     } finally {
       setLoading(false);
     }

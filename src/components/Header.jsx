@@ -226,41 +226,15 @@ export const Header = ({ toggleTheme, theme }) => {
 
   const handleEndDay = async () => {
     try {
-      console.log('Encerrando o dia...');
-      
-      // Importar supabase dinamicamente
-      const { supabase } = await import('../lib/supabase');
-      
-      // Buscar o ID do restaurante
-      if (user?.id) {
-        const { data: restaurante } = await supabase
-          .from('restaurantes_app')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (restaurante?.id) {
-          // Atualizar o status ativo para false
-          const { error } = await supabase
-            .from('restaurantes_app')
-            .update({ ativo: false })
-            .eq('id', restaurante.id);
-          
-          if (error) {
-            console.error('Erro ao atualizar status ativo:', error);
-          } else {
-            console.log('Status ativo atualizado para false');
-          }
-        }
-      }
-      
-      // Fechar modal e fazer logout
+      console.log('🌙 Encerrando o dia...');
       setShowEndDayConfirm(false);
+      
+      // O logout já cuida de marcar o restaurante como offline (ativo = false)
+      // Veja a função logout() no AuthContext
       await logout();
     } catch (error) {
-      console.error('Erro ao encerrar o dia:', error);
-      // Mesmo com erro, fazer logout
-      setShowEndDayConfirm(false);
+      console.error('❌ Erro ao encerrar o dia:', error);
+      // Mesmo com erro, tentar fazer logout
       await logout();
     }
   };

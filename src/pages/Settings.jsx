@@ -9,6 +9,7 @@ import { PrintSettingsSection as PrintSettings } from '../components/settings/Pr
 import PrintConfig from '../components/PrintConfig';
 import PrintConfigModal from '../components/PrintConfigModal';
 import * as authService from '../services/authService';
+import * as horariosService from '../services/horariosService';
 import { useToast } from '../hooks/useToast';
 import { ToastContainer } from '../components/Toast';
 
@@ -39,18 +40,19 @@ const Settings = () => {
   const [isPrintSettingsOpen, setIsPrintSettingsOpen] = useState(false);
   const [isPrintConfigModalOpen, setIsPrintConfigModalOpen] = useState(false);
   
-  const [openingHours, setOpeningHours] = useState(() => {
-    const saved = localStorage.getItem('fome-ninja-opening-hours');
-    return saved ? JSON.parse(saved) : {
-      monday: { open: '11:00', close: '22:00', isOpen: true },
-      tuesday: { open: '11:00', close: '22:00', isOpen: true },
-      wednesday: { open: '11:00', close: '22:00', isOpen: true },
-      thursday: { open: '11:00', close: '22:00', isOpen: true },
-      friday: { open: '11:00', close: '23:00', isOpen: true },
-      saturday: { open: '11:00', close: '23:00', isOpen: true },
-      sunday: { open: '11:00', close: '22:00', isOpen: true },
-    };
+  const [openingHours, setOpeningHours] = useState({
+    monday: { open: '11:00', close: '22:00', isOpen: true, id: null },
+    tuesday: { open: '11:00', close: '22:00', isOpen: true, id: null },
+    wednesday: { open: '11:00', close: '22:00', isOpen: true, id: null },
+    thursday: { open: '11:00', close: '22:00', isOpen: true, id: null },
+    friday: { open: '11:00', close: '23:00', isOpen: true, id: null },
+    saturday: { open: '11:00', close: '23:00', isOpen: true, id: null },
+    sunday: { open: '11:00', close: '22:00', isOpen: true, id: null },
   });
+  
+  const [statusAberto, setStatusAberto] = useState(null);
+  const [loadingHorarios, setLoadingHorarios] = useState(false);
+  const [salvandoHorario, setSalvandoHorario] = useState(null);
   
   const [deliverySettings, setDeliverySettings] = useState(() => {
     const saved = localStorage.getItem('fome-ninja-delivery-settings');
@@ -87,7 +89,7 @@ const Settings = () => {
   
   const [activeTab, setActiveTab] = useState('general');
   const { theme } = React.useContext(ThemeContext);
-  const { restaurante, atualizarDadosRestaurante, loading: authLoading } = useAuth();
+  const { restaurante, restauranteId, atualizarDadosRestaurante, loading: authLoading } = useAuth();
   const { orders } = useAppContext();
   
   // Estado para os dados do restaurante
@@ -195,6 +197,59 @@ const Settings = () => {
     }
   }, [restaurante]);
 
+  // ✅ Carregar horários do banco de dados
+  useEffect(() => {
+    const carregarHorarios = async () => {
+      if (!restauranteId) return;
+      
+      try {
+        setLoadingHorarios(true);
+        console.log('📅 Carregando horários do banco...');
+        
+        const horarios = await horariosService.buscarHorarios(restauranteId);
+        setOpeningHours(horarios);
+        
+        console.log('✅ Horários carregados:', horarios);
+      } catch (error) {
+        console.error('❌ Erro ao carregar horários:', error);
+        error('Erro ao carregar horários. Usando valores padrão.', 3000);
+      } finally {
+        setLoadingHorarios(false);
+      }
+    };
+    
+    carregarHorarios();
+  }, [restauranteId]);
+
+  // ✅ Verificar se o restaurante está aberto agora
+  useEffect(() => {
+    const verificarStatus = async () => {
+      if (!restauranteId) return;
+      
+      try {
+        console.log('🔍 Verificando status do restaurante...');
+        const status = await horariosService.verificarRestauranteAberto(restauranteId);
+        setStatusAberto(status);
+        console.log('✅ Status verificado:', status);
+      } catch (error) {
+        console.error('❌ Erro ao verificar status:', error);
+        
+        // Se for erro de permissão RLS, avisar
+        if (error.code === '42501' || error.message?.includes('permission denied')) {
+          error('Erro de permissão ao verificar status. Verifique as políticas RLS.', 5000);
+        }
+      }
+    };
+    
+    // Verificar ao carregar
+    verificarStatus();
+    
+    // ✅ Verificar a cada 2 minutos (120000ms) para atualização automática
+    const interval = setInterval(verificarStatus, 120000);
+    
+    return () => clearInterval(interval);
+  }, [restauranteId, openingHours]);
+
   const exportData = () => {
     const csvContent =
       'data:text/csv;charset=utf-8,' +
@@ -255,9 +310,7 @@ const Settings = () => {
     localStorage.setItem('fome-ninja-phone', phone);
   }, [phone]);
   
-  useEffect(() => {
-    localStorage.setItem('fome-ninja-opening-hours', JSON.stringify(openingHours));
-  }, [openingHours]);
+  // ✅ Horários agora são salvos diretamente no banco de dados via handleOpeningHoursChange
   
   useEffect(() => {
     localStorage.setItem('fome-ninja-delivery-settings', JSON.stringify(deliverySettings));
@@ -271,8 +324,17 @@ const Settings = () => {
     localStorage.setItem('fome-ninja-payment-methods', JSON.stringify(paymentMethods));
   }, [paymentMethods]);
   
-  // Manipuladores de eventos
-  const handleOpeningHoursChange = (day, field, value) => {
+  // ✅ Manipulador de mudança de horários com salvamento automático
+  const handleOpeningHoursChange = async (day, field, value) => {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔄 INICIANDO SALVAMENTO DE HORÁRIO');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📋 Dia:', day);
+    console.log('📋 Campo:', field);
+    console.log('📋 Valor:', value);
+    console.log('📋 Restaurante ID:', restauranteId);
+    
+    // Atualizar estado local imediatamente
     setOpeningHours(prev => ({
       ...prev,
       [day]: {
@@ -280,6 +342,53 @@ const Settings = () => {
         [field]: value
       }
     }));
+    
+    // Salvar no banco de dados
+    if (!restauranteId) {
+      console.error('❌ ERRO: restauranteId não disponível!');
+      error('Erro: ID do restaurante não encontrado', 3000);
+      return;
+    }
+    
+    try {
+      setSalvandoHorario(day);
+      
+      const horarioAtualizado = {
+        ...openingHours[day],
+        [field]: value
+      };
+      
+      console.log('📦 Horário a ser salvo:', horarioAtualizado);
+      console.log('🚀 Chamando horariosService.salvarHorario...');
+      
+      const resultado = await horariosService.salvarHorario(restauranteId, day, horarioAtualizado);
+      
+      console.log('✅ Resultado do salvamento:', resultado);
+      console.log(`✅ Horário de ${day} salvo com sucesso`);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
+      // Reverificar status do restaurante após salvar
+      const novoStatus = await horariosService.verificarRestauranteAberto(restauranteId);
+      setStatusAberto(novoStatus);
+      
+      success(`Horário de ${horariosService.obterNomeDia(day)} atualizado!`, 2000);
+    } catch (error) {
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.error('❌ ERRO AO SALVAR HORÁRIO');
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.error('❌ Tipo:', error.constructor.name);
+      console.error('❌ Mensagem:', error.message);
+      console.error('❌ Código:', error.code);
+      console.error('❌ Detalhes:', error.details);
+      console.error('❌ Hint:', error.hint);
+      console.error('❌ Stack:', error.stack);
+      console.error('❌ Objeto completo:', error);
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
+      error('Erro ao salvar horário. Verifique o console (F12).', 5000);
+    } finally {
+      setSalvandoHorario(null);
+    }
   };
   
   const handleDeliverySettingChange = (field, value) => {
@@ -666,25 +775,139 @@ const Settings = () => {
         )}
         
         {activeTab === 'hours' && (
-          <div className="ninja-card p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Horários de Funcionamento</h3>
-            <div className="space-y-4">
-              {daysOfWeek.map(day => (
-                <div key={day.id} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                  <label className="text-sm font-medium">{day.label}</label>
-                  <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
-                    <input type="time" className="w-full bg-input px-3 py-2 rounded-md" value={openingHours[day.id].open} onChange={(e) => handleOpeningHoursChange(day.id, 'open', e.target.value)} disabled={!openingHours[day.id].isOpen} />
-                    <span>às</span>
-                    <input type="time" className="w-full bg-input px-3 py-2 rounded-md" value={openingHours[day.id].close} onChange={(e) => handleOpeningHoursChange(day.id, 'close', e.target.value)} disabled={!openingHours[day.id].isOpen} />
+          <div className="space-y-6">
+            {/* Status do Restaurante - SIMPLIFICADO */}
+            {statusAberto && (
+              <div className={`ninja-card p-6 ${
+                statusAberto.aberto 
+                  ? 'bg-green-50 dark:bg-green-950/30' 
+                  : 'bg-red-50 dark:bg-red-950/30'
+              }`}>
+                <div className="flex items-center gap-4">
+                  {/* Indicador Visual Grande */}
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                    statusAberto.aberto 
+                      ? 'bg-green-500' 
+                      : 'bg-red-500'
+                  }`}>
+                    <span className="text-3xl">
+                      {statusAberto.aberto ? '✓' : '✕'}
+                    </span>
                   </div>
-                  <div className="flex items-center justify-end">
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" checked={openingHours[day.id].isOpen} onChange={(e) => handleOpeningHoursChange(day.id, 'isOpen', e.target.checked)} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-                    </label>
+                  
+                  {/* Informação Principal */}
+                  <div className="flex-1">
+                    <h3 className={`text-2xl font-bold mb-1 ${
+                      statusAberto.aberto 
+                        ? 'text-green-700 dark:text-green-400' 
+                        : 'text-red-700 dark:text-red-400'
+                    }`}>
+                      {statusAberto.aberto ? 'Aberto Agora' : 'Fechado'}
+                    </h3>
+                    
+                    {/* Mensagem Simples */}
+                    {statusAberto.metodo === 'sem_horario_configurado' && (
+                      <p className="text-sm text-muted-foreground">
+                        Configure os horários abaixo para começar
+                      </p>
+                    )}
+                    
+                    {statusAberto.metodo === 'fechado_hoje' && (
+                      <p className="text-sm text-muted-foreground">
+                        Você marcou que não abre hoje
+                      </p>
+                    )}
+                    
+                    {statusAberto.metodo === 'fora_do_horario' && statusAberto.abre && (
+                      <p className="text-sm text-muted-foreground">
+                        Abre às {statusAberto.abre?.substring(0, 5)}
+                      </p>
+                    )}
+                    
+                    {statusAberto.aberto && statusAberto.fecha && (
+                      <p className="text-sm text-muted-foreground">
+                        Fecha às {statusAberto.fecha?.substring(0, 5)}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Hora Atual */}
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground mb-1">Agora</p>
+                    <p className="text-2xl font-bold">
+                      {statusAberto.horaAtual?.substring(0, 5) || '--:--'}
+                    </p>
                   </div>
                 </div>
-              ))}
+              </div>
+            )}
+            
+            {/* Horários de Funcionamento */}
+            <div className="ninja-card p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Horários de Funcionamento</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Configure os dias e horários que seu restaurante funciona
+                  </p>
+                </div>
+                {loadingHorarios && (
+                  <div className="text-sm text-muted-foreground">Carregando...</div>
+                )}
+              </div>
+              
+              <div className="space-y-4">
+                {daysOfWeek.map(day => (
+                  <div key={day.id} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center p-4 rounded-lg border border-border hover:bg-secondary/50 transition-colors">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium">{day.label}</label>
+                      {salvandoHorario === day.id && (
+                        <span className="text-xs text-blue-500">Salvando...</span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
+                      <input 
+                        type="time" 
+                        className="w-full bg-input px-3 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed" 
+                        value={openingHours[day.id].open} 
+                        onChange={(e) => handleOpeningHoursChange(day.id, 'open', e.target.value)} 
+                        disabled={!openingHours[day.id].isOpen || salvandoHorario === day.id} 
+                      />
+                      <span className="text-sm text-muted-foreground">às</span>
+                      <input 
+                        type="time" 
+                        className="w-full bg-input px-3 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed" 
+                        value={openingHours[day.id].close} 
+                        onChange={(e) => handleOpeningHoursChange(day.id, 'close', e.target.value)} 
+                        disabled={!openingHours[day.id].isOpen || salvandoHorario === day.id} 
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {openingHours[day.id].isOpen ? 'Aberto' : 'Fechado'}
+                      </span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={openingHours[day.id].isOpen} 
+                          onChange={(e) => handleOpeningHoursChange(day.id, 'isOpen', e.target.checked)} 
+                          className="sr-only peer"
+                          disabled={salvandoHorario === day.id}
+                        />
+                        <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <strong>💡 Dica:</strong> Suas alterações são salvas automaticamente quando você muda os horários.
+                </p>
+              </div>
             </div>
           </div>
         )}

@@ -55,10 +55,35 @@ const ProtectedRoute = ({ children }) => {
 
 // Componente de layout principal
 const MainLayout = () => {
+  const { user, restauranteId } = useAuth();
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem('fome-ninja-theme');
     return savedTheme || 'dark';
   });
+
+  // ✅ Gerenciar status online do restaurante
+  useEffect(() => {
+    if (!user?.id || !restauranteId) return;
+
+    const handleBeforeUnload = () => {
+      // Marcar como offline quando fechar o painel
+      // Usar navigator.sendBeacon para garantir que a requisição seja enviada
+      const url = `${supabase.supabaseUrl}/rest/v1/restaurantes_app?id=eq.${restauranteId}`;
+      const data = JSON.stringify({ ativo: false });
+      
+      navigator.sendBeacon(url, data);
+      console.log('🔴 Restaurante marcado como OFFLINE (painel fechado)');
+    };
+
+    // Adicionar listener para quando a janela fechar
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // ❌ NÃO marcar como offline no cleanup do useEffect
+      // Isso causava o bug de marcar como offline após login
+    };
+  }, [user?.id, restauranteId]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
