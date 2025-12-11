@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../ui/Modal';
 import * as Icons from '../icons/index.jsx';
 import { printService } from '../../services/printService';
@@ -8,11 +8,56 @@ export const PrintSettings = ({ isOpen, onClose }) => {
   const [printers, setPrinters] = useState([]);
   const [message, setMessage] = useState(null);
   const [activeTab, setActiveTab] = useState('general');
+  const [loadingPrinters, setLoadingPrinters] = useState(false);
+  const [autoPrintEnabled, setAutoPrintEnabled] = useState(printService.isAutoPrintEnabled());
+
+  // Carregar impressoras automaticamente ao abrir
+  const loadPrinters = useCallback(async () => {
+    setLoadingPrinters(true);
+    try {
+      const availablePrinters = await printService.getAvailablePrinters();
+      setPrinters(availablePrinters);
+    } catch (error) {
+      console.error('Erro ao carregar impressoras:', error);
+    } finally {
+      setLoadingPrinters(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // Carregar lista de impressoras disponíveis
-    setPrinters(printService.getAvailablePrinters());
-  }, []);
+    if (isOpen) {
+      // Carregar impressoras automaticamente quando o modal abrir
+      loadPrinters();
+      setAutoPrintEnabled(printService.isAutoPrintEnabled());
+    }
+  }, [isOpen, loadPrinters]);
+
+  const handleRefreshPrinters = async () => {
+    setLoadingPrinters(true);
+    try {
+      const refreshedPrinters = await printService.refreshPrinters();
+      setPrinters(refreshedPrinters);
+      setMessage({ type: 'success', text: 'Lista de impressoras atualizada!' });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Erro ao atualizar impressoras' });
+    } finally {
+      setLoadingPrinters(false);
+    }
+  };
+
+  const handleToggleAutoPrint = () => {
+    const newValue = !autoPrintEnabled;
+    const result = printService.setAutoPrintEnabled(newValue);
+    if (result.success) {
+      setAutoPrintEnabled(newValue);
+      setMessage({ 
+        type: 'success', 
+        text: newValue ? 'Impressão automática ativada!' : 'Impressão automática desativada!' 
+      });
+      setTimeout(() => setMessage(null), 3000);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -119,16 +164,41 @@ export const PrintSettings = ({ isOpen, onClose }) => {
         {activeTab === 'general' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Impressora</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium">Impressora</label>
+                <button
+                  onClick={handleRefreshPrinters}
+                  disabled={loadingPrinters}
+                  className="text-xs text-primary hover:text-primary/80 flex items-center gap-1"
+                >
+                  {loadingPrinters ? (
+                    <span className="animate-spin">⟳</span>
+                  ) : (
+                    <span>🔄</span>
+                  )}
+                  Atualizar
+                </button>
+              </div>
               <select 
                 className="w-full bg-input px-3 py-2 rounded-md"
                 value={settings.printerName}
                 onChange={(e) => handleChange('printerName', e.target.value)}
               >
-                {printers.map(printer => (
-                  <option key={printer.id} value={printer.name}>{printer.name}</option>
-                ))}
+                {loadingPrinters ? (
+                  <option>Carregando impressoras...</option>
+                ) : printers.length === 0 ? (
+                  <option>Nenhuma impressora encontrada</option>
+                ) : (
+                  printers.map(printer => (
+                    <option key={printer.id} value={printer.name}>
+                      {printer.name} {printer.isDefault ? '(Padrão)' : ''} {printer.isThermal ? '🖨️' : ''}
+                    </option>
+                  ))
+                )}
               </select>
+              <p className="text-xs text-muted-foreground mt-1">
+                💡 As impressoras disponíveis serão mostradas no diálogo de impressão do sistema
+              </p>
             </div>
             
             <div>
@@ -151,6 +221,30 @@ export const PrintSettings = ({ isOpen, onClose }) => {
                 onChange={(e) => handleChange('autocut', e.target.checked)}
               />
               <label htmlFor="autocut" className="text-sm">Corte automático</label>
+            </div>
+            
+            {/* Impressão automática ao aceitar */}
+            <div className="border-t border-border pt-4 mt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-sm">Impressão automática</div>
+                  <div className="text-xs text-muted-foreground">
+                    Imprimir comanda automaticamente ao aceitar pedido
+                  </div>
+                </div>
+                <button
+                  onClick={handleToggleAutoPrint}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    autoPrintEnabled ? 'bg-primary' : 'bg-gray-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      autoPrintEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
         )}

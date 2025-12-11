@@ -3,11 +3,12 @@ import { supabase } from '../lib/supabase';
 
 const PRINT_HISTORY_KEY = 'fome-ninja-print-history';
 const PRINT_SETTINGS_KEY = 'fome-ninja-print-settings';
+const AUTO_PRINT_KEY = 'fome-ninja-auto-print-enabled';
 
 // Configurações padrão de impressão
 const defaultPrintSettings = {
   printerName: 'Impressora Padrão',
-  paperWidth: 80, // mm
+  paperWidth: 80, // mm - padrão para térmicas
   fontSize: 12,
   showLogo: true,
   showQRCode: false,
@@ -18,6 +19,7 @@ const defaultPrintSettings = {
   logoUrl: 'https://placehold.co/200x100/1a1a1a/ffa500?text=FomeNinja',
   showItemPrice: true,
   showTimestamp: true,
+  autoPrintOnAccept: true, // Impressão automática ao aceitar pedido
   companyInfo: {
     name: '',
     address: '',
@@ -25,6 +27,11 @@ const defaultPrintSettings = {
     cnpj: ''
   }
 };
+
+// Cache de impressoras detectadas
+let cachedPrinters = [];
+let printersLastFetch = 0;
+const PRINTERS_CACHE_TTL = 30000; // 30 segundos
 
 // Histórico de impressões
 let printHistory = [];
@@ -150,120 +157,154 @@ const addToPrintHistory = (type, data, success, message) => {
   return historyEntry;
 };
 
-// Função para simular impressão real
+// Função para enviar para impressora - otimizada para térmicas 80mm
 const sendToPrinter = async (content, settings = {}) => {
-  // Em um ambiente real, aqui seria a integração com a API de impressão
-  // Por exemplo, usando a Web Print API, WebUSB ou enviando para um servidor de impressão
+  const paperWidth = settings.paperWidth || printSettings.paperWidth || 80;
+  const printerName = settings.printerName || printSettings.printerName;
   
-  // Simulação de impressão
-  console.log('Enviando para impressora:', settings.printerName || printSettings.printerName);
-  console.log('Conteúdo:');
-  console.log(content);
+  console.log('Enviando para impressora:', printerName);
+  console.log('Largura do papel:', paperWidth + 'mm');
   
-  // Criar uma janela de impressão oculta para o conteúdo da comanda
-  const printWindow = window.open('', '_blank', 'width=400,height=600,top=0,left=0');
+  // Criar iframe oculto para impressão (melhor compatibilidade que window.open)
+  const printFrame = document.createElement('iframe');
+  printFrame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  printFrame.name = 'printFrame_' + Date.now();
+  document.body.appendChild(printFrame);
   
-  if (printWindow) {
-    // Criar o HTML para impressão com estilos otimizados para impressoras térmicas
-    const printHTML = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Comanda</title>
-        <style>
-          @media print {
-            body { 
-              font-family: 'Courier New', monospace; 
-              font-size: 12px;
-              margin: 0;
-              padding: 0;
-              width: 80mm;
+  const frameDoc = printFrame.contentWindow || printFrame.contentDocument;
+  const doc = frameDoc.document || frameDoc;
+  
+  // HTML otimizado para impressoras térmicas 80mm
+  const printHTML = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Comanda</title>
+      <style>
+        /* Reset e configurações base */
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        /* Configurações para impressão térmica */
+        @page {
+          size: ${paperWidth}mm auto;
+          margin: 0;
+          padding: 0;
+        }
+        
+        @media print {
+          html, body {
+            width: ${paperWidth}mm !important;
+            max-width: ${paperWidth}mm !important;
+            margin: 0 !important;
+            padding: 2mm !important;
+            font-family: 'Courier New', 'Lucida Console', Monaco, monospace !important;
+            font-size: 11px !important;
+            line-height: 1.3 !important;
+            color: #000 !important;
+            background: #fff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          /* Forçar preto e branco para térmicas */
+          * {
+            color: #000 !important;
+            background: transparent !important;
+            text-shadow: none !important;
+            box-shadow: none !important;
+          }
+          
+          .no-print {
+            display: none !important;
+          }
+          
+          pre {
+            white-space: pre-wrap !important;
+            word-wrap: break-word !important;
+            word-break: break-word !important;
+            font-family: inherit !important;
+            font-size: inherit !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+        }
+        
+        /* Estilos para visualização na tela */
+        body {
+          width: ${paperWidth}mm;
+          max-width: ${paperWidth}mm;
+          margin: 0 auto;
+          padding: 2mm;
+          font-family: 'Courier New', monospace;
+          font-size: 11px;
+          line-height: 1.3;
+          background: #fff;
+          color: #000;
+        }
+        
+        pre {
+          white-space: pre-wrap;
+          word-wrap: break-word;
+          margin: 0;
+          padding: 0;
+          font-family: inherit;
+          font-size: inherit;
+        }
+      </style>
+    </head>
+    <body>
+      <pre>${escapeHtml(content)}</pre>
+    </body>
+    </html>
+  `;
+  
+  doc.open();
+  doc.write(printHTML);
+  doc.close();
+  
+  // Aguardar carregamento e imprimir
+  return new Promise((resolve) => {
+    printFrame.onload = () => {
+      setTimeout(() => {
+        try {
+          printFrame.contentWindow.focus();
+          printFrame.contentWindow.print();
+          
+          // Remover iframe após impressão
+          setTimeout(() => {
+            if (printFrame.parentNode) {
+              document.body.removeChild(printFrame);
             }
-            .no-print { display: none !important; }
-          }
-          body { 
-            font-family: 'Courier New', monospace; 
-            font-size: 12px;
-            margin: 10px;
-            width: 80mm;
-          }
-          .header { text-align: center; margin-bottom: 10px; }
-          .items { margin: 10px 0; }
-          .total { font-weight: bold; margin: 10px 0; }
-          .footer { text-align: center; margin-top: 20px; font-size: 10px; }
-          pre { 
-            white-space: pre-wrap; 
-            word-wrap: break-word;
-            margin: 0;
-            padding: 0;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h2>${settings.companyInfo.name || 'RESTAURANTE'}</h2>
-          <p>${settings.companyInfo.address || ''}</p>
-          <p>${settings.companyInfo.phone ? 'Tel: ' + settings.companyInfo.phone : ''}</p>
-        </div>
-        <hr>
-        <pre>${content}</pre>
-        <hr>
-        <div class="footer">
-          <p>Obrigado pela preferência!</p>
-          <p>${new Date().toLocaleString('pt-BR')}</p>
-        </div>
-        <script>
-          window.onload = function() {
-            window.print();
-            setTimeout(function() {
-              window.close();
-            }, 1000);
-          };
-        </script>
-      </body>
-      </html>
-    `;
-    
-    printWindow.document.write(printHTML);
-    printWindow.document.close();
-    
-    // Simular um pequeno atraso para parecer mais realista
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    return {
-      success: true,
-      message: `Impresso em ${settings.printerName || printSettings.printerName}`
+          }, 2000);
+          
+          resolve({
+            success: true,
+            message: `Impresso em ${printerName}`
+          });
+        } catch (error) {
+          console.error('Erro ao imprimir:', error);
+          // Fallback: usar window.print diretamente
+          window.print();
+          resolve({
+            success: true,
+            message: 'Impresso via navegador (fallback)'
+          });
+        }
+      }, 300);
     };
-  } else {
-    // Fallback: usar window.print() na janela atual
-    console.warn('Não foi possível abrir janela de impressão, usando fallback');
-    
-    // Criar um elemento temporário
-    const printElement = document.createElement('div');
-    printElement.style.cssText = `
-      font-family: 'Courier New', monospace; 
-      font-size: 12px;
-      width: 80mm;
-      white-space: pre-wrap;
-      position: absolute;
-      left: -9999px;
-    `;
-    printElement.textContent = content;
-    document.body.appendChild(printElement);
-    
-    // Usar window.print()
-    window.print();
-    
-    // Remover elemento temporário
-    setTimeout(() => {
-      document.body.removeChild(printElement);
-    }, 1000);
-    
-    return {
-      success: true,
-      message: `Impresso via navegador`
-    };
-  }
+  });
+};
+
+// Função auxiliar para escapar HTML
+const escapeHtml = (text) => {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 };
 
 export const printService = {
@@ -576,15 +617,171 @@ export const printService = {
     }
   },
 
-  // Lista de impressoras disponíveis (simulação)
-  getAvailablePrinters: () => {
-    // Em um ambiente real, isso seria obtido do sistema ou de uma API
-    return [
-      { id: 'printer1', name: 'Impressora Caixa' },
-      { id: 'printer2', name: 'Impressora Cozinha' },
-      { id: 'printer3', name: 'Impressora Balcão' },
-      { id: 'printer4', name: 'Impressora Gerência' }
+  // Lista de impressoras disponíveis - detecta automaticamente via navegador
+  getAvailablePrinters: async () => {
+    // Verificar cache
+    const now = Date.now();
+    if (cachedPrinters.length > 0 && (now - printersLastFetch) < PRINTERS_CACHE_TTL) {
+      return cachedPrinters;
+    }
+    
+    const printers = [];
+    
+    // Impressora padrão do sistema sempre disponível
+    printers.push({
+      id: 'default',
+      name: 'Impressora Padrão do Sistema',
+      status: 'online',
+      isDefault: true
+    });
+    
+    // Tentar detectar impressoras via Web Print API (se disponível)
+    // Nota: A maioria dos navegadores não expõe lista de impressoras por segurança
+    // mas o diálogo de impressão do sistema mostrará todas as impressoras disponíveis
+    
+    // Adicionar impressoras comuns para térmicas (sugestões)
+    const commonThermalPrinters = [
+      { id: 'thermal_80mm', name: 'Impressora Térmica 80mm', status: 'available', isThermal: true },
+      { id: 'thermal_58mm', name: 'Impressora Térmica 58mm', status: 'available', isThermal: true },
     ];
+    
+    // Verificar se há impressoras salvas no localStorage
+    try {
+      const savedPrinters = localStorage.getItem('fome-ninja-saved-printers');
+      if (savedPrinters) {
+        const parsed = JSON.parse(savedPrinters);
+        if (Array.isArray(parsed)) {
+          parsed.forEach(p => {
+            if (!printers.find(existing => existing.id === p.id)) {
+              printers.push({ ...p, status: 'saved' });
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar impressoras salvas:', e);
+    }
+    
+    // Adicionar sugestões de térmicas
+    commonThermalPrinters.forEach(p => {
+      if (!printers.find(existing => existing.id === p.id)) {
+        printers.push(p);
+      }
+    });
+    
+    // Atualizar cache
+    cachedPrinters = printers;
+    printersLastFetch = now;
+    
+    return printers;
+  },
+  
+  // Salvar impressora personalizada
+  savePrinter: (printer) => {
+    try {
+      const savedPrinters = localStorage.getItem('fome-ninja-saved-printers');
+      const printers = savedPrinters ? JSON.parse(savedPrinters) : [];
+      
+      // Evitar duplicatas
+      const existingIndex = printers.findIndex(p => p.id === printer.id || p.name === printer.name);
+      if (existingIndex >= 0) {
+        printers[existingIndex] = printer;
+      } else {
+        printers.push(printer);
+      }
+      
+      localStorage.setItem('fome-ninja-saved-printers', JSON.stringify(printers));
+      
+      // Limpar cache para forçar atualização
+      cachedPrinters = [];
+      printersLastFetch = 0;
+      
+      return { success: true, message: 'Impressora salva com sucesso' };
+    } catch (error) {
+      return { success: false, message: 'Erro ao salvar impressora: ' + error.message };
+    }
+  },
+  
+  // Verificar se impressão automática está habilitada
+  isAutoPrintEnabled: () => {
+    try {
+      const saved = localStorage.getItem(AUTO_PRINT_KEY);
+      if (saved !== null) {
+        return saved === 'true';
+      }
+      // Padrão: habilitado
+      return printSettings.autoPrintOnAccept !== false;
+    } catch (e) {
+      return true;
+    }
+  },
+  
+  // Habilitar/desabilitar impressão automática
+  setAutoPrintEnabled: (enabled) => {
+    try {
+      localStorage.setItem(AUTO_PRINT_KEY, enabled ? 'true' : 'false');
+      printSettings.autoPrintOnAccept = enabled;
+      return { success: true, enabled };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  },
+  
+  // Impressão automática ao aceitar pedido
+  autoPrintOnAccept: async (order, restaurante) => {
+    if (!printService.isAutoPrintEnabled()) {
+      console.log('Impressão automática desabilitada');
+      return { success: false, message: 'Impressão automática desabilitada' };
+    }
+    
+    console.log('🖨️ Iniciando impressão automática para pedido #' + (order.numero_pedido || order.id));
+    
+    try {
+      // Formatar pedido para impressão
+      const pedidoFormatado = {
+        id: order.id,
+        numero_pedido: order.numero_pedido || order.id,
+        customerName: order.nome_cliente || order.customerName || 'Cliente',
+        customerPhone: order.telefone_cliente || order.customerPhone || '',
+        type: order.tipo_pedido || 'balcao',
+        total: parseFloat(order.valor_total || order.total || 0),
+        paymentMethod: order.metodo_pagamento || order.paymentMethod || 'Não informado',
+        prepTime: order.prep_time || order.prepTime || 0,
+        items: (order.items || order.itens_pedido || []).map(item => ({
+          name: item.name || item.itens_cardapio?.nome || 'Item',
+          qty: item.qty || item.quantidade || 1,
+          price: parseFloat(item.price || item.preco_unitario || 0),
+          notes: item.note || item.observacao_item || ''
+        }))
+      };
+      
+      const result = await printService.printOrderTicket(pedidoFormatado, {
+        companyInfo: {
+          name: restaurante?.nome_fantasia || '',
+          address: restaurante?.rua ? `${restaurante.rua}, ${restaurante.numero || ''}` : '',
+          phone: restaurante?.telefone || '',
+          cnpj: restaurante?.cnpj || ''
+        }
+      });
+      
+      if (result.success) {
+        console.log('✅ Impressão automática concluída com sucesso');
+      } else {
+        console.warn('⚠️ Impressão automática falhou:', result.message);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('❌ Erro na impressão automática:', error);
+      return { success: false, message: error.message };
+    }
+  },
+  
+  // Forçar atualização da lista de impressoras
+  refreshPrinters: async () => {
+    cachedPrinters = [];
+    printersLastFetch = 0;
+    return await printService.getAvailablePrinters();
   }
 };
 

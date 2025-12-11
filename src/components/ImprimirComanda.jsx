@@ -146,12 +146,57 @@ export default function ImprimirComanda({ pedido, restaurante, auto = true, reim
       <style>{`
         @media screen { .print-only { display: none; } }
         @media print {
-          body * { visibility: hidden !important; }
-          .imprimir-comanda-container, .imprimir-comanda-container * { visibility: visible !important; }
-          .imprimir-comanda-container { position: fixed; inset: 0; padding: 0; margin: 0; }
-          .print-only { display: block; }
-          body { font-family: 'Courier New', monospace; color: #000; }
-          pre { font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.3; margin: 10px; }
+          /* Configuração para impressoras térmicas 80mm */
+          @page {
+            size: 80mm auto;
+            margin: 0;
+            padding: 0;
+          }
+          
+          html, body {
+            width: 80mm !important;
+            max-width: 80mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          body * { 
+            visibility: hidden !important; 
+          }
+          
+          .imprimir-comanda-container, 
+          .imprimir-comanda-container * { 
+            visibility: visible !important; 
+            color: #000 !important;
+            background: transparent !important;
+          }
+          
+          .imprimir-comanda-container { 
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 80mm !important;
+            max-width: 80mm !important;
+            padding: 2mm !important; 
+            margin: 0 !important; 
+          }
+          
+          .print-only { 
+            display: block !important; 
+          }
+          
+          pre { 
+            font-family: 'Courier New', 'Lucida Console', Monaco, monospace !important; 
+            font-size: 11px !important; 
+            line-height: 1.3 !important; 
+            margin: 0 !important;
+            padding: 0 !important;
+            white-space: pre-wrap !important;
+            word-wrap: break-word !important;
+          }
         }
       `}</style>
       <div className="imprimir-comanda-container print-only">

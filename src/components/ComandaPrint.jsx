@@ -159,84 +159,101 @@ const ComandaPrint = ({
         </div>
       </div>
 
-      {/* Estilos para impressão */}
+      {/* Estilos para impressão - otimizados para térmicas 80mm */}
       <style jsx>{`
         /* Oculta o conteúdo da tela na impressão */
         @media print {
+          /* Configuração para impressoras térmicas 80mm */
+          @page {
+            size: 80mm auto;
+            margin: 0;
+            padding: 0;
+          }
+          
+          html, body {
+            width: 80mm !important;
+            max-width: 80mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
           .screen-content {
             display: none !important;
           }
           
-          /* Estilos otimizados para impressão */
+          /* Estilos otimizados para impressão térmica */
           body {
-            margin: 0;
-            padding: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.3;
+            font-family: 'Courier New', 'Lucida Console', Monaco, monospace !important;
+            font-size: 11px !important;
+            line-height: 1.3 !important;
           }
 
           .print-content {
             display: block !important;
-            width: 100%;
-            max-width: 80mm; /* Largura padrão para impressoras térmicas */
+            width: 80mm !important;
+            max-width: 80mm !important;
+            padding: 2mm !important;
           }
 
           .comanda {
-            padding: 10px;
-            border: 1px solid #000;
-            border-radius: 5px;
+            padding: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
           }
 
           h1 {
-            font-size: 18px;
-            margin: 0;
+            font-size: 14px !important;
+            margin: 0 !important;
           }
 
           h2 {
-            font-size: 16px;
-            margin: 0;
+            font-size: 12px !important;
+            margin: 0 !important;
           }
 
-          .text-2xl { font-size: 20px; }
-          .text-lg { font-size: 16px; }
-          .text-sm { font-size: 12px; }
-          .text-xs { font-size: 10px; }
+          .text-2xl { font-size: 14px !important; }
+          .text-lg { font-size: 12px !important; }
+          .text-base { font-size: 11px !important; }
+          .text-sm { font-size: 10px !important; }
+          .text-xs { font-size: 9px !important; }
 
-          .font-bold { font-weight: bold; }
-          .font-semibold { font-weight: 600; }
+          .font-bold { font-weight: bold !important; }
+          .font-semibold { font-weight: 600 !important; }
 
-          .text-center { text-align: center; }
-          .text-right { text-align: right; }
+          .text-center { text-align: center !important; }
+          .text-right { text-align: right !important; }
 
-          .mb-1 { margin-bottom: 4px; }
-          .mb-2 { margin-bottom: 8px; }
-          .mb-3 { margin-bottom: 12px; }
-          .mb-4 { margin-bottom: 16px; }
-          .my-3 { margin-top: 12px; margin-bottom: 12px; }
-          .mt-4 { margin-top: 16px; }
+          .mb-1 { margin-bottom: 2px !important; }
+          .mb-2 { margin-bottom: 4px !important; }
+          .mb-3 { margin-bottom: 6px !important; }
+          .mb-4 { margin-bottom: 8px !important; }
+          .my-3 { margin-top: 6px !important; margin-bottom: 6px !important; }
+          .mt-4 { margin-top: 8px !important; }
 
-          .flex { display: flex; }
-          .justify-between { justify-content: space-between; }
-          .items-start { align-items: flex-start; }
-          .flex-1 { flex: 1; }
+          .flex { display: flex !important; }
+          .justify-between { justify-content: space-between !important; }
+          .items-start { align-items: flex-start !important; }
+          .flex-1 { flex: 1 !important; }
 
-          .border-t-2 { border-top: 2px solid; }
-          .border-dashed { border-style: dashed; }
-          .border-gray-400 { border-color: #9ca3af; }
+          .border-t-2 { border-top: 1px dashed #000 !important; }
+          .border-t-4 { border-top: 2px solid #000 !important; }
+          .border-dashed { border-style: dashed !important; }
+          .border-gray-400 { border-color: #000 !important; }
+          .border-double { border-style: double !important; }
 
-          .text-gray-600 { color: #4b5563; }
-          .text-gray-500 { color: #6b7280; }
-
-          /* Remove cores de fundo e mantém apenas texto */
+          /* Forçar preto e branco */
           * {
             background: transparent !important;
-            color: black !important;
+            color: #000 !important;
+            text-shadow: none !important;
+            box-shadow: none !important;
           }
 
-          /* Adiciona margens para melhor visualização */
-          @page {
-            margin: 10mm;
+          .text-gray-600, .text-gray-500, .text-gray-400 { 
+            color: #000 !important; 
           }
         }
 

@@ -5,6 +5,7 @@ import ErrorBoundary from "../components/ErrorBoundary";
 import * as Icons from "../components/icons/index.jsx";
 import { OrderDetailModal } from "../components/OrderDetailModal";
 import { supabase } from "../lib/supabase";
+import { printService } from "../services/printService";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -31,6 +32,8 @@ const Dashboard = () => {
     }
   });
   const [processingAutoAccept, setProcessingAutoAccept] = useState(false);
+  const autoAcceptRef = useRef(false); // Ref para evitar problemas de closure
+  const processedOrdersRef = useRef(new Set()); // Evitar processar o mesmo pedido duas vezes
 
   // Obter controle de som do contexto
   const { soundEnabled, enableSound, disableSound } = useAppContext?.() || {};
@@ -268,12 +271,74 @@ const Dashboard = () => {
     }
   }, [restaurantId, fetchOrders]);
 
+  // Manter ref sincronizado com estado
+  useEffect(() => {
+    autoAcceptRef.current = autoAcceptEnabled;
+  }, [autoAcceptEnabled]);
+
+  // Função para aceitar pedido automaticamente (isolada para reutilização)
+  const autoAcceptOrder = useCallback(async (order) => {
+    // Verificar se já foi processado
+    if (processedOrdersRef.current.has(order.id)) {
+      console.log(`⏭️ Pedido #${order.numero_pedido} já foi processado, ignorando...`);
+      return false;
+    }
+    
+    // Marcar como processado
+    processedOrdersRef.current.add(order.id);
+    
+    console.log(`🤖 Aceitando pedido automaticamente: #${order.numero_pedido}`);
+    
+    try {
+      const { error: updateError } = await supabase
+        .from("pedidos_padronizados")
+        .update({ 
+          status: 'aceito',
+          started_at: new Date().toISOString()
+        })
+        .eq("id", order.id)
+        .eq("status", "disponivel"); // Só atualiza se ainda estiver disponível
+
+      if (updateError) {
+        console.error(`❌ Erro ao aceitar pedido #${order.numero_pedido}:`, updateError);
+        processedOrdersRef.current.delete(order.id); // Permitir retry
+        return false;
+      }
+      
+      console.log(`✅ Pedido #${order.numero_pedido} aceito automaticamente!`);
+      
+      // Impressão automática
+      try {
+        console.log('🖨️ Disparando impressão automática...');
+        const { data: restauranteData } = await supabase
+          .from('restaurantes_app')
+          .select('*')
+          .eq('id', restaurantId)
+          .single();
+        
+        printService.autoPrintOnAccept(order, restauranteData).catch(err => {
+          console.warn('Erro na impressão automática:', err);
+        });
+      } catch (printError) {
+        console.warn('Erro ao tentar impressão automática:', printError);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error(`❌ Erro ao aceitar pedido #${order.numero_pedido}:`, error);
+      processedOrdersRef.current.delete(order.id); // Permitir retry
+      return false;
+    }
+  }, [restaurantId]);
+
   // Configurar realtime para novos pedidos
   useEffect(() => {
     if (!restaurantId) return;
 
+    console.log('📡 Configurando realtime para restaurante:', restaurantId);
+
     const channel = supabase
-      .channel("pedidos_dashboard")
+      .channel(`pedidos_dashboard_${restaurantId}`)
       .on(
         "postgres_changes",
         {
@@ -283,31 +348,16 @@ const Dashboard = () => {
           filter: `id_restaurante=eq.${restaurantId}`,
         },
         async (payload) => {
-          console.log("Mudança detectada nos pedidos:", payload);
+          console.log("📨 Mudança detectada nos pedidos:", payload?.eventType, payload?.new?.numero_pedido);
           
           // Aceitar automaticamente novos pedidos se a opção estiver ativada
-          if (payload?.eventType === 'INSERT' && autoAcceptEnabled) {
+          if (payload?.eventType === 'INSERT' && autoAcceptRef.current) {
             const newOrder = payload.new;
-            if (newOrder.status === 'disponivel') {
-              console.log('🤖 Aceitação automática ativada - aceitando pedido:', newOrder.numero_pedido);
-              try {
-                // Atualizar diretamente no banco
-                const { error: updateError } = await supabase
-                  .from("pedidos_padronizados")
-                  .update({ 
-                    status: 'aceito',
-                    started_at: new Date().toISOString()
-                  })
-                  .eq("id", newOrder.id);
-
-                if (updateError) {
-                  console.error('❌ Erro ao aceitar pedido automaticamente:', updateError);
-                } else {
-                  console.log('✅ Pedido aceito automaticamente:', newOrder.numero_pedido);
-                }
-              } catch (error) {
-                console.error('❌ Erro ao aceitar pedido automaticamente:', error);
-              }
+            if (newOrder?.status === 'disponivel') {
+              // Pequeno delay para garantir que o pedido foi salvo completamente
+              setTimeout(() => {
+                autoAcceptOrder(newOrder);
+              }, 500);
             }
           }
           
@@ -322,19 +372,54 @@ const Dashboard = () => {
               }
             }
           } catch (_) {}
-          fetchOrders(); // Recarregar pedidos quando houver mudanças
+          
+          // Recarregar pedidos quando houver mudanças
+          fetchOrders();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Status do canal realtime:', status);
+      });
 
     return () => {
+      console.log('📡 Desconectando canal realtime');
       supabase.removeChannel(channel);
     };
-  }, [restaurantId, fetchOrders, autoAcceptEnabled]);
+  }, [restaurantId, fetchOrders, autoAcceptOrder]);
 
-  // Limpar badges antigos (expiram em 5 minutos)
+  // Verificação periódica de pedidos pendentes (backup do realtime)
+  useEffect(() => {
+    if (!restaurantId || !autoAcceptEnabled) return;
+    
+    const checkPendingOrders = async () => {
+      if (!autoAcceptRef.current) return;
+      
+      const pendingOrders = orders.filter(
+        order => order.status === 'disponivel' && !processedOrdersRef.current.has(order.id)
+      );
+      
+      if (pendingOrders.length > 0) {
+        console.log(`🔄 Verificação periódica: ${pendingOrders.length} pedidos pendentes encontrados`);
+        for (const order of pendingOrders) {
+          await autoAcceptOrder(order);
+          await new Promise(resolve => setTimeout(resolve, 300)); // Delay entre pedidos
+        }
+      }
+    };
+    
+    // Verificar a cada 10 segundos
+    const interval = setInterval(checkPendingOrders, 10000);
+    
+    // Verificar imediatamente ao ativar
+    checkPendingOrders();
+    
+    return () => clearInterval(interval);
+  }, [restaurantId, autoAcceptEnabled, orders, autoAcceptOrder]);
+
+  // Limpar badges antigos (expiram em 5 minutos) e pedidos processados antigos
   useEffect(() => {
     const interval = setInterval(() => {
+      // Limpar badges antigos
       setDriverUpdatedAt((prev) => {
         const now = Date.now();
         const out = {};
@@ -343,9 +428,19 @@ const Dashboard = () => {
         }
         return out;
       });
+      
+      // Limpar pedidos processados que não estão mais na lista
+      const currentOrderIds = new Set(orders.map(o => o.id));
+      const toRemove = [];
+      processedOrdersRef.current.forEach(id => {
+        if (!currentOrderIds.has(id)) {
+          toRemove.push(id);
+        }
+      });
+      toRemove.forEach(id => processedOrdersRef.current.delete(id));
     }, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [orders]);
 
   // Copiar pedido para entregas_padronizadas
   // Removido: agora a sincronização é feita por trigger no banco de dados
@@ -575,6 +670,28 @@ const Dashboard = () => {
           newSet.delete(orderId);
           return newSet;
         });
+        
+        // Impressão automática ao aceitar pedido
+        try {
+          const orderToprint = orders.find(o => o.id === orderId);
+          if (orderToprint) {
+            console.log('🖨️ Disparando impressão automática ao aceitar pedido...');
+            // Buscar dados do restaurante
+            const { data: restauranteData } = await supabase
+              .from('restaurantes_app')
+              .select('*')
+              .eq('id', restaurantId)
+              .single();
+            
+            // Disparar impressão automática (não bloqueia o fluxo)
+            printService.autoPrintOnAccept(orderToprint, restauranteData).catch(err => {
+              console.warn('Erro na impressão automática:', err);
+            });
+          }
+        } catch (printError) {
+          console.warn('Erro ao tentar impressão automática:', printError);
+          // Não bloqueia o fluxo principal
+        }
       }
 
       console.log(`Status do pedido ${orderId} atualizado para ${newStatus}`);
@@ -612,43 +729,76 @@ const Dashboard = () => {
   // Toggle de aceitação automática
   const toggleAutoAccept = async () => {
     const newValue = !autoAcceptEnabled;
+    
+    // Atualizar estado e localStorage
     setAutoAcceptEnabled(newValue);
+    autoAcceptRef.current = newValue;
+    
     try {
       localStorage.setItem('fome-ninja-auto-accept', newValue ? 'true' : 'false');
     } catch (_) {}
-    console.log('Aceitação automática:', newValue ? 'ATIVADA' : 'DESATIVADA');
+    
+    console.log('🔄 Aceitação automática:', newValue ? 'ATIVADA' : 'DESATIVADA');
+
+    // Se desativou, limpar lista de processados para permitir reprocessamento futuro
+    if (!newValue) {
+      processedOrdersRef.current.clear();
+      return;
+    }
 
     // Se ativou, aceitar pedidos pendentes automaticamente
-    if (newValue) {
-      console.log('🔄 Verificando pedidos pendentes para aceitar automaticamente...');
-      const pedidosPendentes = orders.filter(order => order.status === 'disponivel' && !order.started_at);
+    console.log('🔍 Verificando pedidos pendentes para aceitar automaticamente...');
+    const pedidosPendentes = orders.filter(
+      order => order.status === 'disponivel' && !processedOrdersRef.current.has(order.id)
+    );
+    
+    if (pedidosPendentes.length === 0) {
+      console.log('ℹ️ Não há pedidos pendentes para aceitar');
+      return;
+    }
+    
+    setProcessingAutoAccept(true);
+    console.log(`📋 Encontrados ${pedidosPendentes.length} pedidos pendentes para aceitar`);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    // Processar pedidos em lote
+    for (let i = 0; i < pedidosPendentes.length; i++) {
+      const pedido = pedidosPendentes[i];
       
-      if (pedidosPendentes.length > 0) {
-        setProcessingAutoAccept(true);
-        console.log(`📋 Encontrados ${pedidosPendentes.length} pedidos pendentes para aceitar`);
-        
-        // Processar pedidos em lote com pequeno delay entre cada um
-        for (let i = 0; i < pedidosPendentes.length; i++) {
-          const pedido = pedidosPendentes[i];
-          try {
-            console.log(`⏳ Aceitando pedido ${i + 1}/${pedidosPendentes.length}: #${pedido.numero_pedido}...`);
-            await handleStatusChange(pedido.id, 'aceito');
-            console.log(`✅ Pedido #${pedido.numero_pedido} aceito com sucesso`);
-            // Pequeno delay para não sobrecarregar
-            if (i < pedidosPendentes.length - 1) {
-              await new Promise(resolve => setTimeout(resolve, 300));
-            }
-          } catch (error) {
-            console.error(`❌ Erro ao aceitar pedido #${pedido.numero_pedido}:`, error);
-          }
-        }
-        
-        setProcessingAutoAccept(false);
-        console.log('✅ Todos os pedidos pendentes foram processados!');
+      // Verificar se ainda está ativado (usuário pode ter desativado durante o processamento)
+      if (!autoAcceptRef.current) {
+        console.log('⏹️ Aceitação automática desativada durante processamento');
+        break;
+      }
+      
+      console.log(`⏳ Aceitando pedido ${i + 1}/${pedidosPendentes.length}: #${pedido.numero_pedido}...`);
+      
+      const success = await autoAcceptOrder(pedido);
+      
+      if (success) {
+        successCount++;
       } else {
-        console.log('ℹ️ Não há pedidos pendentes para aceitar');
+        errorCount++;
+      }
+      
+      // Pequeno delay para não sobrecarregar
+      if (i < pedidosPendentes.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
+    
+    setProcessingAutoAccept(false);
+    
+    if (errorCount > 0) {
+      console.log(`⚠️ Processamento concluído: ${successCount} aceitos, ${errorCount} erros`);
+    } else {
+      console.log(`✅ Todos os ${successCount} pedidos pendentes foram aceitos!`);
+    }
+    
+    // Recarregar pedidos para atualizar a UI
+    fetchOrders();
   };
 
   // Renderizar botão de status conforme fluxo solicitado por tipo_pedido

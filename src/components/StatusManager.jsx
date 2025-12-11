@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { printService } from '../services/printService';
 
 // Fluxo de status baseado no tipo de pedido
 const getStatusFlow = (tipo_pedido) => {
@@ -24,7 +25,7 @@ const getStatusFlow = (tipo_pedido) => {
   }
 };
 
-const StatusManager = ({ order, onUpdateStatus }) => {
+const StatusManager = ({ order, onUpdateStatus, restaurante }) => {
   const [currentStatus, setCurrentStatus] = useState(order.status);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -70,6 +71,34 @@ const StatusManager = ({ order, onUpdateStatus }) => {
     setCurrentStatus(nextStatus);
     if (onUpdateStatus) {
       onUpdateStatus(order.id, nextStatus);
+    }
+    
+    // Impressão automática ao aceitar pedido
+    if (nextStatus === 'aceito') {
+      try {
+        console.log('🖨️ Disparando impressão automática ao aceitar pedido...');
+        // Buscar dados do restaurante se não foram passados
+        let restauranteData = restaurante;
+        if (!restauranteData) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: restData } = await supabase
+              .from('restaurantes_app')
+              .select('*')
+              .eq('user_id', user.id)
+              .single();
+            restauranteData = restData;
+          }
+        }
+        
+        // Disparar impressão automática (não bloqueia o fluxo)
+        printService.autoPrintOnAccept(order, restauranteData).catch(err => {
+          console.warn('Erro na impressão automática:', err);
+        });
+      } catch (printError) {
+        console.warn('Erro ao tentar impressão automática:', printError);
+        // Não bloqueia o fluxo principal
+      }
     }
     
     setIsLoading(false);
