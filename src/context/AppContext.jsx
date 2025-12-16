@@ -24,14 +24,226 @@ export const AppProvider = ({ children }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isInitialized, setIsInitialized] = useState(false);
   const [restaurantId, setRestaurantId] = useState(null);
-  const notificationSoundRef = useRef(null);
+  // Refs para os 3 tipos de som (ENTREGA, RETIRADA, CONSUMO LOCAL)
+  const soundEntregaRef = useRef(null);             // Som para pedidos de ENTREGA
+  const soundRetiradaRef = useRef(null);            // Som para pedidos de RETIRADA
+  const soundConsumoLocalRef = useRef(null);        // Som para pedidos de CONSUMO NO LOCAL
+  const notificationSoundRef = useRef(null);        // Ref auxiliar para compatibilidade
   const notificationIntervalRef = useRef(null);
+  // Som LIGADO por padrão - restaurante pode desligar se quiser
   const [soundPreference, setSoundPreference] = useState(() => {
-    try { return localStorage.getItem('fome-ninja-sound-pref') === 'true'; } catch (_) { return false; }
+    try { 
+      // Forçar som ligado por padrão - limpar configuração antiga
+      const saved = localStorage.getItem('fome-ninja-sound-pref');
+      if (saved === null || saved === 'false') {
+        // Se nunca foi configurado OU estava desligado, ligar por padrão
+        localStorage.setItem('fome-ninja-sound-pref', 'true');
+        return true;
+      }
+      return saved === 'true';
+    } catch (_) { 
+      return true; // Ligado por padrão em caso de erro
+    }
   });
   const [soundUnlocked, setSoundUnlocked] = useState(false);
   const soundEnabled = soundPreference && soundUnlocked;
+  
+  // Log do estado do som
+  console.log('🔊 Estado do som:', { soundPreference, soundUnlocked, soundEnabled });
   const ordersRef = useRef([]);
+  
+  // Sistema de fila para múltiplos pedidos
+  const pendingSoundsRef = useRef([]);
+  const soundQueueTimerRef = useRef(null);
+  const lastSoundPlayedRef = useRef(0);
+  const SOUND_COOLDOWN = 2000; // 2 segundos de cooldown entre sons
+  const QUEUE_WINDOW = 2500; // 2.5 segundos para agrupar pedidos
+
+  // Refs para manter valores atualizados em callbacks
+  const soundPreferenceRef = useRef(soundPreference);
+  const soundUnlockedRef = useRef(soundUnlocked);
+  
+  // Manter refs sincronizadas
+  useEffect(() => {
+    soundPreferenceRef.current = soundPreference;
+  }, [soundPreference]);
+  
+  useEffect(() => {
+    soundUnlockedRef.current = soundUnlocked;
+  }, [soundUnlocked]);
+  
+  // Verificar se os elementos de áudio foram carregados
+  useEffect(() => {
+    const checkAudioElements = () => {
+      console.log('🔊 Verificando elementos de áudio...');
+      console.log('  - soundEntregaRef:', !!soundEntregaRef.current, soundEntregaRef.current?.src);
+      console.log('  - soundRetiradaRef:', !!soundRetiradaRef.current, soundRetiradaRef.current?.src);
+      console.log('  - soundConsumoLocalRef:', !!soundConsumoLocalRef.current, soundConsumoLocalRef.current?.src);
+    };
+    
+    // Verificar após um pequeno delay para garantir que os elementos foram montados
+    const timer = setTimeout(checkAudioElements, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Função para normalizar tipo de pedido
+  const normalizarTipoPedido = (tipoPedido) => {
+    const tipo = tipoPedido?.toLowerCase() || '';
+    if (tipo === 'entrega' || tipo === 'delivery') return 'entrega';
+    if (tipo === 'retirada' || tipo === 'pickup' || tipo === 'retirar') return 'retirada';
+    if (tipo === 'local' || tipo === 'consumo_local' || tipo === 'mesa' || tipo === 'dine_in') return 'local';
+    return 'entrega'; // padrão
+  };
+
+  // Função para obter prioridade do tipo de pedido
+  const obterPrioridade = (tipoPedido) => {
+    const tipo = normalizarTipoPedido(tipoPedido);
+    if (tipo === 'entrega') return 1; // ALTA
+    if (tipo === 'retirada') return 2; // MÉDIA
+    if (tipo === 'local') return 3; // BAIXA
+    return 1; // padrão
+  };
+
+  // Função para processar fila de sons
+  const processarFilaSons = () => {
+    const agora = Date.now();
+    
+    // Verificar cooldown
+    if (agora - lastSoundPlayedRef.current < SOUND_COOLDOWN) {
+      console.log('⏳ Cooldown ativo, aguardando...');
+      return;
+    }
+
+    // Se não há sons pendentes, limpar
+    if (pendingSoundsRef.current.length === 0) {
+      return;
+    }
+
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🎵 PROCESSANDO FILA DE SONS');
+    console.log('📋 Pedidos na fila:', pendingSoundsRef.current.length);
+    
+    // Contar tipos
+    const contagem = pendingSoundsRef.current.reduce((acc, tipo) => {
+      const normalizado = normalizarTipoPedido(tipo);
+      acc[normalizado] = (acc[normalizado] || 0) + 1;
+      return acc;
+    }, {});
+    
+    console.log('📊 Contagem por tipo:', contagem);
+    
+    // Encontrar tipo de maior prioridade
+    const tipoMaiorPrioridade = pendingSoundsRef.current.reduce((melhor, atual) => {
+      const prioridadeAtual = obterPrioridade(atual);
+      const prioridadeMelhor = obterPrioridade(melhor);
+      return prioridadeAtual < prioridadeMelhor ? atual : melhor;
+    });
+    
+    const tipoNormalizado = normalizarTipoPedido(tipoMaiorPrioridade);
+    console.log('🏆 Tipo de maior prioridade:', tipoNormalizado);
+    
+    // Criar badge visual
+    const badges = [];
+    if (contagem.entrega) badges.push(`🏍️ ${contagem.entrega}`);
+    if (contagem.retirada) badges.push(`📦 ${contagem.retirada}`);
+    if (contagem.local) badges.push(`🍽️ ${contagem.local}`);
+    console.log('🏷️ Badge visual:', badges.join(' '));
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    // Tocar som do tipo de maior prioridade
+    tocarSomDireto(tipoNormalizado);
+    
+    // Limpar fila
+    pendingSoundsRef.current = [];
+    lastSoundPlayedRef.current = agora;
+  };
+
+  // Função para adicionar som à fila
+  const adicionarSomNaFila = (tipoPedido) => {
+    console.log('➕ Adicionando som à fila:', tipoPedido);
+    
+    // Adicionar à fila
+    pendingSoundsRef.current.push(tipoPedido);
+    
+    // Limpar timer anterior
+    if (soundQueueTimerRef.current) {
+      clearTimeout(soundQueueTimerRef.current);
+    }
+    
+    // Configurar novo timer para processar a fila
+    soundQueueTimerRef.current = setTimeout(() => {
+      processarFilaSons();
+      soundQueueTimerRef.current = null;
+    }, QUEUE_WINDOW);
+  };
+
+  // Função para tocar som direto (sem fila)
+  const tocarSomDireto = (tipoPedido) => {
+    // Usar refs para valores atualizados
+    const prefAtual = soundPreferenceRef.current;
+    const unlockedAtual = soundUnlockedRef.current;
+    const enabledAtual = prefAtual && unlockedAtual;
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔔 TOCANDO SOM DIRETO');
+    console.log('📋 Tipo do pedido:', tipoPedido);
+    console.log('📋 soundEnabled (calculado):', enabledAtual);
+    console.log('📋 soundPreference (ref):', prefAtual);
+    console.log('📋 soundUnlocked (ref):', unlockedAtual);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    if (!enabledAtual) {
+      console.log('🔇 Som desabilitado - soundPreference:', prefAtual, 'soundUnlocked:', unlockedAtual);
+      return;
+    }
+    
+    let audioRef = null;
+    const tipo = normalizarTipoPedido(tipoPedido);
+    
+    // Selecionar o som EXATO baseado no tipo de pedido
+    if (tipo === 'entrega') {
+      audioRef = soundEntregaRef;
+      console.log('🔔 Selecionado: som de ENTREGA');
+    } else if (tipo === 'retirada') {
+      audioRef = soundRetiradaRef;
+      console.log('🔔 Selecionado: som de RETIRADA');
+    } else if (tipo === 'local') {
+      audioRef = soundConsumoLocalRef;
+      console.log('🔔 Selecionado: som de CONSUMO NO LOCAL');
+    }
+    
+    console.log('📋 audioRef existe?', !!audioRef);
+    console.log('📋 audioRef.current existe?', !!audioRef?.current);
+    
+    // Tocar o som
+    if (audioRef?.current) {
+      console.log('▶️ Tocando som...');
+      audioRef.current.currentTime = 0;
+      audioRef.current.play()
+        .then(() => {
+          console.log('✅ Som tocado com sucesso!');
+          // Marcar como desbloqueado se conseguiu tocar
+          if (!soundUnlockedRef.current) {
+            setSoundUnlocked(true);
+          }
+        })
+        .catch((err) => {
+          // NotAllowedError é esperado quando o usuário ainda não interagiu com a página
+          if (err.name === 'NotAllowedError') {
+            console.log('⏳ Áudio bloqueado - aguardando interação do usuário...');
+          } else {
+            console.error('❌ Erro ao tocar som:', err.message);
+          }
+        });
+    } else {
+      console.warn('⚠️ Arquivo de som não encontrado para tipo:', tipoPedido);
+    }
+  };
+
+  // Função principal para tocar som (com sistema de fila)
+  const tocarSomPorTipo = (tipoPedido) => {
+    adicionarSomNaFila(tipoPedido);
+  };
 
   // Manter referência do estado atual de pedidos para uso em handlers de evento
   useEffect(() => {
@@ -45,15 +257,15 @@ export const AppProvider = ({ children }) => {
       setSoundPreference(true);
       try { localStorage.setItem('fome-ninja-sound-pref', 'true'); } catch (_) {}
       // Tentar desbloquear o áudio após gesto do usuário
-      // Alguns navegadores exigem um play/resume explícito
-      if (notificationSoundRef.current) {
+      // Usar o som de entrega como teste
+      if (soundEntregaRef.current) {
         console.log('AppContext - Elemento de áudio encontrado, testando...');
-        notificationSoundRef.current.currentTime = 0;
-        await notificationSoundRef.current.play().then(() => {
+        soundEntregaRef.current.currentTime = 0;
+        await soundEntregaRef.current.play().then(() => {
           setSoundUnlocked(true);
         }).catch(() => {});
-        notificationSoundRef.current.pause();
-        notificationSoundRef.current.currentTime = 0;
+        soundEntregaRef.current.pause();
+        soundEntregaRef.current.currentTime = 0;
         console.log('AppContext - Teste de áudio concluído');
       }
       // WebAudio API: tentar resumir se existir
@@ -77,12 +289,15 @@ export const AppProvider = ({ children }) => {
       clearInterval(notificationIntervalRef.current);
       notificationIntervalRef.current = null;
     }
-    if (notificationSoundRef.current) {
-      try {
-        notificationSoundRef.current.pause();
-        notificationSoundRef.current.currentTime = 0;
-      } catch (_) {}
-    }
+    // Pausar todos os sons
+    [soundEntregaRef, soundRetiradaRef, soundConsumoLocalRef].forEach(ref => {
+      if (ref.current) {
+        try {
+          ref.current.pause();
+          ref.current.currentTime = 0;
+        } catch (_) {}
+      }
+    });
   };
 
   // Monitorar estado da conexão
@@ -101,16 +316,41 @@ export const AppProvider = ({ children }) => {
 
   // Desbloquear áudio no primeiro gesto do usuário e tocar imediatamente se já houver "Novas Missões"
   useEffect(() => {
-    const events = ['click', 'pointerdown', 'touchstart', 'keydown'];
+    const events = ['click', 'pointerdown', 'touchstart', 'keydown', 'scroll', 'mousemove'];
 
     const onFirstInteraction = async () => {
+      console.log('🔓 Primeiro gesto detectado - desbloqueando áudio...');
       try {
-        await enableSound();
-        const hasNewMission = (ordersRef.current || []).some(o => o.status === 'disponivel' && !o.started_at);
-        if (hasNewMission && notificationSoundRef.current) {
-          notificationSoundRef.current.currentTime = 0;
-          notificationSoundRef.current.play().catch(() => {});
+        // Desbloquear o áudio
+        setSoundUnlocked(true);
+        
+        // Tentar tocar um som silencioso para desbloquear
+        if (soundEntregaRef.current) {
+          soundEntregaRef.current.volume = 0.01;
+          await soundEntregaRef.current.play().catch(() => {});
+          soundEntregaRef.current.pause();
+          soundEntregaRef.current.currentTime = 0;
+          soundEntregaRef.current.volume = 1;
         }
+        
+        console.log('✅ Áudio desbloqueado!');
+        
+        // Se já houver pedidos não lidos, tocar o som
+        const statusNovosPedidos = ['pendente', 'disponivel', 'novo'];
+        const newMissions = (ordersRef.current || []).filter(o => 
+          statusNovosPedidos.includes(o.status) && !o.started_at
+        );
+        if (newMissions.length > 0 && soundPreference) {
+          console.log('🔔 Pedidos pendentes encontrados, tocando som...');
+          const tipoPedido = newMissions[0]?.tipo_pedido || newMissions[0]?.tipo_entrega || 'entrega';
+          console.log('🔔 Tipo do pedido:', tipoPedido);
+          // Pequeno delay para garantir que o áudio está desbloqueado
+          setTimeout(() => {
+            tocarSomPorTipo(tipoPedido);
+          }, 100);
+        }
+      } catch (err) {
+        console.error('❌ Erro ao desbloquear áudio:', err);
       } finally {
         events.forEach(evt => window.removeEventListener(evt, onFirstInteraction, true));
       }
@@ -120,7 +360,7 @@ export const AppProvider = ({ children }) => {
     return () => {
       events.forEach(evt => window.removeEventListener(evt, onFirstInteraction, true));
     };
-  }, []);
+  }, [soundPreference]);
 
   // Inicializar dados
   useEffect(() => {
@@ -271,13 +511,14 @@ export const AppProvider = ({ children }) => {
     const tryUnlock = async () => {
       if (soundUnlocked) return;
       try {
-        if (notificationSoundRef.current) {
-          notificationSoundRef.current.currentTime = 0;
-          await notificationSoundRef.current.play().then(() => {
+        // Usar som de entrega para desbloquear
+        if (soundEntregaRef.current) {
+          soundEntregaRef.current.currentTime = 0;
+          await soundEntregaRef.current.play().then(() => {
             setSoundUnlocked(true);
           }).catch(() => {});
-          notificationSoundRef.current.pause();
-          notificationSoundRef.current.currentTime = 0;
+          soundEntregaRef.current.pause();
+          soundEntregaRef.current.currentTime = 0;
         }
         // WebAudio API
         // @ts-ignore
@@ -289,10 +530,14 @@ export const AppProvider = ({ children }) => {
         }
 
         // Se já houver "Novas Missões" e preferência ON, tocar imediatamente
-        const hasNewMission = (ordersRef.current || []).some(o => o.status === 'disponivel' && !o.started_at);
-        if (hasNewMission && soundPreference && notificationSoundRef.current) {
-          notificationSoundRef.current.currentTime = 0;
-          notificationSoundRef.current.play().catch(() => {});
+        const statusNovosPedidos = ['pendente', 'disponivel', 'novo'];
+        const newMissions = (ordersRef.current || []).filter(o => 
+          statusNovosPedidos.includes(o.status) && !o.started_at
+        );
+        if (newMissions.length > 0 && soundPreference) {
+          const tipoPedido = newMissions[0]?.tipo_pedido || newMissions[0]?.tipo_entrega || 'entrega';
+          console.log('🔔 Tipo do pedido (tryUnlock):', tipoPedido);
+          tocarSomPorTipo(tipoPedido);
         }
       } finally {
         events.forEach(evt => window.removeEventListener(evt, tryUnlock, true));
@@ -311,13 +556,19 @@ export const AppProvider = ({ children }) => {
       console.log('Payload recebido:', payload);
 
       if (payload.eventType === 'INSERT') {
-        // Tocar som apenas se for "Novas Missões" (disponível sem started_at)
-        if (soundEnabled && notificationSoundRef.current) {
-          const isNewMission = payload?.new?.status === 'disponivel' && !payload?.new?.started_at;
-          if (isNewMission) {
-            notificationSoundRef.current.currentTime = 0;
-            notificationSoundRef.current.play().catch(() => {});
-          }
+        // Tocar som apenas se for "Novas Missões" (pendente/disponivel sem started_at)
+        const statusNovosPedidos = ['pendente', 'disponivel', 'novo'];
+        const isNewMission = statusNovosPedidos.includes(payload?.new?.status) && !payload?.new?.started_at;
+        // Usar refs para valores atualizados
+        const prefAtual = soundPreferenceRef.current;
+        const unlockedAtual = soundUnlockedRef.current;
+        const enabledAtual = prefAtual && unlockedAtual;
+        
+        if (isNewMission && enabledAtual) {
+          // Identificar o tipo de pedido e tocar o som correspondente
+          const tipoPedido = payload?.new?.tipo_pedido || payload?.new?.tipo_entrega || payload?.new?.tipo || 'entrega';
+          console.log('🔔 Novo pedido INSERT - tipo:', tipoPedido);
+          tocarSomPorTipo(tipoPedido);
         }
         
         const newOrder = await orderService.fetchOrderById(payload.new.id);
@@ -354,33 +605,72 @@ export const AppProvider = ({ children }) => {
     if (!isInitialized) return;
 
     const checkUnreadOrders = () => {
-      // Apenas "Novas Missões": disponivel sem started_at
-      const unreadOrders = orders.filter(order => order.status === 'disponivel' && !order.started_at);
+      // Usar refs para valores atualizados
+      const prefAtual = soundPreferenceRef.current;
+      const unlockedAtual = soundUnlockedRef.current;
+      const enabledAtual = prefAtual && unlockedAtual;
       
-      console.log('AppContext - Verificando pedidos não lidos:', unreadOrders.length, 'Som habilitado:', soundEnabled);
+      // "Novas Missões": status pendente ou disponivel, sem started_at
+      const statusNovosPedidos = ['pendente', 'disponivel', 'novo'];
+      const unreadOrders = orders.filter(order => 
+        statusNovosPedidos.includes(order.status) && !order.started_at
+      );
       
-      if (unreadOrders.length > 0 && soundEnabled && notificationSoundRef.current) {
+      // Log detalhado para debug
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🔍 VERIFICAÇÃO DE PEDIDOS NÃO LIDOS');
+      console.log('📋 Total de pedidos:', orders.length);
+      
+      // Mostrar status de todos os pedidos para debug
+      if (orders.length > 0) {
+        console.log('📋 Status de todos os pedidos:');
+        orders.slice(0, 5).forEach(o => {
+          console.log(`   - #${o.numero_pedido}: status="${o.status}", started_at=${o.started_at ? 'SIM' : 'NÃO'}`);
+        });
+        if (orders.length > 5) console.log(`   ... e mais ${orders.length - 5} pedidos`);
+      }
+      
+      console.log('📋 Pedidos não lidos (pendente/disponivel/novo + !started_at):', unreadOrders.length);
+      if (unreadOrders.length > 0) {
+        console.log('📋 Primeiro pedido não lido:', {
+          id: unreadOrders[0]?.id,
+          numero: unreadOrders[0]?.numero_pedido,
+          status: unreadOrders[0]?.status,
+          tipo_pedido: unreadOrders[0]?.tipo_pedido,
+          started_at: unreadOrders[0]?.started_at
+        });
+      }
+      console.log('📋 Som habilitado:', enabledAtual, '(pref:', prefAtual, 'unlocked:', unlockedAtual, ')');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      if (unreadOrders.length > 0 && enabledAtual) {
         console.log('AppContext - Tocando som para pedidos:', unreadOrders.map(o => o.numero_pedido));
-        // Tocar som imediatamente
-        notificationSoundRef.current.currentTime = 0;
-        notificationSoundRef.current.play().catch(() => {});
+        // Tocar som do primeiro pedido não lido - usar tipo_pedido OU tipo_entrega
+        const tipoPedido = unreadOrders[0]?.tipo_pedido || unreadOrders[0]?.tipo_entrega || 'entrega';
+        console.log('AppContext - Tipo do pedido detectado:', tipoPedido);
+        tocarSomPorTipo(tipoPedido);
         
         // Configurar intervalo para tocar a cada 5 segundos
         if (!notificationIntervalRef.current) {
           notificationIntervalRef.current = setInterval(() => {
-            if (!soundEnabled) return;
-            if (notificationSoundRef.current) {
-              const hasNewMission = orders.some(o => o.status === 'disponivel' && !o.started_at);
-              if (hasNewMission) {
-                console.log('AppContext - Loop: Tocando som novamente');
-                notificationSoundRef.current.currentTime = 0;
-                notificationSoundRef.current.play().catch(() => {});
-              }
+            // Usar refs dentro do interval para valores atualizados
+            const prefLoop = soundPreferenceRef.current;
+            const unlockedLoop = soundUnlockedRef.current;
+            if (!prefLoop || !unlockedLoop) return;
+            
+            const statusNovosPedidos = ['pendente', 'disponivel', 'novo'];
+            const newMissions = ordersRef.current.filter(o => 
+              statusNovosPedidos.includes(o.status) && !o.started_at
+            );
+            if (newMissions.length > 0) {
+              console.log('AppContext - Loop: Tocando som novamente');
+              const tipo = newMissions[0]?.tipo_pedido || newMissions[0]?.tipo_entrega || 'entrega';
+              tocarSomPorTipo(tipo);
             }
           }, 5000); // 5 segundos
         }
       } else {
-        console.log('AppContext - Parando som, pedidos:', unreadOrders.length, 'som:', soundEnabled);
+        console.log('AppContext - Parando som, pedidos:', unreadOrders.length, 'som:', enabledAtual);
         // Parar o intervalo se não houver pedidos não lidos
         if (notificationIntervalRef.current) {
           clearInterval(notificationIntervalRef.current);
@@ -400,6 +690,11 @@ export const AppProvider = ({ children }) => {
       if (notificationIntervalRef.current) {
         clearInterval(notificationIntervalRef.current);
         notificationIntervalRef.current = null;
+      }
+      // Limpar timer da fila de sons
+      if (soundQueueTimerRef.current) {
+        clearTimeout(soundQueueTimerRef.current);
+        soundQueueTimerRef.current = null;
       }
     };
   }, [orders, isInitialized, soundEnabled]);
@@ -660,7 +955,10 @@ export const AppProvider = ({ children }) => {
 
   return (
     <AppContext.Provider value={contextValue}>
-      <audio ref={notificationSoundRef} src="/sounds/Notificação_Pedidos.wav" preload="auto" />
+      {/* Sons de notificação - 3 tipos específicos */}
+      <audio ref={soundEntregaRef} src="/sounds/som_entrega.wav" preload="auto" />
+      <audio ref={soundRetiradaRef} src="/sounds/som_retirada.wav" preload="auto" />
+      <audio ref={soundConsumoLocalRef} src="/sounds/som_consumo_local.wav" preload="auto" />
       {children}
     </AppContext.Provider>
   );

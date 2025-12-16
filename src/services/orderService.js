@@ -102,7 +102,7 @@ export async function fetchOrders() {
       .eq('id_restaurante', restaurante.id)
       // Filtrar apenas pedidos com status_pagamento válido (pago ou pendente)
       .in('status_pagamento', ['pago', 'pendente'])
-      .in('status', ['disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido'])
+      .in('status', ['pendente', 'novo', 'disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido'])
       .order('criado_em', { ascending: false });
       
     if (error) throw error;
@@ -162,7 +162,7 @@ export async function fetchOrderById(id) {
       .eq('id_restaurante', restaurante.id)
       // Filtrar apenas pedidos com status_pagamento válido (pago ou pendente)
       .in('status_pagamento', ['pago', 'pendente'])
-      .in('status', ['disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido'])
+      .in('status', ['pendente', 'novo', 'disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido'])
       .single();
       
     if (error) throw error;

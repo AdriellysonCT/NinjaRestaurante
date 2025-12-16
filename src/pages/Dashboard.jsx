@@ -55,32 +55,44 @@ const Dashboard = () => {
   const getVisualStage = (order) => {
     if (!order) return 'novas_missoes';
     
-    console.log(`Mapeando pedido ${order.numero_pedido}: status="${order.status}", tipo_pedido="${order.tipo_pedido}"`);
+    console.log(`Mapeando pedido ${order.numero_pedido}: status="${order.status}", tipo_pedido="${order.tipo_pedido}", entregador="${order.nome_entregador || 'nenhum'}"`);
     
     // Para pedidos de retirada/consumo local, fluxo simplificado
+    // Fluxo: Novas Missões -> Em Preparo -> Concluído/Cancelado
     const isLocalOrPickup = order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local';
     if (isLocalOrPickup) {
       switch (order.status) {
+        case 'pendente':
+        case 'novo':
         case 'disponivel':
-          console.log(`  -> Pedido LOCAL ${order.numero_pedido} mapeado para: novas_missoes`);
+          console.log(`  -> Pedido LOCAL/RETIRADA ${order.numero_pedido} mapeado para: novas_missoes`);
           return 'novas_missoes';
         case 'aceito':
-          console.log(`  -> Pedido LOCAL ${order.numero_pedido} mapeado para: em_preparo`);
+        case 'em_preparo':
+          console.log(`  -> Pedido LOCAL/RETIRADA ${order.numero_pedido} mapeado para: em_preparo`);
           return 'em_preparo';
         case 'concluido':
-          console.log(`  -> Pedido LOCAL ${order.numero_pedido} mapeado para: concluido`);
+          console.log(`  -> Pedido LOCAL/RETIRADA ${order.numero_pedido} mapeado para: concluido`);
           return 'concluido';
         case 'cancelado':
-          console.log(`  -> Pedido LOCAL ${order.numero_pedido} mapeado para: cancelado`);
+          console.log(`  -> Pedido LOCAL/RETIRADA ${order.numero_pedido} mapeado para: cancelado`);
           return 'cancelado';
+        // Casos de status de entrega que não devem ocorrer em pedidos locais/retirada
+        // mas se ocorrerem, tratamos adequadamente
+        case 'pronto_para_entrega':
+        case 'coletado':
+          console.log(`  -> ⚠️ Pedido LOCAL/RETIRADA ${order.numero_pedido} com status de entrega inválido "${order.status}", mapeando para: em_preparo`);
+          return 'em_preparo';
         default:
-          console.log(`  -> Pedido LOCAL ${order.numero_pedido} mapeado para: novas_missoes (default)`);
+          console.log(`  -> Pedido LOCAL/RETIRADA ${order.numero_pedido} mapeado para: novas_missoes (default)`);
           return 'novas_missoes';
       }
     }
     
     // Para pedidos de entrega (delivery), fluxo completo
     switch (order.status) {
+      case 'pendente':
+      case 'novo':
       case 'disponivel':
         console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: novas_missoes`);
         return 'novas_missoes';
@@ -88,9 +100,16 @@ const Dashboard = () => {
         console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: em_preparo`);
         return 'em_preparo';
       case 'aceito':
-        // No backend, 'aceito' significa em preparo
-        console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: em_preparo`);
-        return 'em_preparo';
+        // CORREÇÃO: Diferenciar entre "aceito pelo restaurante" e "aceito pelo entregador"
+        // Se tem entregador associado, significa que foi aceito pelo entregador
+        if (order.nome_entregador || order.id_entregador) {
+          console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: aceito (aceito pelo entregador)`);
+          return 'aceito';
+        } else {
+          // Se não tem entregador, significa que foi aceito pelo restaurante (em preparo)
+          console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: em_preparo (aceito pelo restaurante)`);
+          return 'em_preparo';
+        }
       case 'pronto_para_entrega':
         console.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: pronto`);
         return 'pronto';
@@ -348,12 +367,27 @@ const Dashboard = () => {
           filter: `id_restaurante=eq.${restaurantId}`,
         },
         async (payload) => {
-          console.log("📨 Mudança detectada nos pedidos:", payload?.eventType, payload?.new?.numero_pedido);
+          const eventType = payload?.eventType;
+          const pedidoNum = payload?.new?.numero_pedido || payload?.old?.numero_pedido;
+          
+          console.log(`📨 Mudança detectada nos pedidos: ${eventType} - Pedido #${pedidoNum}`);
+          
+          // Log detalhado para UPDATE
+          if (eventType === 'UPDATE') {
+            const oldStatus = payload?.old?.status;
+            const newStatus = payload?.new?.status;
+            const hasDriver = payload?.new?.id_entregador || payload?.new?.nome_entregador;
+            
+            if (oldStatus !== newStatus) {
+              console.log(`  📊 Status mudou: "${oldStatus}" -> "${newStatus}"${hasDriver ? ' (com entregador)' : ''}`);
+            }
+          }
           
           // Aceitar automaticamente novos pedidos se a opção estiver ativada
-          if (payload?.eventType === 'INSERT' && autoAcceptRef.current) {
+          if (eventType === 'INSERT' && autoAcceptRef.current) {
             const newOrder = payload.new;
             if (newOrder?.status === 'disponivel') {
+              console.log(`  🤖 Novo pedido detectado, aceitação automática ativada`);
               // Pequeno delay para garantir que o pedido foi salvo completamente
               setTimeout(() => {
                 autoAcceptOrder(newOrder);
@@ -363,17 +397,19 @@ const Dashboard = () => {
           
           // Marcar badge quando mudança vier (UPDATE) com status do entregador
           try {
-            if (payload?.eventType === 'UPDATE') {
+            if (eventType === 'UPDATE') {
               const oldStatus = payload?.old?.status;
               const newStatus = payload?.new?.status;
               const relevant = ['aceito','coletado','concluido'];
               if (oldStatus !== newStatus && relevant.includes(newStatus)) {
+                console.log(`  🔔 Badge de atualização ativado para pedido #${pedidoNum}`);
                 setDriverUpdatedAt((prev) => ({ ...prev, [payload.new.id]: Date.now() }));
               }
             }
           } catch (_) {}
           
-          // Recarregar pedidos quando houver mudanças
+          // Recarregar pedidos quando houver mudanças (ATUALIZAÇÃO EM TEMPO REAL)
+          console.log(`  🔄 Recarregando pedidos em tempo real...`);
           fetchOrders();
         }
       )
