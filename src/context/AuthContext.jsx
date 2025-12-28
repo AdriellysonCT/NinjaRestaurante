@@ -588,7 +588,7 @@ export const AuthProvider = ({ children }) => {
   const contextValue = {
     user,
     restaurante,
-    restauranteId: restaurante?.id || null,  // ✅ Expor restauranteId diretamente
+    restauranteId: user?.id || null,  // ✅ Usar user.id diretamente (auth.users.id)
     loading,
     error,
     isAuthenticated: !!user,
