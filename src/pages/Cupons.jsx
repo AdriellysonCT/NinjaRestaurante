@@ -1,8 +1,31 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 import CuponsManager from '../components/CuponsManager';
 
 const Cupons = () => {
+  const { restauranteId, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="ml-3">Carregando...</span>
+      </div>
+    );
+  }
+
+  if (!restauranteId) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-destructive mb-4">❌ Erro: Restaurante não identificado</p>
+          <p className="text-sm text-muted-foreground">Faça logout e login novamente</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -24,7 +47,7 @@ const Cupons = () => {
       </div>
 
       {/* Componente de Gerenciamento de Cupons */}
-      <CuponsManager />
+      <CuponsManager restauranteId={restauranteId} />
     </motion.div>
   );
 };

@@ -4,28 +4,40 @@ import { supabase } from '../lib/supabase';
  * Busca todos os cupons do restaurante
  */
 export async function fetchCupons(restauranteId, filters = {}) {
-  let query = supabase
-    .from('cupons')
-    .select('*')
-    .eq('id_restaurante', restauranteId)
-    .order('criado_em', { ascending: false });
+  try {
+    let query = supabase
+      .from('cupons')
+      .select('*')
+      .eq('id_restaurante', restauranteId)
+      .order('criado_em', { ascending: false });
 
-  if (filters.ativo !== undefined) {
-    query = query.eq('ativo', filters.ativo);
+    if (filters.ativo !== undefined) {
+      query = query.eq('ativo', filters.ativo);
+    }
+
+    if (filters.tipo_desconto) {
+      query = query.eq('tipo_desconto', filters.tipo_desconto);
+    }
+
+    if (filters.search) {
+      query = query.or(`codigo.ilike.%${filters.search}%,descricao.ilike.%${filters.search}%`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      // Se a tabela não existir, retornar erro amigável
+      if (error.code === '42P01' || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+        throw new Error('A tabela de cupons ainda não foi criada no banco de dados. Execute o script criar_tabela_cupons.sql no Supabase.');
+      }
+      throw error;
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('Erro ao buscar cupons:', error);
+    throw error;
   }
-
-  if (filters.tipo_desconto) {
-    query = query.eq('tipo_desconto', filters.tipo_desconto);
-  }
-
-  if (filters.search) {
-    query = query.or(`codigo.ilike.%${filters.search}%,descricao.ilike.%${filters.search}%`);
-  }
-
-  const { data, error } = await query;
-
-  if (error) throw error;
-  return data || [];
 }
 
 /**
