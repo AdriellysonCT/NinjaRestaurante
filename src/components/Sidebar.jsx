@@ -116,6 +116,15 @@ const PlusSquareIcon = (props) => (
   </svg>
 );
 
+const TicketIcon = (props) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+    <path d="M13 5v2" />
+    <path d="M13 17v2" />
+    <path d="M13 11v2" />
+  </svg>
+);
+
 export const Sidebar = () => {
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboardIcon, path: '/dashboard' },
@@ -125,6 +134,7 @@ export const Sidebar = () => {
     { name: 'Agendados', icon: CalendarIcon, path: '/agendados' },
     { name: 'Cardápio', icon: BookOpenIcon, path: '/cardapio' },
     { name: 'Complementos', icon: PlusSquareIcon, path: '/complementos' },
+    { name: 'Cupons', icon: TicketIcon, path: '/cupons' },
     { name: 'Financeiro', icon: TrendingUpIcon, path: '/financeiro' },
     { name: 'Configurações', icon: SettingsIcon, path: '/configuracoes' },
     
