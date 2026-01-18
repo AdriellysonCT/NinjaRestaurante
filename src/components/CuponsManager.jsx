@@ -295,10 +295,10 @@ const CupomCard = ({ cupom, onEdit, onDelete, onToggleAtivo, onViewStats }) => {
               <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded">Inativo</span>
             )}
             {isExpired && (
-              <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded">Expirado</span>
+              <span className="px-2 py-0.5 bg-destructive/20 text-destructive text-xs rounded">Expirado</span>
             )}
             {isExpiringSoon && !isExpired && (
-              <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded">Expira em breve</span>
+              <span className="px-2 py-0.5 bg-warning/20 text-warning text-xs rounded">Expira em breve</span>
             )}
           </div>
           <p className="text-sm text-muted-foreground">{cupom.descricao}</p>
@@ -339,8 +339,8 @@ const CupomCard = ({ cupom, onEdit, onDelete, onToggleAtivo, onViewStats }) => {
           onClick={() => onToggleAtivo(cupom.id, !cupom.ativo)}
           className={`flex-1 px-3 py-1.5 text-sm rounded-md ${
             cupom.ativo
-              ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-              : 'bg-green-100 text-green-800 hover:bg-green-200'
+              ? 'bg-warning/20 text-warning hover:bg-warning/30'
+              : 'bg-success/20 text-success hover:bg-success/30'
           }`}
         >
           {cupom.ativo ? 'Desativar' : 'Ativar'}

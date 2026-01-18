@@ -30,16 +30,16 @@ const ComplementCard = ({ complement, onEdit, onToggle }) => {
       <div className="p-3">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-bold text-card-foreground text-sm">{complement.nome || complement.name}</h3>
-          <p className="font-bold text-[#ff6f00] text-sm">R$ {(complement.preco || complement.price || 0).toFixed(2)}</p>
+          <p className="font-bold text-primary text-sm">R$ {(complement.preco || complement.price || 0).toFixed(2)}</p>
         </div>
         {(complement.descricao || complement.description) && (
-          <p className="text-xs text-gray-400 mb-2 line-clamp-2">{complement.descricao || complement.description}</p>
+          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{complement.descricao || complement.description}</p>
         )}
         <div className="flex justify-between items-center mb-3">
           <span className={`text-xs px-2 py-1 rounded-full ${
             (complement.disponivel !== undefined ? complement.disponivel : complement.available)
-              ? 'bg-[hsla(142,76%,36%,0.2)] text-[hsl(142,76%,36%)]' 
-              : 'bg-[hsla(0,84%,60%,0.2)] text-[hsl(0,84%,60%)]'
+              ? 'bg-success/20 text-success' 
+              : 'bg-destructive/20 text-destructive'
           }`}>
             {(complement.disponivel !== undefined ? complement.disponivel : complement.available) ? 'Disponível' : 'Indisponível'}
           </span>
@@ -47,7 +47,7 @@ const ComplementCard = ({ complement, onEdit, onToggle }) => {
         <div className="flex gap-2">
           <button 
             onClick={() => onEdit(complement)}
-            className="flex-1 py-1.5 text-xs font-semibold rounded-md bg-[#2a2a2a] text-white hover:bg-[#3a3a3a] transition-colors"
+            className="flex-1 py-1.5 text-xs font-semibold rounded-md bg-secondary text-primary-foreground hover:bg-secondary/80 transition-colors"
           >
             Editar
           </button>
@@ -55,8 +55,8 @@ const ComplementCard = ({ complement, onEdit, onToggle }) => {
             onClick={() => onToggle(complement.id)}
             className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
               (complement.disponivel !== undefined ? complement.disponivel : complement.available)
-                ? 'bg-[hsla(0,84%,60%,0.1)] text-[hsl(0,84%,60%)] hover:bg-[hsla(0,84%,60%,0.2)]' 
-                : 'bg-[hsla(142,76%,36%,0.1)] text-[hsl(142,76%,36%)] hover:bg-[hsla(142,76%,36%,0.2)]'
+                ? 'bg-destructive/10 text-destructive hover:bg-destructive/20' 
+                : 'bg-success/10 text-success hover:bg-success/20'
             }`}
           >
             {(complement.disponivel !== undefined ? complement.disponivel : complement.available) ? 'Desativar' : 'Ativar'}
@@ -81,36 +81,36 @@ const GroupCard = ({ group, onEdit, onManage, complementsCount }) => {
           <div className="flex items-center gap-3 mb-2">
             <h3 className="font-bold text-card-foreground">{group.name}</h3>
             {group.section && (
-              <span className="text-xs px-2 py-1 rounded-full bg-[hsla(220,70%,50%,0.2)] text-blue-400">
+              <span className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary">
                 {group.section}
               </span>
             )}
             <span className={`text-xs px-2 py-1 rounded-full ${
               group.required 
-                ? 'bg-[hsla(25,95%,53%,0.2)] text-[#ff6f00]' 
-                : 'bg-[hsla(0,0%,50%,0.2)] text-gray-400'
+                ? 'bg-warning/20 text-warning' 
+                : 'bg-muted text-muted-foreground'
             }`}>
               {group.required ? 'Obrigatório' : 'Opcional'}
             </span>
-            <span className="text-xs px-2 py-1 rounded-full bg-[hsla(0,0%,20%,1)] text-gray-300">
+            <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
               {group.selectionType === 'single' ? 'Seleção Única' : 'Múltipla Seleção'}
             </span>
           </div>
           <p className="text-sm text-muted-foreground mb-2">{group.description}</p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-muted-foreground">
             {complementsCount} complemento{complementsCount !== 1 ? 's' : ''} associado{complementsCount !== 1 ? 's' : ''}
           </p>
         </div>
         <div className="flex gap-2 ml-4">
           <button 
             onClick={() => onEdit(group)}
-            className="px-4 py-2 text-sm font-semibold rounded-md bg-[#2a2a2a] text-white hover:bg-[#3a3a3a] transition-colors"
+            className="px-4 py-2 text-sm font-semibold rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
           >
             Editar Grupo
           </button>
           <button 
             onClick={() => onManage(group)}
-            className="px-4 py-2 text-sm font-semibold rounded-md bg-[#ff6f00] text-white hover:bg-[#ff8c00] transition-colors"
+            className="px-4 py-2 text-sm font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             Gerenciar Complementos
           </button>
@@ -523,8 +523,8 @@ const Complements = () => {
           onClick={() => setActiveTab('complements')}
           className={`px-6 py-3 rounded-md font-semibold transition-colors ${
             activeTab === 'complements'
-              ? 'bg-[#ff6f00] text-white'
-              : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a]'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-card text-muted-foreground hover:bg-secondary'
           }`}
         >
           Complementos
@@ -533,8 +533,8 @@ const Complements = () => {
           onClick={() => setActiveTab('groups')}
           className={`px-6 py-3 rounded-md font-semibold transition-colors ${
             activeTab === 'groups'
-              ? 'bg-[#ff6f00] text-white'
-              : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a]'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-card text-muted-foreground hover:bg-secondary'
           }`}
         >
           Grupos
@@ -548,7 +548,7 @@ const Complements = () => {
           <div className="flex justify-end">
             <button 
               onClick={handleAddComplement}
-              className="bg-[#ff6f00] text-white px-6 py-3 rounded-md text-sm font-semibold hover:bg-[#ff8c00] transition-colors shadow-lg"
+              className="bg-primary text-primary-foreground px-6 py-3 rounded-md text-sm font-semibold hover:bg-primary/90 transition-colors shadow-lg"
             >
               ➕ Criar Complemento
             </button>
@@ -556,21 +556,21 @@ const Complements = () => {
 
           {/* Estatísticas */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="ninja-card p-4 text-center border-l-4 border-[#ff6f00]">
-              <p className="text-3xl font-bold text-[#ff6f00]">{stats.total}</p>
-              <p className="text-sm text-gray-400 mt-1">Total de Complementos</p>
+            <div className="ninja-card p-4 text-center border-l-4 border-primary">
+              <p className="text-3xl font-bold text-primary">{stats.total}</p>
+              <p className="text-sm text-muted-foreground mt-1">Total de Complementos</p>
             </div>
-            <div className="ninja-card p-4 text-center border-l-4 border-green-500">
-              <p className="text-3xl font-bold text-green-500">{stats.available}</p>
-              <p className="text-sm text-gray-400 mt-1">Disponíveis</p>
+            <div className="ninja-card p-4 text-center border-l-4 border-success">
+              <p className="text-3xl font-bold text-success">{stats.available}</p>
+              <p className="text-sm text-muted-foreground mt-1">Disponíveis</p>
             </div>
-            <div className="ninja-card p-4 text-center border-l-4 border-red-500">
-              <p className="text-3xl font-bold text-red-500">{stats.unavailable}</p>
-              <p className="text-sm text-gray-400 mt-1">Indisponíveis</p>
+            <div className="ninja-card p-4 text-center border-l-4 border-destructive">
+              <p className="text-3xl font-bold text-destructive">{stats.unavailable}</p>
+              <p className="text-sm text-muted-foreground mt-1">Indisponíveis</p>
             </div>
-            <div className="ninja-card p-4 text-center border-l-4 border-blue-500">
-              <p className="text-3xl font-bold text-blue-500">{stats.groups}</p>
-              <p className="text-sm text-gray-400 mt-1">Grupos</p>
+            <div className="ninja-card p-4 text-center border-l-4 border-secondary">
+              <p className="text-3xl font-bold text-foreground">{stats.groups}</p>
+              <p className="text-sm text-muted-foreground mt-1">Grupos</p>
             </div>
           </div>
 
@@ -581,7 +581,7 @@ const Complements = () => {
                 <input 
                   type="text" 
                   placeholder="Buscar complemento..." 
-                  className="w-full bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 rounded-md text-sm text-white placeholder-gray-500 focus:border-[#ff6f00] focus:outline-none"
+                  className="w-full bg-input border border-border px-4 py-2 rounded-md text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -592,9 +592,9 @@ const Complements = () => {
                   id="available-only" 
                   checked={showOnlyAvailable}
                   onChange={() => setShowOnlyAvailable(!showOnlyAvailable)}
-                  className="rounded border-gray-600 bg-[#1a1a1a]"
+                  className="rounded border-border bg-input"
                 />
-                <label htmlFor="available-only" className="text-sm text-gray-300">Apenas disponíveis</label>
+                <label htmlFor="available-only" className="text-sm text-muted-foreground">Apenas disponíveis</label>
               </div>
             </div>
           </div>
@@ -625,7 +625,7 @@ const Complements = () => {
           <div className="flex justify-end">
             <button 
               onClick={handleAddGroup}
-              className="bg-[#ff6f00] text-white px-6 py-3 rounded-md text-sm font-semibold hover:bg-[#ff8c00] transition-colors shadow-lg"
+              className="bg-primary text-primary-foreground px-6 py-3 rounded-md text-sm font-semibold hover:bg-primary/90 transition-colors shadow-lg"
             >
               ➕ Criar Grupo
             </button>
@@ -649,10 +649,10 @@ const Complements = () => {
 
                 return Object.entries(groupedBySection).map(([section, sectionGroups]) => (
                   <div key={section} className="space-y-3">
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                      <span className="text-[#ff6f00]">📁</span>
+                    <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                      <span className="text-primary">📁</span>
                       {section}
-                      <span className="text-sm text-gray-400 font-normal">
+                      <span className="text-sm text-muted-foreground font-normal">
                         ({sectionGroups.length} {sectionGroups.length === 1 ? 'grupo' : 'grupos'})
                       </span>
                     </h3>
@@ -684,19 +684,19 @@ const Complements = () => {
         {currentComplement && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">Nome do Complemento</label>
+              <label className="block text-sm font-medium mb-2 text-muted-foreground">Nome do Complemento</label>
               <input 
                 type="text" 
-                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 rounded-md text-white focus:border-[#ff6f00] focus:outline-none"
+                className="w-full bg-input border border-border px-4 py-2 rounded-md text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
                 value={currentComplement.name || ''}
                 onChange={(e) => setCurrentComplement({...currentComplement, name: e.target.value})}
                 placeholder="Ex: Cheddar Extra"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">Descrição (opcional)</label>
+              <label className="block text-sm font-medium mb-2 text-muted-foreground">Descrição (opcional)</label>
               <textarea 
-                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 rounded-md text-white focus:border-[#ff6f00] focus:outline-none"
+                className="w-full bg-input border border-border px-4 py-2 rounded-md text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
                 rows="2"
                 value={currentComplement.description || ''}
                 onChange={(e) => setCurrentComplement({...currentComplement, description: e.target.value})}
@@ -704,21 +704,21 @@ const Complements = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">Preço (R$)</label>
+              <label className="block text-sm font-medium mb-2 text-muted-foreground">Preço (R$)</label>
               <input 
                 type="number" 
                 step="0.01"
                 min="0"
-                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 rounded-md text-white focus:border-[#ff6f00] focus:outline-none"
+                className="w-full bg-input border border-border px-4 py-2 rounded-md text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
                 value={currentComplement.price === undefined || currentComplement.price === null ? '' : currentComplement.price}
                 onChange={(e) => setCurrentComplement({...currentComplement, price: e.target.value === '' ? 0 : parseFloat(e.target.value)})}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">URL da Imagem (opcional)</label>
+              <label className="block text-sm font-medium mb-2 text-muted-foreground">URL da Imagem (opcional)</label>
               <input 
                 type="url" 
-                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 rounded-md text-white focus:border-[#ff6f00] focus:outline-none"
+                className="w-full bg-input border border-border px-4 py-2 rounded-md text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
                 value={currentComplement.image || ''}
                 onChange={(e) => setCurrentComplement({...currentComplement, image: e.target.value})}
                 placeholder="https://exemplo.com/imagem.jpg"
@@ -730,20 +730,20 @@ const Complements = () => {
                 id="complement-available" 
                 checked={currentComplement.available}
                 onChange={(e) => setCurrentComplement({...currentComplement, available: e.target.checked})}
-                className="rounded border-gray-600 bg-[#1a1a1a]"
+                className="rounded border-border bg-input"
               />
-              <label htmlFor="complement-available" className="text-sm text-gray-300">Disponível</label>
+              <label htmlFor="complement-available" className="text-sm text-muted-foreground">Disponível</label>
             </div>
             <div className="flex gap-2 pt-4">
               <button 
                 onClick={() => setIsComplementModalOpen(false)} 
-                className="w-full py-2 text-sm font-semibold rounded-md bg-[#2a2a2a] text-white hover:bg-[#3a3a3a]"
+                className="w-full py-2 text-sm font-semibold rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
               >
                 Cancelar
               </button>
               <button 
                 onClick={handleSaveComplement} 
-                className="w-full py-2 text-sm font-semibold rounded-md bg-[#ff6f00] text-white hover:bg-[#ff8c00]"
+                className="w-full py-2 text-sm font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 Salvar
               </button>
@@ -761,29 +761,29 @@ const Complements = () => {
         {currentGroup && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">Nome do Grupo</label>
+              <label className="block text-sm font-medium mb-2 text-muted-foreground">Nome do Grupo</label>
               <input 
                 type="text" 
-                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 rounded-md text-white focus:border-[#ff6f00] focus:outline-none"
+                className="w-full bg-input border border-border px-4 py-2 rounded-md text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
                 value={currentGroup.name || ''}
                 onChange={(e) => setCurrentGroup({...currentGroup, name: e.target.value})}
                 placeholder="Ex: Molhos"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">Seção/Categoria (opcional)</label>
+              <label className="block text-sm font-medium mb-2 text-muted-foreground">Seção/Categoria (opcional)</label>
               <input 
                 type="text" 
-                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 rounded-md text-white focus:border-[#ff6f00] focus:outline-none"
+                className="w-full bg-input border border-border px-4 py-2 rounded-md text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
                 value={currentGroup.section || ''}
                 onChange={(e) => setCurrentGroup({...currentGroup, section: e.target.value})}
                 placeholder="Ex: Bebidas, Lanches, Sobremesas"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">Descrição (opcional)</label>
+              <label className="block text-sm font-medium mb-2 text-muted-foreground">Descrição (opcional)</label>
               <textarea 
-                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 rounded-md text-white focus:border-[#ff6f00] focus:outline-none"
+                className="w-full bg-input border border-border px-4 py-2 rounded-md text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
                 rows="3"
                 value={currentGroup.description || ''}
                 onChange={(e) => setCurrentGroup({...currentGroup, description: e.target.value})}
@@ -791,7 +791,7 @@ const Complements = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">Tipo de Seleção</label>
+              <label className="block text-sm font-medium mb-2 text-muted-foreground">Tipo de Seleção</label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input 
@@ -800,9 +800,9 @@ const Complements = () => {
                     value="single"
                     checked={currentGroup.selectionType === 'single'}
                     onChange={(e) => setCurrentGroup({...currentGroup, selectionType: e.target.value})}
-                    className="text-[#ff6f00]"
+                    className="text-primary accent-primary"
                   />
-                  <span className="text-sm text-gray-300">Único (escolher apenas 1)</span>
+                  <span className="text-sm text-muted-foreground">Único (escolher apenas 1)</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input 
@@ -811,7 +811,7 @@ const Complements = () => {
                     value="multiple"
                     checked={currentGroup.selectionType === 'multiple'}
                     onChange={(e) => setCurrentGroup({...currentGroup, selectionType: e.target.value})}
-                    className="text-[#ff6f00]"
+                    className="text-primary accent-primary"
                   />
                   <span className="text-sm text-gray-300">Múltiplo (escolher vários)</span>
                 </label>
@@ -823,22 +823,22 @@ const Complements = () => {
                 id="group-required" 
                 checked={currentGroup.required}
                 onChange={(e) => setCurrentGroup({...currentGroup, required: e.target.checked})}
-                className="rounded border-gray-600 bg-[#1a1a1a]"
+                className="rounded border-border bg-input"
               />
-              <label htmlFor="group-required" className="text-sm text-gray-300">Obrigatório</label>
+              <label htmlFor="group-required" className="text-sm text-muted-foreground">Obrigatório</label>
             </div>
             <div className="flex gap-2 pt-4">
               <button 
                 onClick={() => setIsGroupModalOpen(false)} 
                 disabled={saving}
-                className="w-full py-2 text-sm font-semibold rounded-md bg-[#2a2a2a] text-white hover:bg-[#3a3a3a] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-2 text-sm font-semibold rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancelar
               </button>
               <button 
                 onClick={handleSaveGroup} 
                 disabled={saving}
-                className="w-full py-2 text-sm font-semibold rounded-md bg-[#ff6f00] text-white hover:bg-[#ff8c00] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-2 text-sm font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {saving && (
                   <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -871,7 +871,7 @@ const Complements = () => {
               <input 
                 type="text" 
                 placeholder="🔍 Buscar complemento..." 
-                className="w-full bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-3 pl-10 rounded-md text-sm text-white placeholder-gray-500 focus:border-[#ff6f00] focus:outline-none"
+                className="w-full bg-input border border-border px-4 py-3 pl-10 rounded-md text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
                 value={searchComplementTerm}
                 onChange={(e) => setSearchComplementTerm(e.target.value)}
               />
@@ -897,7 +897,7 @@ const Complements = () => {
 
             {/* Contador de Resultados */}
             {searchComplementTerm && (
-              <div className="flex items-center justify-between text-xs text-gray-400 px-1">
+              <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
                 <span>
                   {complements.filter(c => 
                     c.name.toLowerCase().includes(searchComplementTerm.toLowerCase())
@@ -921,22 +921,22 @@ const Complements = () => {
                 .map(complement => (
                   <label 
                     key={complement.id}
-                    className="flex items-center gap-3 p-3 rounded-md bg-[#1a1a1a] hover:bg-[#2a2a2a] cursor-pointer transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-md bg-secondary/50 hover:bg-secondary cursor-pointer transition-colors"
                   >
                     <input 
                       type="checkbox" 
                       checked={complement.groupIds?.includes(currentGroup.id) || false}
                       onChange={() => handleToggleComplementInGroup(complement.id)}
-                      className="rounded border-gray-600 bg-[#0d0d0d]"
+                      className="rounded border-border bg-input"
                     />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-white">{complement.name}</p>
-                      <p className="text-xs text-gray-400">R$ {complement.price.toFixed(2)}</p>
+                      <p className="text-sm font-medium text-foreground">{complement.name}</p>
+                      <p className="text-xs text-muted-foreground">R$ {complement.price.toFixed(2)}</p>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       complement.available 
-                        ? 'bg-[hsla(142,76%,36%,0.2)] text-[hsl(142,76%,36%)]' 
-                        : 'bg-[hsla(0,84%,60%,0.2)] text-[hsl(0,84%,60%)]'
+                        ? 'bg-success/20 text-success' 
+                        : 'bg-destructive/20 text-destructive'
                     }`}>
                       {complement.available ? 'Disponível' : 'Indisponível'}
                     </span>
@@ -947,7 +947,7 @@ const Complements = () => {
               {complements.filter(c => 
                 c.name.toLowerCase().includes(searchComplementTerm.toLowerCase())
               ).length === 0 && (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-muted-foreground">
                   <svg className="w-16 h-16 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
@@ -962,12 +962,12 @@ const Complements = () => {
                   setIsManageModalOpen(false);
                   toast.success('Associações salvas com sucesso!');
                 }} 
-                className="w-full py-2 text-sm font-semibold rounded-md bg-[#ff6f00] text-white hover:bg-[#ff8c00]"
+                className="w-full py-2 text-sm font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 Fechar
               </button>
             </div>
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-xs text-muted-foreground text-center">
               💡 As alterações são salvas automaticamente ao marcar/desmarcar
             </p>
           </div>
