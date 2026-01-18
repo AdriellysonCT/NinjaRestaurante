@@ -3,11 +3,13 @@
 ## 🎯 Problemas Identificados
 
 ### 1. Erro ao Salvar Horários
+
 ```
 ERRO: restauranteId não disponível!
 ```
 
 ### 2. Cardápio Mostrando Itens de Outros Restaurantes
+
 Mesmo após corrigir RLS, ainda há vazamento de dados.
 
 ## 🔍 Causa Raiz
@@ -24,6 +26,7 @@ O `restauranteId` no `AuthContext` vem de `restaurante?.id`, mas:
 O `restauranteId` deve ser o `user.id` (ID do auth.users), não o `restaurante.id` (ID da tabela restaurantes_app).
 
 **Por quê?**
+
 - A tabela `itens_cardapio` usa `id_restaurante` que referencia `auth.users.id`
 - A tabela `restaurantes_horarios` usa `restaurante_id` que também referencia o user_id
 
@@ -32,11 +35,13 @@ O `restauranteId` deve ser o `user.id` (ID do auth.users), não o `restaurante.i
 Edite `src/context/AuthContext.jsx` linha ~570:
 
 **ANTES:**
+
 ```javascript
 restauranteId: restaurante?.id || null,
 ```
 
 **DEPOIS:**
+
 ```javascript
 restauranteId: user?.id || null,  // ✅ Usar user.id diretamente
 ```
@@ -47,7 +52,7 @@ Execute este SQL no Supabase para confirmar a estrutura:
 
 ```sql
 -- 1. Verificar estrutura de itens_cardapio
-SELECT 
+SELECT
     column_name,
     data_type,
     is_nullable
@@ -57,7 +62,7 @@ WHERE table_name = 'itens_cardapio'
 ORDER BY ordinal_position;
 
 -- 2. Verificar estrutura de restaurantes_horarios
-SELECT 
+SELECT
     column_name,
     data_type,
     is_nullable
@@ -67,12 +72,12 @@ WHERE table_name = 'restaurantes_horarios'
 ORDER BY ordinal_position;
 
 -- 3. Verificar relacionamento
-SELECT 
-    tc.table_name, 
+SELECT
+    tc.table_name,
     kcu.column_name,
     ccu.table_name AS foreign_table_name,
     ccu.column_name AS foreign_column_name
-FROM information_schema.table_constraints AS tc 
+FROM information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu
   ON tc.constraint_name = kcu.constraint_name
 JOIN information_schema.constraint_column_usage AS ccu
@@ -82,6 +87,7 @@ WHERE tc.constraint_type = 'FOREIGN KEY'
 ```
 
 **Resultado Esperado:**
+
 - `itens_cardapio.id_restaurante` → `auth.users.id`
 - `restaurantes_horarios.restaurante_id` → `auth.users.id`
 
@@ -102,6 +108,7 @@ npm run dev
 ## 🧪 Teste
 
 ### 1. Teste de Horários
+
 1. Faça login
 2. Vá para Configurações → Horários
 3. Altere um horário
@@ -109,6 +116,7 @@ npm run dev
 5. Não deve mais aparecer o erro "restauranteId não disponível"
 
 ### 2. Teste de Cardápio
+
 1. Faça login no Restaurante A
 2. Vá para Cardápio
 3. Anote os itens que aparecem
@@ -122,7 +130,7 @@ Após fazer login, abra o console (F12) e digite:
 
 ```javascript
 // Verificar user.id
-console.log('User ID:', window.localStorage.getItem('supabase.auth.token'));
+console.log("User ID:", window.localStorage.getItem("supabase.auth.token"));
 
 // Ou no React DevTools, procure o AuthContext e veja:
 // - user.id
@@ -143,14 +151,15 @@ Isso garante que sempre teremos um ID válido.
 ## 🆘 Se Ainda Não Funcionar
 
 1. **Limpe TUDO:**
+
    ```bash
    # Limpar localStorage
    # No console do navegador (F12):
    localStorage.clear();
-   
+
    # Limpar cache do navegador
    Ctrl+Shift+Delete → Limpar tudo
-   
+
    # Fazer logout e login novamente
    ```
 
@@ -167,6 +176,7 @@ Isso garante que sempre teremos um ID válido.
 ---
 
 **Resumo da Correção:**
+
 1. Mudar `restauranteId: restaurante?.id` para `restauranteId: user?.id`
 2. Rebuild do projeto
 3. Limpar cache e fazer novo login
