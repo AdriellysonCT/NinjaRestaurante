@@ -68,13 +68,13 @@ const PrintConfigModal = ({ isOpen, onClose, contentToPrint, title = "Imprimir D
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-900 p-6 rounded-lg max-w-md w-full mx-4 shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-white font-bold text-xl">{title}</h2>
+    <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 transition-opacity">
+      <div className="bg-card text-card-foreground p-6 rounded-lg max-w-md w-full mx-4 shadow-2xl border border-border">
+        <div className="flex justify-between items-center mb-6 border-b border-border pb-4">
+          <h2 className="text-foreground font-bold text-xl">{title}</h2>
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -85,11 +85,11 @@ const PrintConfigModal = ({ isOpen, onClose, contentToPrint, title = "Imprimir D
         <div className="space-y-4">
           {/* Destino - Impressora */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">Destino</label>
+            <label className="block text-muted-foreground mb-2 font-medium">Destino</label>
             <select 
               value={printer} 
               onChange={(e) => setPrinter(e.target.value)}
-              className="w-full bg-gray-800 text-white rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full bg-input text-foreground rounded-lg p-3 border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
             >
               {printers.map((p) => (
                 <option key={p} value={p}>{p}</option>
@@ -99,11 +99,11 @@ const PrintConfigModal = ({ isOpen, onClose, contentToPrint, title = "Imprimir D
 
           {/* Páginas */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">Páginas</label>
+            <label className="block text-muted-foreground mb-2 font-medium">Páginas</label>
             <select 
               value={pages} 
               onChange={(e) => setPages(e.target.value)}
-              className="w-full bg-gray-800 text-white rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full bg-input text-foreground rounded-lg p-3 border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
             >
               <option value="Todas">Todas</option>
               <option value="Personalizado">Personalizado</option>
@@ -114,31 +114,31 @@ const PrintConfigModal = ({ isOpen, onClose, contentToPrint, title = "Imprimir D
                 placeholder="Ex: 1-3, 5, 7-9"
                 value={customPages}
                 onChange={(e) => setCustomPages(e.target.value)}
-                className="w-full mt-2 bg-gray-800 text-white rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full mt-2 bg-input text-foreground rounded-lg p-3 border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
               />
             )}
           </div>
 
           {/* Cópias */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">Cópias</label>
+            <label className="block text-muted-foreground mb-2 font-medium">Cópias</label>
             <input 
               type="number" 
               min="1" 
               max="99"
               value={copies} 
               onChange={(e) => setCopies(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full bg-gray-800 text-white rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full bg-input text-foreground rounded-lg p-3 border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
             />
           </div>
 
           {/* Layout */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">Layout</label>
+            <label className="block text-muted-foreground mb-2 font-medium">Layout</label>
             <select 
               value={layout} 
               onChange={(e) => setLayout(e.target.value)}
-              className="w-full bg-gray-800 text-white rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full bg-input text-foreground rounded-lg p-3 border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
             >
               <option value="Retrato">Retrato</option>
               <option value="Paisagem">Paisagem</option>
@@ -147,11 +147,11 @@ const PrintConfigModal = ({ isOpen, onClose, contentToPrint, title = "Imprimir D
 
           {/* Colorido */}
           <div>
-            <label className="block text-gray-300 mb-2 font-medium">Colorido</label>
+            <label className="block text-muted-foreground mb-2 font-medium">Colorido</label>
             <select 
               value={colorMode} 
               onChange={(e) => setColorMode(e.target.value)}
-              className="w-full bg-gray-800 text-white rounded-lg p-3 border border-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full bg-input text-foreground rounded-lg p-3 border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
             >
               <option value="Colorido">Colorido</option>
               <option value="Preto e Branco">Preto e Branco</option>
@@ -163,7 +163,7 @@ const PrintConfigModal = ({ isOpen, onClose, contentToPrint, title = "Imprimir D
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-blue-400 hover:text-blue-300 font-medium flex items-center transition-colors"
+              className="text-primary hover:text-primary/80 font-medium flex items-center transition-colors"
             >
               <svg 
                 className={`w-4 h-4 mr-2 transform transition-transform ${showAdvanced ? 'rotate-180' : ''}`} 
@@ -177,14 +177,14 @@ const PrintConfigModal = ({ isOpen, onClose, contentToPrint, title = "Imprimir D
             </button>
 
             {showAdvanced && (
-              <div className="mt-4 space-y-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
+              <div className="mt-4 space-y-4 p-4 bg-secondary/50 rounded-lg border border-border">
                 {/* Margens */}
                 <div>
-                  <label className="block text-gray-300 mb-2 text-sm">Margens</label>
+                  <label className="block text-muted-foreground mb-2 text-sm">Margens</label>
                   <select 
                     value={margins} 
                     onChange={(e) => setMargins(e.target.value)}
-                    className="w-full bg-gray-700 text-white rounded p-2 border border-gray-600 focus:border-blue-500 focus:outline-none transition-colors text-sm"
+                    className="w-full bg-input text-foreground rounded p-2 border border-border focus:border-primary focus:outline-none transition-colors text-sm"
                   >
                     <option value="Normal">Normal</option>
                     <option value="Mínima">Mínima</option>
@@ -194,11 +194,11 @@ const PrintConfigModal = ({ isOpen, onClose, contentToPrint, title = "Imprimir D
 
                 {/* Tamanho do papel */}
                 <div>
-                  <label className="block text-gray-300 mb-2 text-sm">Tamanho do papel</label>
+                  <label className="block text-muted-foreground mb-2 text-sm">Tamanho do papel</label>
                   <select 
                     value={paperSize} 
                     onChange={(e) => setPaperSize(e.target.value)}
-                    className="w-full bg-gray-700 text-white rounded p-2 border border-gray-600 focus:border-blue-500 focus:outline-none transition-colors text-sm"
+                    className="w-full bg-input text-foreground rounded p-2 border border-border focus:border-primary focus:outline-none transition-colors text-sm"
                   >
                     <option value="A4">A4</option>
                     <option value="Carta">Carta</option>
@@ -209,11 +209,11 @@ const PrintConfigModal = ({ isOpen, onClose, contentToPrint, title = "Imprimir D
 
                 {/* Qualidade */}
                 <div>
-                  <label className="block text-gray-300 mb-2 text-sm">Qualidade</label>
+                  <label className="block text-muted-foreground mb-2 text-sm">Qualidade</label>
                   <select 
                     value={quality} 
                     onChange={(e) => setQuality(e.target.value)}
-                    className="w-full bg-gray-700 text-white rounded p-2 border border-gray-600 focus:border-blue-500 focus:outline-none transition-colors text-sm"
+                    className="w-full bg-input text-foreground rounded p-2 border border-border focus:border-primary focus:outline-none transition-colors text-sm"
                   >
                     <option value="Rascunho">Rascunho</option>
                     <option value="Normal">Normal</option>
@@ -226,16 +226,16 @@ const PrintConfigModal = ({ isOpen, onClose, contentToPrint, title = "Imprimir D
         </div>
 
         {/* Botões de ação */}
-        <div className="mt-8 flex justify-end space-x-3">
+        <div className="mt-8 flex justify-end space-x-3 border-t border-border pt-4">
           <button
             onClick={handleCancel}
-            className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all font-medium"
+            className="px-6 py-3 bg-secondary text-foreground border border-input rounded-lg hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-secondary transition-all font-bold"
           >
             Cancelar
           </button>
           <button
             onClick={handlePrintClick}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium flex items-center"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-bold flex items-center shadow-lg"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />

@@ -26,7 +26,7 @@ import { Test } from './pages/Test';
 // Removidos: Demo Comanda e Teste Comanda
 
 // Importar contextos
-import { ThemeContext } from './context/ThemeContext';
+import { ThemeContext, ThemeProvider, useTheme } from './context/ThemeContext';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -56,10 +56,7 @@ const ProtectedRoute = ({ children }) => {
 // Componente de layout principal
 const MainLayout = () => {
   const { user, restauranteId } = useAuth();
-  const [theme, setTheme] = useState(() => {
-    const savedTheme = localStorage.getItem('fome-ninja-theme');
-    return savedTheme || 'dark';
-  });
+  const { theme, toggleTheme } = useTheme();
 
   // ✅ Gerenciar status online do restaurante
   useEffect(() => {
@@ -67,7 +64,6 @@ const MainLayout = () => {
 
     const handleBeforeUnload = () => {
       // Marcar como offline quando fechar o painel
-      // Usar navigator.sendBeacon para garantir que a requisição seja enviada
       const url = `${supabase.supabaseUrl}/rest/v1/restaurantes_app?id=eq.${restauranteId}`;
       const data = JSON.stringify({ ativo: false });
       
@@ -75,26 +71,12 @@ const MainLayout = () => {
       console.log('🔴 Restaurante marcado como OFFLINE (painel fechado)');
     };
 
-    // Adicionar listener para quando a janela fechar
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      // ❌ NÃO marcar como offline no cleanup do useEffect
-      // Isso causava o bug de marcar como offline após login
     };
   }, [user?.id, restauranteId]);
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    document.body.classList.add('antialiased');
-    localStorage.setItem('fome-ninja-theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-  };
 
   return (
     <div className="flex min-h-screen w-full">
@@ -166,43 +148,17 @@ function App() {
   // Log inicial da aplicação
   useEffect(() => {
     debugLogger.info('APP', '🚀 Aplicação Fome Ninja iniciada');
-    debugLogger.info('APP', '🔍 Verificando dependências críticas...');
-    
-    // Verificar se os módulos críticos estão disponíveis
-    const checkCriticalModules = async () => {
-      try {
-        // Verificar ícones
-        const iconsModule = await import('./components/icons/index.jsx');
-        const iconNames = Object.keys(iconsModule);
-        debugLogger.success('MODULES', `✅ Módulo de ícones carregado com ${iconNames.length} ícones`, iconNames);
-        
-        // Verificar Supabase
-        if (supabase) {
-          debugLogger.success('MODULES', '✅ Supabase configurado');
-        } else {
-          debugLogger.error('MODULES', '❌ Supabase não configurado');
-        }
-        
-        // Verificar contextos
-        debugLogger.info('MODULES', '🔍 Verificando contextos...');
-        
-      } catch (error) {
-        debugLogger.error('MODULES', '❌ Erro ao verificar módulos críticos', error);
-      }
-    };
-    
-    checkCriticalModules();
   }, []);
   
   return (
     <Router>
-      <AuthProvider>
-        <AppProvider>
-          <ThemeContext.Provider value={{ theme: 'dark', toggleTheme: () => {} }}>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppProvider>
             <AppRoutes />
-          </ThemeContext.Provider>
-        </AppProvider>
-      </AuthProvider>
+          </AppProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 }

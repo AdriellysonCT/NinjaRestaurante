@@ -62,7 +62,7 @@ const PrintConfig = () => {
       {/* Pré-visualização */}
       <div className="ninja-card p-6">
         <h4 className="text-lg font-semibold text-foreground mb-4">Pré-visualização</h4>
-        <div className="bg-gray-800 p-4 rounded-lg">
+        <div className="bg-secondary/50 p-4 rounded-lg">
           <div className="bg-white p-4 rounded shadow max-w-sm mx-auto text-xs text-gray-900 border border-gray-300">
             {selectedTemplate === 'client' && (
               <div className="text-gray-900">
@@ -197,17 +197,17 @@ const PrintConfig = () => {
 
       {/* Diálogo de Impressão Windows-like */}
       {showPrintDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[#1e1e1e] text-white w-full max-w-sm rounded-lg shadow-lg overflow-hidden">
-            <div className="p-4 flex justify-between items-center border-b border-gray-700">
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50">
+          <div className="bg-card text-card-foreground w-full max-w-sm rounded-lg shadow-lg overflow-hidden border border-border">
+            <div className="p-4 flex justify-between items-center border-b border-border">
               <h3 className="text-lg font-medium">Imprimir</h3>
-              <div className="text-sm text-gray-300">6 folhas de papel</div>
+              <div className="text-sm text-muted-foreground">6 folhas de papel</div>
             </div>
             <div className="p-4 space-y-4">
               <div className="flex justify-between items-center">
                 <div className="text-sm">Destino</div>
                 <div className="flex-1 ml-4">
-                  <select className="w-full bg-[#333] text-white border border-gray-700 rounded p-2 text-sm">
+                  <select className="w-full bg-input text-foreground border border-input rounded p-2 text-sm">
                     <option>{printers.find(p => p.id === selectedPrinter)?.name || 'EPSON L3250 Series'}</option>
                   </select>
                 </div>
@@ -216,7 +216,7 @@ const PrintConfig = () => {
                 <div className="text-sm">Páginas</div>
                 <div className="flex-1 ml-4">
                   <select 
-                    className="w-full bg-[#333] text-white border border-gray-700 rounded p-2 text-sm"
+                    className="w-full bg-input text-foreground border border-input rounded p-2 text-sm"
                     value={printSettings.pages}
                     onChange={(e) => setPrintSettings({...printSettings, pages: e.target.value})}
                   >
@@ -232,7 +232,7 @@ const PrintConfig = () => {
                 <div className="flex-1 ml-4">
                   <input 
                     type="number" 
-                    className="w-full bg-[#333] text-white border border-gray-700 rounded p-2 text-sm" 
+                    className="w-full bg-input text-foreground border border-input rounded p-2 text-sm" 
                     value={printSettings.copies}
                     onChange={(e) => setPrintSettings({...printSettings, copies: Number(e.target.value)})}
                     min="1"
@@ -243,7 +243,7 @@ const PrintConfig = () => {
                 <div className="text-sm">Layout</div>
                 <div className="flex-1 ml-4">
                   <select 
-                    className="w-full bg-[#333] text-white border border-gray-700 rounded p-2 text-sm"
+                    className="w-full bg-input text-foreground border border-input rounded p-2 text-sm"
                     value={printSettings.layout}
                     onChange={(e) => setPrintSettings({...printSettings, layout: e.target.value})}
                   >
@@ -256,7 +256,7 @@ const PrintConfig = () => {
                 <div className="text-sm">Colorido</div>
                 <div className="flex-1 ml-4">
                   <select 
-                    className="w-full bg-[#333] text-white border border-gray-700 rounded p-2 text-sm"
+                    className="w-full bg-input text-foreground border border-input rounded p-2 text-sm"
                     value={printSettings.colorMode}
                     onChange={(e) => setPrintSettings({...printSettings, colorMode: e.target.value})}
                   >
@@ -276,16 +276,16 @@ const PrintConfig = () => {
                 </div>
               </div>
             </div>
-            <div className="p-4 flex justify-end space-x-2 border-t border-gray-700">
+            <div className="p-4 flex justify-end space-x-2 border-t border-border">
               <button 
                 onClick={handlePrint}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded shadow-sm transition-colors"
               >
                 Imprimir
               </button>
               <button 
                 onClick={handleCancelPrint}
-                className="bg-transparent border border-gray-600 text-white px-4 py-2 rounded hover:bg-gray-800"
+                className="bg-transparent border border-input text-foreground px-4 py-2 rounded hover:bg-secondary transition-colors"
               >
                 Cancelar
               </button>

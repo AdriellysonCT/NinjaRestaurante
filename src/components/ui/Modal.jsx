@@ -27,55 +27,23 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   
   return (
     <div 
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        zIndex: 999999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem'
-      }}
+      className="fixed inset-0 bg-black/75 z-[999999] flex items-center justify-center p-4 transition-opacity"
       onClick={onClose}
     >
       <div 
+        className="bg-card border border-border rounded-xl p-5 w-full max-h-[85vh] overflow-y-auto relative shadow-2xl transition-all"
         style={{
-          backgroundColor: '#1a1a1a',
-          borderRadius: '12px',
-          padding: '1.25rem',
-          width: '100%',
           maxWidth: maxWidths[size] || maxWidths.md,
-          maxHeight: '85vh',
-          overflowY: 'auto',
-          position: 'relative',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-          border: '1px solid #2d2d2d'
         }}
         onClick={e => e.stopPropagation()}
       >
         <button 
           onClick={onClose}
-          style={{
-            position: 'absolute',
-            top: '0.75rem',
-            right: '0.75rem',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#9ca3af',
-            padding: '0.25rem',
-            zIndex: 10
-          }}
-          onMouseEnter={(e) => e.target.style.color = '#ffffff'}
-          onMouseLeave={(e) => e.target.style.color = '#9ca3af'}
+          className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground transition-colors z-10"
         >
           <XIcon className="w-5 h-5" />
         </button>
-        {title && <h2 className="text-xl font-bold mb-4 text-white">{title}</h2>}
+        {title && <h2 className="text-xl font-bold mb-4 text-card-foreground">{title}</h2>}
         {children}
       </div>
     </div>

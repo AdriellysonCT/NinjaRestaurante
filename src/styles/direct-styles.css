@@ -2,52 +2,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  /* Tema Ninja (Dark) */
-  --color-background: 240 10% 3.9%;
+  /* Tema Dark (Padrão Ninja) - Preto e Laranja */
+  --color-background: 0 0% 4%;
   --color-foreground: 0 0% 98%;
-  --color-card: 240 10% 6%;
+  --color-card: 0 0% 7%;
   --color-card-foreground: 0 0% 98%;
-  --color-popover: 240 10% 3.9%;
+  --color-popover: 0 0% 4%;
   --color-popover-foreground: 0 0% 98%;
-  --color-primary: 25 95% 53%; /* Laranja Ninja */
-  --color-primary-foreground: 240 10% 3.9%;
-  --color-secondary: 240 3.7% 15.9%;
+  --color-primary: 25 95% 53%; /* Laranja Ninja #f97316 */
+  --color-primary-foreground: 0 0% 0%;
+  --color-secondary: 240 4% 16%;
   --color-secondary-foreground: 0 0% 98%;
-  --color-muted: 240 3.7% 15.9%;
-  --color-muted-foreground: 240 5% 64.9%;
-  --color-accent: 240 3.7% 15.9%;
+  --color-muted: 240 4% 12%;
+  --color-muted-foreground: 240 5% 70%;
+  --color-accent: 25 95% 53%;
   --color-accent-foreground: 0 0% 98%;
-  --color-destructive: 0 72% 51%;
+  --color-destructive: 0 84% 60%;
   --color-destructive-foreground: 0 0% 98%;
   --color-success: 142 76% 36%;
   --color-success-foreground: 0 0% 98%;
-  --color-border: 240 3.7% 15.9%;
-  --color-input: 240 3.7% 15.9%;
+  --color-border: 240 4% 16%;
+  --color-input: 240 4% 16%;
   --color-ring: 25 95% 53%;
 }
 
 [data-theme='light'] {
+  /* Tema Light - Branco e Azul */
   --color-background: 0 0% 100%;
-  --color-foreground: 240 10% 3.9%;
+  --color-foreground: 222 47% 11%;
   --color-card: 0 0% 98%;
-  --color-card-foreground: 240 10% 3.9%;
+  --color-card-foreground: 222 47% 11%;
   --color-popover: 0 0% 100%;
-  --color-popover-foreground: 240 10% 3.9%;
-  --color-primary: 25 95% 53%;
-  --color-primary-foreground: 0 0% 98%;
-  --color-secondary: 0 0% 96.1%;
-  --color-secondary-foreground: 240 5.9% 10%;
-  --color-muted: 0 0% 96.1%;
-  --color-muted-foreground: 240 3.8% 46.1%;
-  --color-accent: 0 0% 96.1%;
-  --color-accent-foreground: 240 5.9% 10%;
-  --color-destructive: 0 84.2% 60.2%;
-  --color-destructive-foreground: 0 0% 98%;
+  --color-popover-foreground: 222 47% 11%;
+  --color-primary: 221 83% 53%; /* Azul Moderno #2563eb */
+  --color-primary-foreground: 210 40% 98%;
+  --color-secondary: 210 40% 96%;
+  --color-secondary-foreground: 222 47% 11%;
+  --color-muted: 210 40% 96%;
+  --color-muted-foreground: 215 16% 47%;
+  --color-accent: 221 83% 53%;
+  --color-accent-foreground: 222 47% 11%;
+  --color-destructive: 0 84% 60%;
+  --color-destructive-foreground: 210 40% 98%;
   --color-success: 142 71% 45%;
-  --color-success-foreground: 0 0% 98%;
-  --color-border: 0 0% 89.8%;
-  --color-input: 0 0% 89.8%;
-  --color-ring: 25 95% 53%;
+  --color-success-foreground: 210 40% 98%;
+  --color-border: 214 32% 91%;
+  --color-input: 214 32% 91%;
+  --color-ring: 221 83% 53%;
 }
 
 body {

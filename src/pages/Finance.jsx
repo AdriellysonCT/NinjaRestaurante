@@ -4,6 +4,9 @@ import { supabase } from '../lib/supabase';
 import DashboardFinanceiro from '../components/DashboardFinanceiro';
 import * as financeService from '../services/financeService';
 import { TransactionModal, AccountModal, SupplierModal, GoalModal } from '../components/FinanceModals';
+import FecharCaixaButton from '../components/FecharCaixaButton';
+import HistoricoFechamentos from '../components/HistoricoFechamentos';
+import CuponsManager from '../components/CuponsManager';
 
 // Listas simples (somente leitura) para sincronizar com dados reais
 const TransactionsList = ({ onEdit, onChanged }) => {
@@ -400,6 +403,10 @@ const Finance = () => {
   const [goalsLoading, setGoalsLoading] = useState(false);
   const [goalsError, setGoalsError] = useState(null);
 
+  const [fechamentosCount, setFechamentosCount] = useState(null);
+  const [fechamentosLoading, setFechamentosLoading] = useState(false);
+  const [fechamentosError, setFechamentosError] = useState(null);
+
   // Modais
   const [transactionModalOpen, setTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
@@ -539,6 +546,8 @@ const Finance = () => {
             { key: 'accounts', label: 'Contas' },
             { key: 'suppliers', label: 'Fornecedores' },
             { key: 'goals', label: 'Metas' },
+            { key: 'fechamentos', label: 'Fechamentos' },
+            { key: 'cupons', label: 'Cupons' },
             { key: 'reports', label: 'Relatórios' }
           ].map(({ key, label }) => (
             <button
@@ -682,6 +691,36 @@ const Finance = () => {
               <p className="text-muted-foreground">Nenhuma meta cadastrada.</p>
             ) : (
               <GoalsList onEdit={(g)=> { setEditingGoal(g); setGoalModalOpen(true); }} onChanged={async ()=> { const data = await financeService.fetchFinancialGoals(); setGoalsCount(Array.isArray(data) ? data.length : 0); }} />
+            )}
+          </div>
+        )}
+
+        {activeTab === 'fechamentos' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-foreground">Fechamentos de Caixa</h2>
+              <FecharCaixaButton 
+                restauranteId={restaurantId}
+                onFechamentoCreated={() => {
+                  // Recarregar lista de fechamentos
+                  setFechamentosCount((prev) => (prev || 0) + 1);
+                }}
+              />
+            </div>
+            {!restaurantId ? (
+              <p className="text-muted-foreground text-center py-10">Carregando dados do restaurante...</p>
+            ) : (
+              <HistoricoFechamentos restauranteId={restaurantId} />
+            )}
+          </div>
+        )}
+
+        {activeTab === 'cupons' && (
+          <div>
+            {!restaurantId ? (
+              <p className="text-muted-foreground text-center py-10">Carregando dados do restaurante...</p>
+            ) : (
+              <CuponsManager restauranteId={restaurantId} />
             )}
           </div>
         )}
