@@ -569,6 +569,24 @@ const Dashboard = () => {
       paymentType === "all" || order.paymentMethod === paymentType;
     const deliveryTypeMatch =
       deliveryType === "all" || order.tipo_pedido === deliveryType;
+
+    // Lógica para esconder pedidos concluídos/cancelados de dias anteriores
+    // Isso evita que o dashboard fique poluído com histórico antigo
+    const stage = getVisualStage(order);
+    if (stage === 'concluido' || stage === 'cancelado') {
+      if (!order.created_at) return true; // Se não tiver data, mostra por segurança
+      
+      const orderDate = new Date(order.created_at);
+      const today = new Date();
+      
+      const isSameDay = 
+        orderDate.getDate() === today.getDate() &&
+        orderDate.getMonth() === today.getMonth() &&
+        orderDate.getFullYear() === today.getFullYear();
+        
+      if (!isSameDay) return false;
+    }
+
     return searchTermMatch && paymentTypeMatch && deliveryTypeMatch;
   });
 
