@@ -22,6 +22,7 @@ import POS from './pages/POS';
 import Tables from './pages/Tables';
 import { Scheduled } from './pages/Scheduled';
 import Finance from './pages/Finance';
+import Cupons from './pages/Cupons';
 import { Test } from './pages/Test';
 // Removidos: Demo Comanda e Teste Comanda
 
@@ -103,6 +104,7 @@ const MainLayout = () => {
                 <Route path="/cardapio" element={<Menu />} />
                 <Route path="/complementos" element={<Complements />} />
                 <Route path="/financeiro" element={<Finance />} />
+                <Route path="/cupons" element={<Cupons />} />
                 <Route path="/configuracoes" element={<Settings />} />
                 <Route path="/test" element={<Test />} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
