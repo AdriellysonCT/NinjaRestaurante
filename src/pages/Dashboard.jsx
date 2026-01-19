@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { useAppContext } from "../context/AppContext";
 import ErrorBoundary from "../components/ErrorBoundary";
@@ -1302,11 +1303,16 @@ const Dashboard = () => {
         </div>
 
         {/* Modal de detalhes */}
-        <OrderDetailModal
-          isOpen={!!selectedOrder}
-          onClose={handleCloseModal}
-          order={selectedOrder}
-        />
+        <AnimatePresence>
+          {selectedOrder && (
+            <OrderDetailModal
+              key={selectedOrder.id}
+              isOpen={!!selectedOrder}
+              onClose={handleCloseModal}
+              order={selectedOrder}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Áudio de notificação */}
         <audio ref={notificationSoundRef} preload="auto">

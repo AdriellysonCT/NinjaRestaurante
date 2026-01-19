@@ -223,8 +223,8 @@ const Tables = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full" style={{ backgroundColor: '#121212' }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#FF6B00' }}></div>
+      <div className="flex items-center justify-center h-full bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -241,25 +241,25 @@ const Tables = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-background min-h-screen">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Gerenciamento de Mesas</h1>
-        <p className="text-gray-600">Clique em uma mesa disponível para criar um pedido ou em uma mesa ocupada para abrir o pedido.</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Gerenciamento de Mesas</h1>
+        <p className="text-muted-foreground">Clique em uma mesa disponível para criar um pedido ou em uma mesa ocupada para abrir o pedido.</p>
       </div>
 
       {/* Legenda */}
       <div className="mb-6 flex flex-wrap gap-4">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-green-500 rounded"></div>
-          <span className="text-sm text-gray-600">Disponível</span>
+          <span className="text-sm text-muted-foreground">Disponível</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-          <span className="text-sm text-gray-600">Reservada</span>
+          <span className="text-sm text-muted-foreground">Reservada</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-red-500 rounded"></div>
-          <span className="text-sm text-gray-600">Ocupada</span>
+          <span className="text-sm text-muted-foreground">Ocupada</span>
         </div>
       </div>
 
@@ -288,32 +288,32 @@ const Tables = () => {
 
       {/* Modal para Adicionar Mesa */}
       {showNewTableModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Adicionar Nova Mesa</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md mx-4">
+            <h2 className="text-xl font-bold text-foreground mb-4">Adicionar Nova Mesa</h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Número da Mesa
                 </label>
                 <input
                   type="number"
                   value={newTableNumber}
                   onChange={(e) => setNewTableNumber(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Ex: 1"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Capacidade
                 </label>
                 <select
                   value={newTableCapacity}
                   onChange={(e) => setNewTableCapacity(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="2">2 pessoas</option>
                   <option value="4">4 pessoas</option>
@@ -326,13 +326,13 @@ const Tables = () => {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowNewTableModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCreateTable}
-                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
                 Criar Mesa
               </button>
@@ -343,9 +343,9 @@ const Tables = () => {
 
       {/* Modal Conta da Mesa (resumo simplificado) */}
       {showContaModal && contaPedido && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Conta da Mesa {contaPedido.mesa}</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card border border-border rounded-lg p-6 w-full max-w-lg mx-4">
+            <h2 className="text-xl font-bold text-foreground mb-4">Conta da Mesa {contaPedido.mesa}</h2>
             <div className="space-y-2 max-h-80 overflow-auto">
               {contaItens.length === 0 ? (
                 <div className="text-gray-600">Nenhum item.</div>
@@ -398,37 +398,37 @@ const Tables = () => {
 
       {/* Modal Adicionar Itens */}
       {showAddItemModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
-          <div className="w-full max-w-4xl mx-4 rounded-lg overflow-hidden" style={{ backgroundColor: '#121212', border: '1px solid #FF6B00' }}>
-            <div className="p-4 flex items-center justify-between" style={{ backgroundColor: '#1a1a1a', borderBottom: '1px solid #FF6B00' }}>
-              <h2 className="text-lg font-bold" style={{ color: '#FF6B00' }}>Adicionar Itens — Mesa {activeOrderForAdd?.mesa}</h2>
-              <button onClick={() => setShowAddItemModal(false)} className="text-gray-300 hover:text-white">✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="w-full max-w-4xl mx-4 rounded-lg overflow-hidden bg-background border border-primary">
+            <div className="p-4 flex items-center justify-between bg-card border-b border-primary">
+              <h2 className="text-lg font-bold text-primary">Adicionar Itens — Mesa {activeOrderForAdd?.mesa}</h2>
+              <button onClick={() => setShowAddItemModal(false)} className="text-muted-foreground hover:text-foreground">✕</button>
             </div>
             <div className="p-4">
               <div className="flex flex-wrap gap-3 mb-4">
-                <input value={searchTerm} onChange={(e)=>setSearchTerm(e.target.value)} placeholder="Buscar item..." className="flex-1 min-w-[200px] px-3 py-2 rounded-md" style={{ backgroundColor: '#1f1f1f', color: 'white', border: '1px solid #333' }} />
-                <select value={categoryFilter} onChange={(e)=>setCategoryFilter(e.target.value)} className="px-3 py-2 rounded-md" style={{ backgroundColor: '#1f1f1f', color: 'white', border: '1px solid #333' }}>
+                <input value={searchTerm} onChange={(e)=>setSearchTerm(e.target.value)} placeholder="Buscar item..." className="flex-1 min-w-[200px] px-3 py-2 rounded-md bg-input text-foreground border border-border focus:border-primary focus:outline-none" />
+                <select value={categoryFilter} onChange={(e)=>setCategoryFilter(e.target.value)} className="px-3 py-2 rounded-md bg-input text-foreground border border-border focus:border-primary focus:outline-none">
                   <option value="">Todas categorias</option>
                   {[...new Set(menuItems.map(i=>i.categoria).filter(Boolean))].map(cat=> (<option key={cat} value={cat}>{cat}</option>))}
                 </select>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {menuItems.filter(i => (categoryFilter ? i.categoria === categoryFilter : true)).filter(i => i.nome?.toLowerCase().includes(searchTerm.toLowerCase())).map((it)=> (
-                  <div key={it.id} className="rounded-lg p-3 flex flex-col relative" style={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}>
-                    <div className="text-white font-semibold mb-1 truncate">{it.nome}</div>
-                    <div className="text-sm text-gray-300 mb-2 truncate">{it.categoria || '—'}</div>
-                    <div className="text-[#FF6B00] font-bold mb-3">R$ {Number(it.preco||0).toFixed(2)}</div>
+                  <div key={it.id} className="rounded-lg p-3 flex flex-col relative bg-card border border-border">
+                    <div className="text-foreground font-semibold mb-1 truncate">{it.nome}</div>
+                    <div className="text-sm text-muted-foreground mb-2 truncate">{it.categoria || '—'}</div>
+                    <div className="text-primary font-bold mb-3">R$ {Number(it.preco||0).toFixed(2)}</div>
                     <div className="flex items-center gap-2 mb-2">
-                      <input type="number" min={1} value={qtyByItem[it.id] || 1} onChange={(e)=> setQtyByItem(prev=> ({ ...prev, [it.id]: parseInt(e.target.value||'1',10) }))} className="w-20 px-2 py-1 rounded" style={{ backgroundColor: '#121212', color: 'white', border: '1px solid #333' }} />
-                      <input type="text" placeholder="Obs." value={noteByItem[it.id] || ''} onChange={(e)=> setNoteByItem(prev=> ({ ...prev, [it.id]: e.target.value }))} className="flex-1 px-2 py-1 rounded" style={{ backgroundColor: '#121212', color: 'white', border: '1px solid #333' }} />
+                      <input type="number" min={1} value={qtyByItem[it.id] || 1} onChange={(e)=> setQtyByItem(prev=> ({ ...prev, [it.id]: parseInt(e.target.value||'1',10) }))} className="w-20 px-2 py-1 rounded bg-input text-foreground border border-border focus:border-primary focus:outline-none" />
+                      <input type="text" placeholder="Obs." value={noteByItem[it.id] || ''} onChange={(e)=> setNoteByItem(prev=> ({ ...prev, [it.id]: e.target.value }))} className="flex-1 px-2 py-1 rounded bg-input text-foreground border border-border focus:border-primary focus:outline-none" />
                     </div>
-                    <button onClick={()=> handleQuickAddItem(it.id)} className="w-full px-3 py-2 rounded text-white mt-auto" style={{ backgroundColor: '#FF6B00' }}>Adicionar</button>
+                    <button onClick={()=> handleQuickAddItem(it.id)} className="w-full px-3 py-2 rounded text-primary-foreground mt-auto bg-primary hover:bg-primary/90 transition-colors">Adicionar</button>
                   </div>
                 ))}
               </div>
               <div className="flex justify-end gap-3 mt-6">
-                <button onClick={()=> setShowAddItemModal(false)} className="px-4 py-2 rounded text-white" style={{ backgroundColor: '#333' }}>Fechar</button>
-                <button onClick={async ()=>{ setShowAddItemModal(false); if (activeOrderForAdd?.id) { await openContaDaMesa({ id_pedido: activeOrderForAdd.id, numero: activeOrderForAdd.mesa }); } }} className="px-4 py-2 rounded text-white" style={{ backgroundColor: '#FF6B00' }}>Finalizar</button>
+                <button onClick={()=> setShowAddItemModal(false)} className="px-4 py-2 rounded bg-muted text-muted-foreground hover:bg-muted/80 transition-colors">Fechar</button>
+                <button onClick={async ()=>{ setShowAddItemModal(false); if (activeOrderForAdd?.id) { await openContaDaMesa({ id_pedido: activeOrderForAdd.id, numero: activeOrderForAdd.mesa }); } }} className="px-4 py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">Finalizar</button>
               </div>
             </div>
           </div>

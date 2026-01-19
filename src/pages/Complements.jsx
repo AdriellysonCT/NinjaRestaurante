@@ -19,11 +19,11 @@ const ComplementCard = ({ complement, onEdit, onToggle }) => {
     >
       <div className="relative">
         <img 
-          src={complement.image || `https://placehold.co/200x150/1a1a1a/ff6f00?text=${encodeURIComponent(complement.name.substring(0, 8))}`}
+          src={complement.image || `https://placehold.co/200x150/f3f4f6/374151?text=${encodeURIComponent(complement.name.substring(0, 8))}`}
           alt={complement.name} 
           className="w-full h-32 object-cover"
           onError={(e) => {
-            e.target.src = `https://placehold.co/200x150/1a1a1a/ff6f00?text=${encodeURIComponent(complement.name.substring(0, 8))}`;
+            e.target.src = `https://placehold.co/200x150/f3f4f6/374151?text=${encodeURIComponent(complement.name.substring(0, 8))}`;
           }}
         />
       </div>
@@ -687,7 +687,7 @@ const Complements = () => {
               <label className="block text-sm font-medium mb-2 text-muted-foreground">Nome do Complemento</label>
               <input 
                 type="text" 
-                className="w-full bg-input border border-border px-4 py-2 rounded-md text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
+                className="w-full bg-input border border-border px-4 py-2 rounded-md text-foreground placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
                 value={currentComplement.name || ''}
                 onChange={(e) => setCurrentComplement({...currentComplement, name: e.target.value})}
                 placeholder="Ex: Cheddar Extra"

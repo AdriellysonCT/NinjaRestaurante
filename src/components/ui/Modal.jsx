@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 // Ícone definido diretamente - solução definitiva
 const XIcon = (props) => (
@@ -8,14 +9,20 @@ const XIcon = (props) => (
   </svg>
 );
 
-// Debug logging
-if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-  console.log('🔧 [MODAL] Modal.jsx carregado');
-  console.log('🔧 [MODAL] XIcon definido:', typeof XIcon);
-}
-
 export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !mounted) return null;
   
   // Definir largura máxima baseada no tamanho
   const maxWidths = {
@@ -25,13 +32,14 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
     xl: '1200px'
   };
   
-  return (
+  const modalContent = (
     <div 
-      className="fixed inset-0 bg-black/75 z-[999999] flex items-center justify-center p-4 transition-opacity"
+      className="fixed inset-0 bg-black/80 z-[999999] flex items-center justify-center p-4"
+      style={{ isolation: 'isolate' }}
       onClick={onClose}
     >
       <div 
-        className="bg-card border border-border rounded-xl p-5 w-full max-h-[85vh] overflow-y-auto relative shadow-2xl transition-all"
+        className="bg-card border border-border rounded-xl p-5 w-full max-h-[90vh] overflow-y-auto relative shadow-2xl animate-in fade-in zoom-in duration-200"
         style={{
           maxWidth: maxWidths[size] || maxWidths.md,
         }}
@@ -48,4 +56,6 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };

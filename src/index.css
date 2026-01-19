@@ -67,6 +67,16 @@ body {
     color 0.3s ease;
 }
 
+input, select, textarea {
+  background-color: hsl(var(--color-input));
+  color: hsl(var(--color-foreground));
+  border-color: hsl(var(--color-border));
+}
+
+input::placeholder, textarea::placeholder {
+  color: hsl(var(--color-muted-foreground));
+}
+
 .ninja-card {
   background-color: hsl(var(--color-card));
   border: 1px solid hsl(var(--color-border));
