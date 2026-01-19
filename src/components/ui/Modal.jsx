@@ -10,10 +10,7 @@ const XIcon = (props) => (
 );
 
 export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    setMounted(true);
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     }
@@ -22,9 +19,8 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
     };
   }, [isOpen]);
 
-  if (!isOpen || !mounted) return null;
+  if (!isOpen) return null;
   
-  // Definir largura máxima baseada no tamanho
   const maxWidths = {
     sm: '400px',
     md: '550px',

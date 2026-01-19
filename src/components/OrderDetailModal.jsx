@@ -9,10 +9,17 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
   const { restaurante } = useAuth();
   const [isPrinting, setIsPrinting] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState(order?.observacoes || order?.comments || '');
+  const [comments, setComments] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [printJob, setPrintJob] = useState(null);
+
+  // Sincronizar comentários quando o pedido mudar
+  React.useEffect(() => {
+    if (order) {
+      setComments(order.observacoes || order.comments || '');
+    }
+  }, [order]);
 
   // Função para formatar número de telefone para WhatsApp
   const formatPhoneForWhatsApp = (phone) => {
@@ -78,13 +85,15 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
     return sum || 0;
   }, [order]);
 
-  if (!order) return null;
+  // Se não houver pedido, o Modal interno lidará com o isOpen=false
+  // Mas precisamos garantir que não acessemos propriedades de order se ele for null
 
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} title="">
-        <div className="space-y-3">
-          <h2 className="text-center text-lg font-bold text-foreground mb-3">{`Detalhes do Pedido #${order.numero_pedido}`}</h2>
+        {order && (
+          <div className="space-y-3">
+            <h2 className="text-center text-lg font-bold text-foreground mb-3">{`Detalhes do Pedido #${order.numero_pedido}`}</h2>
           {/* Cabeçalho do pedido */}
           <div className="flex justify-between items-start text-foreground pb-3 border-b border-border">
             <div>
@@ -254,7 +263,8 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
                 WhatsApp
               </button>
             </div>
-        </div>
+          </div>
+        )}
       </Modal>
       
       {/* Modal de edição de comentários */}

@@ -1303,16 +1303,11 @@ const Dashboard = () => {
         </div>
 
         {/* Modal de detalhes */}
-        <AnimatePresence>
-          {selectedOrder && (
-            <OrderDetailModal
-              key={selectedOrder.id}
-              isOpen={!!selectedOrder}
-              onClose={handleCloseModal}
-              order={selectedOrder}
-            />
-          )}
-        </AnimatePresence>
+        <OrderDetailModal
+          isOpen={!!selectedOrder}
+          onClose={handleCloseModal}
+          order={selectedOrder}
+        />
 
         {/* Áudio de notificação */}
         <audio ref={notificationSoundRef} preload="auto">
