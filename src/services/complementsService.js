@@ -62,8 +62,9 @@ export const createComplement = async (restauranteId, complementData) => {
       .insert([{
         id_restaurante: restauranteId,
         nome: complementData.name,
+        descricao: complementData.description || null,
         preco: complementData.price,
-        imagem: complementData.image || null,
+        imagem_url: complementData.image || null,
         disponivel: complementData.available ?? true
       }])
       .select()
@@ -86,8 +87,9 @@ export const updateComplement = async (complementId, complementData) => {
       .from('complementos')
       .update({
         nome: complementData.name,
+        descricao: complementData.description || null,
         preco: complementData.price,
-        imagem: complementData.image || null,
+        imagem_url: complementData.image || null,
         disponivel: complementData.available ?? true
       })
       .eq('id', complementId)
@@ -192,6 +194,8 @@ export const createGroup = async (restauranteId, groupData) => {
       .insert([{
         id_restaurante: restauranteId,
         nome: groupData.name,
+        descricao: groupData.description || null,
+        secao: groupData.section || null,
         tipo_selecao: groupData.selectionType,
         obrigatorio: groupData.required ?? false
       }])
@@ -215,6 +219,8 @@ export const updateGroup = async (groupId, groupData) => {
       .from('grupos_complementos')
       .update({
         nome: groupData.name,
+        descricao: groupData.description || null,
+        secao: groupData.section || null,
         tipo_selecao: groupData.selectionType,
         obrigatorio: groupData.required
       })

@@ -19,7 +19,7 @@ const normalizeComplement = (complement) => ({
   name: complement.nome || complement.name,
   price: complement.preco || complement.price,
   available: complement.disponivel !== undefined ? complement.disponivel : complement.available,
-  image: complement.imagem || complement.image,
+  image: complement.imagem || complement.imagem_url || complement.image,
   groupIds: complement.groupIds || []
 });
 
