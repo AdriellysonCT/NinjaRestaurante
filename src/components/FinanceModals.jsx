@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { XIcon, PlusIcon } from './icons/index.jsx';
 import { Modal } from './ui/Modal';
 
 // O BaseModal agora é apenas um wrapper para o componente Modal centralizado

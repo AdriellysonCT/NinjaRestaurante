@@ -7,6 +7,8 @@ import { TransactionModal, AccountModal, SupplierModal, GoalModal } from '../com
 import FecharCaixaButton from '../components/FecharCaixaButton';
 import HistoricoFechamentos from '../components/HistoricoFechamentos';
 import { motion, AnimatePresence } from 'framer-motion';
+import * as Icons from '../components/icons/index.jsx';
+import * as fechamentoCaixaService from '../services/fechamentoCaixaService';
 
 const SuccessToast = ({ message, show }) => (
   <AnimatePresence>
@@ -25,12 +27,6 @@ const SuccessToast = ({ message, show }) => (
     )}
   </AnimatePresence>
 );
-
-const { 
-  PlusIcon, SearchIcon, FilterIcon, CalendarIcon, 
-  TrendingUpIcon, ShoppingBagIcon, PieChartIcon, 
-  BarChart3Icon, FileTextIcon, CheckIcon
-} = Icons;
 
 // Listas simples (somente leitura) para sincronizar com dados reais
 const TransactionsList = ({ onEdit, onChanged }) => {

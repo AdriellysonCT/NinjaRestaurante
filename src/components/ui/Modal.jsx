@@ -30,25 +30,29 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   
   const modalContent = (
     <div 
-      className="fixed inset-0 bg-black/80 z-[999999] flex items-center justify-center p-4"
-      style={{ isolation: 'isolate' }}
+      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4"
+      style={{ zIndex: 10000 }}
       onClick={onClose}
     >
       <div 
-        className="bg-card border border-border rounded-xl p-5 w-full max-h-[90vh] overflow-y-auto relative shadow-2xl animate-in fade-in zoom-in duration-200"
+        className="bg-card border border-border rounded-xl p-6 w-full max-h-[90vh] overflow-y-auto relative shadow-2xl transition-all"
         style={{
           maxWidth: maxWidths[size] || maxWidths.md,
         }}
         onClick={e => e.stopPropagation()}
       >
-        <button 
-          onClick={onClose}
-          className="absolute top-3 right-3 p-1 text-muted-foreground hover:text-foreground transition-colors z-10"
-        >
-          <XIcon className="w-5 h-5" />
-        </button>
-        {title && <h2 className="text-xl font-bold mb-4 text-card-foreground">{title}</h2>}
-        {children}
+        <div className="flex justify-between items-center mb-4">
+          {title && <h2 className="text-xl font-bold text-card-foreground">{title}</h2>}
+          <button 
+            onClick={onClose}
+            className="p-2 text-muted-foreground hover:text-foreground transition-colors hover:bg-secondary rounded-full"
+          >
+            <XIcon className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="modal-body">
+          {children}
+        </div>
       </div>
     </div>
   );
