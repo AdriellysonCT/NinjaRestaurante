@@ -420,14 +420,25 @@ const Menu = () => {
                 📝 Informações
               </button>
               <button
-                onClick={() => setActiveTab('complements')}
-                className={`px-4 py-2 rounded-t-md font-semibold transition-colors ${
+                onClick={() => {
+                  const isNewItem = typeof currentItem.id === 'number' && currentItem.id > 1000; // Heurística para Date.now()
+                  if (isNewItem) {
+                    alert('Por favor, salve as informações básicas do item antes de adicionar complementos.');
+                    return;
+                  }
+                  setActiveTab('complements');
+                }}
+                className={`px-4 py-2 rounded-t-md font-semibold transition-colors flex items-center gap-2 ${
                   activeTab === 'complements'
                     ? 'bg-[#ff6f00] text-white'
                     : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a]'
-                }`}
+                } ${typeof currentItem.id === 'number' && currentItem.id > 1000 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={typeof currentItem.id === 'number' && currentItem.id > 1000 ? "Salve o item primeiro" : ""}
               >
                 🍔 Complementos
+                {typeof currentItem.id === 'number' && currentItem.id > 1000 && (
+                  <span className="text-[10px] bg-red-500/20 text-red-500 px-1 rounded">Bloqueado</span>
+                )}
               </button>
             </div>
 
@@ -546,18 +557,26 @@ const Menu = () => {
                     Cancelar
                   </button>
                   <button 
-                    onClick={() => {
-                      // Verificar se é um novo item (não existe na lista atual)
-                      const isNewItem = !menuItems.find(item => item.id === currentItem.id);
-                      
-                      if (isNewItem) {
-                        // Adicionar novo item
-                        addMenuItem(currentItem);
-                      } else {
-                        // Atualizar item existente
-                        handleSaveItem(currentItem);
+                    onClick={async () => {
+                      try {
+                        // Verificar se é um novo item (não existe na lista atual ou tem ID numérico alto)
+                        const isNewItem = typeof currentItem.id === 'number' && currentItem.id > 1000;
+                        
+                        if (isNewItem) {
+                          // Adicionar novo item
+                          const savedItem = await addMenuItem(currentItem);
+                          // Atualizar currentItem com o novo ID (UUID) vindo do banco
+                          setCurrentItem(savedItem);
+                          alert('Informações salvas! Agora você pode gerenciar os complementos.');
+                        } else {
+                          // Atualizar item existente
+                          await updateMenuItem(currentItem.id, currentItem);
+                          setIsModalOpen(false); // Fecha o modal apenas na edição de itens existentes
+                        }
+                      } catch (err) {
+                        console.error('Erro ao salvar item:', err);
+                        alert('Erro ao salvar: ' + err.message);
                       }
-                      setIsModalOpen(false);
                     }} 
                     className="w-full py-2 text-sm font-semibold rounded-md bg-[hsl(var(--color-primary))] text-[hsl(var(--color-primary-foreground))] hover:bg-[hsla(var(--color-primary),0.9)]"
                   >
