@@ -304,7 +304,7 @@ export function Cadastro() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label htmlFor="chavePix" className="block text-sm font-medium text-foreground flex items-center gap-2">
+                  <label htmlFor="chavePix" className="text-sm font-medium text-foreground flex items-center gap-2">
                     Chave PIX
                     <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Importante para repasses</span>
                   </label>

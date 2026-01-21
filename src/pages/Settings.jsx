@@ -624,7 +624,7 @@ const Settings = () => {
               <input type="text" className="w-full bg-input px-3 py-2 rounded-md" value={dadosRestaurante.nomeResponsavel} onChange={(e) => handleRestauranteChange('nomeResponsavel', e.target.value)} placeholder="Nome da pessoa responsável pelo restaurante" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1 flex items-center gap-2">
+              <label className="text-sm font-medium mb-1 flex items-center gap-2">
                 Chave PIX
                 <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Transferência</span>
               </label>
