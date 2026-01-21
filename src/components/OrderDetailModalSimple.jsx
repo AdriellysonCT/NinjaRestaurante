@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import DeliveryChat from './DeliveryChat';
 import { Modal } from './ui/Modal';
 import * as Icons from './icons/index.jsx';
 
@@ -30,6 +31,7 @@ export const OrderDetailModalSimple = ({ isOpen, onClose, order }) => {
   };
 
   const totalPrepMinutes = order.prepTime || order.prep_time || 0;
+  const [showChat, setShowChat] = useState(false);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Pedido #${order.numero_pedido}`} size="lg">
@@ -86,6 +88,11 @@ export const OrderDetailModalSimple = ({ isOpen, onClose, order }) => {
           </div>
         )}
 
+        {/* Chat com Entregador */}
+        {showChat && (
+          <DeliveryChat order={order} />
+        )}
+
         {/* Ações */}
         <div className="flex gap-3 pt-4">
           <button
@@ -94,6 +101,17 @@ export const OrderDetailModalSimple = ({ isOpen, onClose, order }) => {
           >
             <Icons.PrinterIcon className="w-5 h-5" />
             Imprimir
+          </button>
+          <button
+            onClick={() => setShowChat(!showChat)}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 border rounded-lg font-bold transition-all ${
+              showChat 
+                ? 'bg-primary/10 border-primary text-primary' 
+                : 'bg-secondary hover:bg-secondary/80 text-foreground border-border'
+            }`}
+          >
+            <span className="text-lg">💬</span>
+            Chat
           </button>
           <button
             onClick={handleWhatsApp}

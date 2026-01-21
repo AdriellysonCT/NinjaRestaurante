@@ -11,6 +11,7 @@ export function Cadastro() {
     telefone: '',
     email: '',
     nomeResponsavel: '',
+    chavePix: '',
     senha: '',
     confirmaSenha: '',
   });
@@ -140,6 +141,7 @@ export function Cadastro() {
           telefone: formData.telefone,
           email: formData.email,
           nomeResponsavel: formData.nomeResponsavel,
+          chavePix: formData.chavePix,
           
         },
         formData.senha
@@ -299,6 +301,25 @@ export function Cadastro() {
                     className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
                     placeholder="Nome da pessoa responsável pelo restaurante"
                   />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label htmlFor="chavePix" className="block text-sm font-medium text-foreground flex items-center gap-2">
+                    Chave PIX
+                    <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Importante para repasses</span>
+                  </label>
+                  <input
+                    id="chavePix"
+                    name="chavePix"
+                    type="text"
+                    value={formData.chavePix}
+                    onChange={handleChange}
+                    className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                    placeholder="E-mail, CPF, CNPJ, Celular ou Chave Aleatória"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Esta chave será usada para receber os repasses das suas vendas. Você poderá alterá-la depois nas configurações.
+                  </p>
                 </div>
                 
                                 <div>

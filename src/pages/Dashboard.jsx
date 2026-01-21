@@ -35,6 +35,7 @@ const Dashboard = () => {
   const [processingAutoAccept, setProcessingAutoAccept] = useState(false);
   const autoAcceptRef = useRef(false); // Ref para evitar problemas de closure
   const processedOrdersRef = useRef(new Set()); // Evitar processar o mesmo pedido duas vezes
+  const [unreadMessages, setUnreadMessages] = useState({}); // { [orderId]: count }
 
   // Obter controle de som do contexto
   const { soundEnabled, enableSound, disableSound } = useAppContext?.() || {};
@@ -271,6 +272,7 @@ const Dashboard = () => {
               category: item.itens_cardapio?.categoria || "",
               description: item.itens_cardapio?.descricao || "",
             })) || [],
+            unreadCount: 0, // Será preenchido pelo estado local no render
         };
       });
 
@@ -424,6 +426,41 @@ const Dashboard = () => {
     };
   }, [restaurantId, fetchOrders, autoAcceptOrder]);
 
+  // Realtime para MENSAGENS DE CHAT
+  useEffect(() => {
+    if (!restaurantId) return;
+
+    const channelChat = supabase
+      .channel(`mensagens_global_${restaurantId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "mensagens_entrega",
+          filter: `tipo_remetente=eq.entregador`, // Só interessa msg de entregador
+        },
+        async (payload) => {
+           console.log('💬 Nova mensagem recebida:', payload.new);
+           const pedidoId = payload.new.pedido_id;
+           
+           // Tocar som discreto
+           playNotificationSound('chat');
+           
+           // Incrementar contador de não lidas para este pedido
+           setUnreadMessages(prev => ({
+             ...prev,
+             [pedidoId]: (prev[pedidoId] || 0) + 1
+           }));
+        }
+      )
+      .subscribe();
+
+    return () => {
+        supabase.removeChannel(channelChat);
+    };
+  }, [restaurantId, playNotificationSound]);
+
   // Verificação periódica de pedidos pendentes (backup do realtime)
   useEffect(() => {
     if (!restaurantId || !autoAcceptEnabled) return;
@@ -483,8 +520,38 @@ const Dashboard = () => {
   // Removido: agora a sincronização é feita por trigger no banco de dados
 
   // Função para tocar som de notificação
-  const playNotificationSound = useCallback(() => {
-    console.log('Tentando tocar som de notificação...');
+  const playNotificationSound = useCallback((type = 'order') => {
+    console.log(`Tentando tocar som de notificação (${type})...`);
+    
+    // Se for som de chat (bip curto)
+    if (type === 'chat') {
+        try {
+            // @ts-ignore
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+                const audioContext = new AudioContextClass();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.2);
+            }
+        } catch (e) {
+            console.warn("Erro ao tocar som de chat:", e);
+        }
+        return;
+    }
+
     if (notificationSoundRef.current) {
       console.log('Elemento de áudio encontrado, tocando som...');
       notificationSoundRef.current.currentTime = 0;
@@ -606,7 +673,7 @@ const Dashboard = () => {
     .map((stage) => ({
       title: orderStatusMapping[stage],
       status: stage,
-      orders: filteredOrders.filter((order) => getVisualStage(order) === stage),
+      orders: filteredOrders.map(o => ({...o, unreadCount: unreadMessages[o.id] || 0})).filter((order) => getVisualStage(order) === stage),
     }));
 
   // Calcular ranking de produtos mais vendidos hoje
@@ -773,6 +840,13 @@ const Dashboard = () => {
       const copy = { ...prev };
       delete copy[order.id];
       return copy;
+    });
+    // Limpar badge de mensagens não lidas
+    setUnreadMessages(prev => {
+        if (!prev[order.id]) return prev;
+        const copy = { ...prev };
+        delete copy[order.id];
+        return copy;
     });
   };
 
@@ -1218,6 +1292,13 @@ const Dashboard = () => {
                         className="bg-card rounded-lg p-3 space-y-2 cursor-pointer hover:bg-secondary/80 transition-all border border-border shadow-sm relative group"
                         onClick={() => handleCardClick(order)}
                       >
+                        {/* Badge de MENSAGENS NÃO LIDAS do CHAT */}
+                        {order.unreadCount > 0 && (
+                          <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg z-10 animate-bounce">
+                            {order.unreadCount}
+                          </span>
+                        )}
+
                         {/* Badge via entregador */}
                         {driverUpdatedAt[order.id] && ['aceito','coletado','concluido'].includes(order.status) && (
                           <span

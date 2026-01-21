@@ -99,7 +99,8 @@ const Settings = () => {
     cnpj: '',
     telefone: '',
     email: '',
-    nomeResponsavel: ''
+    nomeResponsavel: '',
+    chavePix: ''
   });
 
   // Estados para endereço
@@ -129,7 +130,8 @@ const Settings = () => {
             telefone: dados.telefone || '',
             email: dados.email || '',
             nomeResponsavel: dados.nome_responsavel || '',
-            imagemUrl: dados.imagem_url || ''
+            imagemUrl: dados.imagem_url || '',
+            chavePix: dados.chave_pix || ''
           });
           
           if (dados.nome_fantasia) {
@@ -169,7 +171,8 @@ const Settings = () => {
         telefone: restaurante.telefone || '',
         email: restaurante.email || '',
         nomeResponsavel: restaurante.nome_responsavel || '',
-        imagemUrl: restaurante.imagem_url || ''
+        imagemUrl: restaurante.imagem_url || '',
+        chavePix: restaurante.chave_pix || ''
       });
       
       if (restaurante.nome_fantasia) {
@@ -619,6 +622,20 @@ const Settings = () => {
             <div>
               <label className="block text-sm font-medium mb-1">Nome do Responsável*</label>
               <input type="text" className="w-full bg-input px-3 py-2 rounded-md" value={dadosRestaurante.nomeResponsavel} onChange={(e) => handleRestauranteChange('nomeResponsavel', e.target.value)} placeholder="Nome da pessoa responsável pelo restaurante" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 flex items-center gap-2">
+                Chave PIX
+                <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Transferência</span>
+              </label>
+              <input 
+                type="text" 
+                className="w-full bg-input px-3 py-2 rounded-md border border-border focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                value={dadosRestaurante.chavePix} 
+                onChange={(e) => handleRestauranteChange('chavePix', e.target.value)} 
+                placeholder="E-mail, CPF, CNPJ, Celular ou Chave Aleatória" 
+              />
+              <p className="text-xs text-muted-foreground mt-1">Sua chave PIX será enviada ao administrador para realização de pagamentos e transferências.</p>
             </div>
             
             {/* Seção de Logo */}

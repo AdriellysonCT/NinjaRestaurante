@@ -407,6 +407,29 @@ const Finance = () => {
   const [fechamentosLoading, setFechamentosLoading] = useState(false);
   const [fechamentosError, setFechamentosError] = useState(null);
 
+  // Carregamento de contagem inicial para dashboard
+  useEffect(() => {
+    if (restaurantId) {
+      const loadInitialCounts = async () => {
+        try {
+          const [t, a, g, f] = await Promise.all([
+             financeService.fetchTransactions({}),
+             financeService.fetchAccounts(),
+             financeService.fetchFinancialGoals(),
+             fechamentoCaixaService.fetchFechamentos(restaurantId)
+          ]);
+          setTransactionsCount(Array.isArray(t) ? t.length : 0);
+          setAccountsCount(Array.isArray(a) ? a.length : 0);
+          setGoalsCount(Array.isArray(g) ? g.length : 0);
+          setFechamentosCount(Array.isArray(f) ? f.length : 0);
+        } catch (err) {
+          console.warn('Erro ao carregar contagens iniciais:', err);
+        }
+      };
+      loadInitialCounts();
+    }
+  }, [restaurantId]);
+
   // Modais
   const [transactionModalOpen, setTransactionModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
@@ -570,22 +593,25 @@ const Finance = () => {
         {activeTab === 'dashboard' && (
           <div>
             <h2 className="text-2xl font-bold mb-4 text-foreground">Dashboard Financeiro</h2>
-            {isLoadingRestaurant ? (
-              <div className="flex items-center justify-center py-10 text-muted-foreground">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mr-2"></div>
-                Carregando dados do restaurante...
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="ninja-card bg-primary/5 p-4 border-primary/20">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Transações</p>
+                  <p className="text-2xl font-bold text-primary">{transactionsLoading ? '...' : transactionsCount || 0}</p>
+                </div>
+                <div className="ninja-card bg-primary/5 p-4 border-primary/20">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Contas Pendentes</p>
+                  <p className="text-2xl font-bold text-primary">{accountsLoading ? '...' : accountsCount || 0}</p>
+                </div>
+                <div className="ninja-card bg-primary/5 p-4 border-primary/20">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Metas Ativas</p>
+                  <p className="text-2xl font-bold text-primary">{goalsLoading ? '...' : goalsCount || 0}</p>
+                </div>
+                <div className="ninja-card bg-primary/5 p-4 border-primary/20">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Fechamentos</p>
+                  <p className="text-2xl font-bold text-primary">{fechamentosLoading ? '...' : fechamentosCount || 0}</p>
+                </div>
               </div>
-            ) : restaurantError ? (
-              <div className="text-center text-destructive py-10">
-                Ocorreu um erro ao carregar o restaurante.
-              </div>
-            ) : !restaurantId ? (
-              <div className="text-center text-muted-foreground py-10">
-                Configurando seu restaurante...
-              </div>
-            ) : (
               <DashboardFinanceiro restauranteId={restaurantId} />
-            )}
           </div>
         )}
 
