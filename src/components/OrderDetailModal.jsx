@@ -1,7 +1,10 @@
+import React, { useMemo, useState } from 'react';
 import { Modal } from './ui/Modal';
 import * as Icons from './icons/index.jsx';
 import { useAuth } from '../context/AuthContext';
 import ImprimirComanda from './ImprimirComanda';
+import DeliveryChat from './DeliveryChat';
+import { ratingService } from '../services/ratingService';
 // Detalhes do pedido - modal estilizado escuro
 
 export const OrderDetailModal = ({ isOpen, onClose, order }) => {
@@ -12,11 +15,34 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [printJob, setPrintJob] = useState(null);
+  const [showChat, setShowChat] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [ratingComment, setRatingComment] = useState('');
+  const [isRated, setIsRated] = useState(false);
+  const [existingRating, setExistingRating] = useState(null);
 
   // Sincronizar comentários quando o pedido mudar
   React.useEffect(() => {
     if (order) {
       setComments(order.observacoes || order.comments || '');
+      
+      // Verificar se já foi avaliado
+      if (order.tipo_pedido === 'delivery' && (order.status === 'concluido' || order.status === 'finalizado')) {
+        ratingService.getRatingByPedido(order.id).then(data => {
+          if (data) {
+            setExistingRating(data);
+            setIsRated(true);
+            setRating(data.estrelas);
+            setRatingComment(data.comentario || '');
+          } else {
+            setExistingRating(null);
+            setIsRated(false);
+            setRating(0);
+            setRatingComment('');
+          }
+        });
+      }
     }
   }, [order]);
 
@@ -83,6 +109,31 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
     }, 0);
     return sum || 0;
   }, [order]);
+  
+  const handleRateDriver = async () => {
+    if (rating === 0) {
+      alert('Por favor, selecione uma nota de 1 a 5 estrelas.');
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      await ratingService.createDriverRating({
+        pedidoId: order.id,
+        restauranteId: restaurante.id,
+        entregadorId: order.id_entregador,
+        estrelas: rating,
+        comentario: ratingComment
+      });
+      setIsRated(true);
+      alert('Avaliação enviada com sucesso!');
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao enviar avaliação. Verifique se a tabela de avaliações foi criada.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Se não houver pedido, o Modal interno lidará com o isOpen=false
   // Mas precisamos garantir que não acessemos propriedades de order se ele for null
@@ -159,12 +210,80 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
           {order.tipo_pedido === 'delivery' && ['aceito', 'coletado', 'concluido'].includes(order.status) && order.nome_entregador && (
             <div className="border-t border-border pt-3">
               <h4 className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Entregador Responsável</h4>
-              <div className="flex items-center gap-2">
-                <Icons.TruckIcon className="w-5 h-5 text-success" />
-                <span className="text-base font-bold text-foreground">
-                  {order.nome_entregador}
-                </span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Icons.TruckIcon className="w-5 h-5 text-success" />
+                  <span className="text-base font-bold text-foreground">
+                    {order.nome_entregador}
+                  </span>
+                </div>
               </div>
+
+              {/* Sistema de Avaliação */}
+              {(order.status === 'concluido' || order.status === 'finalizado') && (
+                <div className="mt-3 p-3 bg-secondary/30 rounded-xl border border-border/50">
+                  <h5 className="text-[10px] font-black text-primary uppercase mb-2">Avalie o Entregador</h5>
+                  
+                  {isRated ? (
+                    <div className="space-y-1">
+                      <div className="flex gap-1 text-yellow-400">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Icons.StarIcon 
+                            key={star} 
+                            className={`w-4 h-4 ${star <= rating ? 'fill-current' : 'text-muted-foreground/30'}`} 
+                          />
+                        ))}
+                      </div>
+                      {ratingComment && (
+                        <p className="text-xs text-muted-foreground italic mt-1">"{ratingComment}"</p>
+                      )}
+                      <p className="text-[9px] text-success font-bold mt-1.5 flex items-center gap-1">
+                        <Icons.CheckCircleIcon className="w-3 h-3" /> Avaliação enviada
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex gap-1.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setRating(star); }}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            className="transition-transform hover:scale-125 focus:outline-none"
+                          >
+                            <Icons.StarIcon 
+                              className={`w-6 h-6 transition-colors ${
+                                star <= (hoverRating || rating) 
+                                  ? 'text-yellow-400 fill-current' 
+                                  : 'text-muted-foreground/30'
+                              }`} 
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      
+                      <input
+                        type="text"
+                        placeholder="Algum comentário? (opcional)"
+                        value={ratingComment}
+                        onChange={(e) => setRatingComment(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full bg-secondary/50 text-xs px-3 py-2 rounded-lg border border-border focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleRateDriver(); }}
+                        disabled={isLoading || rating === 0}
+                        className="w-full py-2 bg-primary text-primary-foreground text-xs font-black rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 uppercase"
+                      >
+                        Enviar Avaliação
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
           
@@ -199,6 +318,13 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
           {/* Mensagem de impressão (removida variável antiga) */}
           
           
+          {/* Chat com o Entregador */}
+          {showChat && (
+            <div className="border-t border-border pt-3">
+              <DeliveryChat order={order} />
+            </div>
+          )}
+
           {/* Contato do cliente */}
           <div className="border-t border-border pt-3 text-foreground">
             <div className="flex justify-between items-center mb-2">
@@ -261,6 +387,18 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
               >
                 <Icons.PhoneIcon className="w-4 h-4" />
                 WhatsApp
+              </button>
+
+              <button
+                onClick={() => setShowChat(!showChat)}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-bold flex-1 transition-all shadow-sm border ${
+                  showChat 
+                    ? 'bg-primary/10 border-primary text-primary' 
+                    : 'bg-secondary hover:bg-secondary/80 text-foreground border-border'
+                }`}
+              >
+                <span className="text-lg">💬</span>
+                Chat
               </button>
             </div>
           </div>

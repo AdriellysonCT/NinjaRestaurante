@@ -426,6 +426,77 @@ const Dashboard = () => {
     };
   }, [restaurantId, fetchOrders, autoAcceptOrder]);
 
+
+
+  // Função para tocar som de notificação (movida para o início para evitar TDZ)
+  const playNotificationSound = useCallback((type = 'order') => {
+    console.log(`Tentando tocar som de notificação (${type})...`);
+    
+    // Se for som de chat (bip curto)
+    if (type === 'chat') {
+        try {
+            // @ts-ignore
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+                const audioContext = new AudioContextClass();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.2);
+            }
+        } catch (e) {
+            console.warn("Erro ao tocar som de chat:", e);
+        }
+        return;
+    }
+
+    if (notificationSoundRef.current) {
+      console.log('Elemento de áudio encontrado, tocando som...');
+      notificationSoundRef.current.currentTime = 0;
+      notificationSoundRef.current.play().catch((e) => {
+        console.warn("Erro ao tocar áudio do arquivo:", e);
+        // Fallback: criar som usando Web Audio API
+        try {
+          console.log('Tentando fallback com Web Audio API...');
+          // @ts-ignore
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            const audioContext = new AudioContextClass();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+          }
+        } catch (fallbackError) {
+          console.warn("Erro no fallback de áudio:", fallbackError);
+        }
+      });
+    } else {
+      console.warn('Elemento de áudio não encontrado');
+    }
+  }, []);
+
   // Realtime para MENSAGENS DE CHAT
   useEffect(() => {
     if (!restaurantId) return;
@@ -518,83 +589,6 @@ const Dashboard = () => {
 
   // Copiar pedido para entregas_padronizadas
   // Removido: agora a sincronização é feita por trigger no banco de dados
-
-  // Função para tocar som de notificação
-  const playNotificationSound = useCallback((type = 'order') => {
-    console.log(`Tentando tocar som de notificação (${type})...`);
-    
-    // Se for som de chat (bip curto)
-    if (type === 'chat') {
-        try {
-            // @ts-ignore
-            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            if (AudioContextClass) {
-                const audioContext = new AudioContextClass();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
-                
-                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.2);
-            }
-        } catch (e) {
-            console.warn("Erro ao tocar som de chat:", e);
-        }
-        return;
-    }
-
-    if (notificationSoundRef.current) {
-      console.log('Elemento de áudio encontrado, tocando som...');
-      notificationSoundRef.current.currentTime = 0;
-      notificationSoundRef.current.play().catch((e) => {
-        console.warn("Erro ao tocar áudio do arquivo:", e);
-        // Fallback: criar som usando Web Audio API
-        try {
-          console.log('Tentando fallback com Web Audio API...');
-          // @ts-ignore - Suporte para navegadores antigos
-          const AudioContextClass =
-            window.AudioContext || window.webkitAudioContext;
-          if (AudioContextClass) {
-            const audioContext = new AudioContextClass();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-            oscillator.frequency.setValueAtTime(
-              600,
-              audioContext.currentTime + 0.1
-            );
-
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(
-              0.01,
-              audioContext.currentTime + 0.3
-            );
-
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
-            console.log('Fallback executado com sucesso');
-          }
-        } catch (fallbackError) {
-          console.warn("Erro no fallback de áudio:", fallbackError);
-        }
-      });
-    } else {
-      console.warn('Elemento de áudio não encontrado');
-    }
-  }, []);
 
   // DESABILITADO: Lógica de som movida para AppContext para evitar conflitos
   // O AppContext já gerencia o som de notificação com loop e verificação contínua
@@ -996,9 +990,9 @@ const Dashboard = () => {
     );
   };
 
-  // Renderizar barra de progresso
   const renderProgressBar = (order) => {
-    if (order.status !== "aceito" || !order.started_at || !order.prepTime)
+    // Só mostrar barra de progresso se o estágio visual for 'em_preparo'
+    if (getVisualStage(order) !== "em_preparo" || !order.started_at || !order.prepTime)
       return null;
 
     const { minutos, atrasado } = calcularTempoRestante(order.started_at, order.prepTime);
