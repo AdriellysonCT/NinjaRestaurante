@@ -11,21 +11,16 @@ import * as Icons from '../components/icons/index.jsx';
 import * as fechamentoCaixaService from '../services/fechamentoCaixaService';
 
 const SuccessToast = ({ message, show }) => (
-  <AnimatePresence>
-    {show && (
-      <motion.div
-        initial={{ opacity: 0, y: 50, scale: 0.8 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 50, scale: 0.8 }}
-        className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[1000000] bg-success text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 font-bold"
-      >
-        <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-          <Icons.CheckIcon className="w-4 h-4" />
-        </div>
-        {message}
-      </motion.div>
-    )}
-  </AnimatePresence>
+  <div
+    className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[1000000] bg-success text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 font-bold transition-all duration-300 ${
+      show ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-90 pointer-events-none'
+    }`}
+  >
+    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+      <Icons.CheckIcon className="w-4 h-4" />
+    </div>
+    {message}
+  </div>
 );
 
 // Listas simples (somente leitura) para sincronizar com dados reais
@@ -126,7 +121,15 @@ const TransactionsList = ({ onEdit, onChanged }) => {
             <div className={t.tipo === 'entrada' ? 'text-success font-semibold' : 'text-destructive font-semibold'}>
               R$ {Number(t.valor || 0).toFixed(2)}
             </div>
-            <button onClick={()=> onEdit && onEdit(t)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button 
+              onClick={()=> {
+                console.log('Editando transação:', t);
+                onEdit && onEdit(t);
+              }} 
+              className="px-2 py-1 border border-border rounded-md text-sm"
+            >
+              Editar
+            </button>
             <button onClick={()=> handleDelete(t.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
           </div>
         </div>
@@ -225,7 +228,15 @@ const AccountsList = ({ onEdit, onChanged }) => {
               </p>
               <span className="text-xs text-muted-foreground">{c.status}</span>
             </div>
-            <button onClick={()=> onEdit && onEdit(c)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button 
+              onClick={()=> {
+                console.log('Editando conta:', c);
+                onEdit && onEdit(c);
+              }} 
+              className="px-2 py-1 border border-border rounded-md text-sm"
+            >
+              Editar
+            </button>
             <button onClick={()=> handleDelete(c.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
           </div>
         </div>
@@ -303,7 +314,15 @@ const SuppliersList = ({ onEdit, onChanged }) => {
           </div>
           <div className="flex items-center gap-3">
             <span className={s.ativo ? 'text-success' : 'text-muted-foreground'}>{s.ativo ? 'Ativo' : 'Inativo'}</span>
-            <button onClick={()=> onEdit && onEdit(s)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button 
+              onClick={()=> {
+                console.log('Editando fornecedor:', s);
+                onEdit && onEdit(s);
+              }} 
+              className="px-2 py-1 border border-border rounded-md text-sm"
+            >
+              Editar
+            </button>
             <button onClick={()=> handleDelete(s.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
           </div>
         </div>
@@ -382,7 +401,15 @@ const GoalsList = ({ onEdit, onChanged }) => {
               <p className="text-primary font-semibold">R$ {Number(g.valor_meta || 0).toFixed(2)}</p>
               <span className="text-xs text-muted-foreground">{g.ativa ? 'Ativa' : 'Inativa'}</span>
             </div>
-            <button onClick={()=> onEdit && onEdit(g)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button 
+              onClick={()=> {
+                console.log('Editando meta:', g);
+                onEdit && onEdit(g);
+              }} 
+              className="px-2 py-1 border border-border rounded-md text-sm"
+            >
+              Editar
+            </button>
             <button onClick={()=> handleDelete(g.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
           </div>
         </div>
@@ -667,7 +694,11 @@ const Finance = () => {
                   Registrar Reforço
                 </button>
               <button 
-                  onClick={() => { setEditingTransaction(null); setTransactionModalOpen(true); }}
+                  onClick={() => { 
+                    console.log('Botão Nova Transação clicado');
+                    setEditingTransaction(null); 
+                    setTransactionModalOpen(true); 
+                  }}
                   className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
                   Nova Transação
@@ -691,7 +722,11 @@ const Finance = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-foreground">Contas a Pagar/Receber</h2>
               <button 
-                onClick={() => { setEditingAccount(null); setAccountModalOpen(true); }}
+                onClick={() => { 
+                  console.log('Botão Nova Conta clicado');
+                  setEditingAccount(null); 
+                  setAccountModalOpen(true); 
+                }}
                 className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
                 Nova Conta
@@ -714,7 +749,11 @@ const Finance = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-foreground">Fornecedores</h2>
               <button 
-                onClick={() => { setEditingSupplier(null); setSupplierModalOpen(true); }}
+                onClick={() => { 
+                  console.log('Botão Novo Fornecedor clicado');
+                  setEditingSupplier(null); 
+                  setSupplierModalOpen(true); 
+                }}
                 className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
                 Novo Fornecedor
@@ -737,7 +776,11 @@ const Finance = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-foreground">Metas Financeiras</h2>
               <button 
-                onClick={() => { setEditingGoal(null); setGoalModalOpen(true); }}
+                onClick={() => { 
+                  console.log('Botão Nova Meta clicado');
+                  setEditingGoal(null); 
+                  setGoalModalOpen(true); 
+                }}
                 className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
                 Nova Meta

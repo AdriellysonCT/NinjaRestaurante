@@ -28,26 +28,59 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
     xl: '1200px'
   };
   
-  const modalContent = (
+  // Renderizando DIRETAMENTE no componente, sem Portal, para evitar erros de renderização global
+  return (
     <div 
-      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4"
-      style={{ zIndex: 10000 }}
+      style={{ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+        zIndex: 2147483647,
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        backdropFilter: 'blur(8px)',
+        pointerEvents: 'all'
+      }}
       onClick={onClose}
     >
       <div 
-        className="bg-card border border-border rounded-xl p-6 w-full max-h-[90vh] overflow-y-auto relative shadow-2xl transition-all"
         style={{
+          width: '100%',
           maxWidth: maxWidths[size] || maxWidths.md,
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          position: 'relative',
+          backgroundColor: '#111111',
+          color: '#ffffff',
+          padding: '24px',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
-          {title && <h2 className="text-xl font-bold text-card-foreground">{title}</h2>}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '16px' }}>
+          {title && <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>{title}</h2>}
           <button 
             onClick={onClose}
-            className="p-2 text-muted-foreground hover:text-foreground transition-colors hover:bg-secondary rounded-full"
+            style={{
+              padding: '8px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              color: 'rgba(255, 255, 255, 0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
           >
-            <XIcon className="w-5 h-5" />
+            <XIcon style={{ width: '24px', height: '24px' }} />
           </button>
         </div>
         <div className="modal-body">
@@ -56,6 +89,4 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
       </div>
     </div>
   );
-
-  return createPortal(modalContent, document.body);
 };
