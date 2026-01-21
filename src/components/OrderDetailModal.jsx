@@ -3,6 +3,7 @@ import { Modal } from './ui/Modal';
 import * as Icons from './icons/index.jsx';
 import { useAuth } from '../context/AuthContext';
 import ImprimirComanda from './ImprimirComanda';
+import DeliveryChat from './DeliveryChat';
 // Detalhes do pedido - modal estilizado escuro
 
 export const OrderDetailModal = ({ isOpen, onClose, order }) => {
@@ -13,6 +14,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [printJob, setPrintJob] = useState(null);
+  const [showChat, setShowChat] = useState(false);
 
   // Sincronizar comentários quando o pedido mudar
   React.useEffect(() => {
@@ -199,6 +201,12 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
           
           {/* Mensagem de impressão (removida variável antiga) */}
           
+          
+          {/* Integração de Chat com Entregador */}
+          {showChat && (
+             <DeliveryChat order={order} />
+          )}
+
           {/* Contato do cliente */}
           <div className="border-t border-border pt-3 text-foreground">
             <div className="flex justify-between items-center mb-2">
@@ -261,6 +269,18 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
               >
                 <Icons.PhoneIcon className="w-4 h-4" />
                 WhatsApp
+              </button>
+
+              <button
+                onClick={() => setShowChat(!showChat)}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-bold flex-1 transition-all shadow-sm border ${
+                  showChat 
+                    ? 'bg-primary/10 border-primary text-primary' 
+                    : 'bg-secondary hover:bg-secondary/80 text-foreground border-border'
+                }`}
+              >
+                <span className="text-lg">💬</span>
+                Chat
               </button>
             </div>
           </div>
