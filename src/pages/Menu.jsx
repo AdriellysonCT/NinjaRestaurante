@@ -8,6 +8,20 @@ import { useAuth } from '../context/AuthContext';
 import ExcelImport from '../components/ExcelImport';
 import MenuItemComplements from '../components/MenuItemComplements';
 import complementsService from '../services/complementsService';
+import { AnimatePresence } from 'framer-motion';
+
+const SuccessToast = ({ message, show }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 50, x: '-50%', scale: 0.8 }}
+    animate={show ? { opacity: 1, y: 0, x: '-50%', scale: 1 } : { opacity: 0, y: 50, x: '-50%', scale: 0.8 }}
+    className="fixed bottom-10 left-1/2 z-[2147483647] bg-[hsl(var(--color-success))] text-white px-8 py-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 font-bold border border-white/20 backdrop-blur-md"
+  >
+    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+      <Icons.CheckIcon className="w-5 h-5" />
+    </div>
+    <span className="text-lg">{message}</span>
+  </motion.div>
+);
 
 // Componente para o item do cardápio
 const initialMenuItems = [
@@ -191,6 +205,14 @@ const Menu = () => {
   const [groups, setGroups] = useState([]);
   const [complements, setComplements] = useState([]);
   const [loadingComplements, setLoadingComplements] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const triggerToast = (msg) => {
+    setToastMessage(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
   // Extrair categorias únicas dos itens do menu
   useEffect(() => {
@@ -300,10 +322,12 @@ const Menu = () => {
   
   const handleSaveComplements = (updatedItem) => {
     setCurrentItem(updatedItem);
+    triggerToast('Complementos vinculados com sucesso!');
   };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+      <SuccessToast show={showToast} message={toastMessage} />
       <div className="flex justify-end gap-3">
         <button 
           onClick={() => setIsImportModalOpen(true)}
@@ -421,9 +445,9 @@ const Menu = () => {
               </button>
               <button
                 onClick={() => {
-                  const isNewItem = typeof currentItem.id === 'number' && currentItem.id > 1000; // Heurística para Date.now()
+                  const isNewItem = typeof currentItem.id === 'number' && currentItem.id > 1000;
                   if (isNewItem) {
-                    alert('Por favor, salve as informações básicas do item antes de adicionar complementos.');
+                    triggerToast('Salve o item antes de gerenciar complementos');
                     return;
                   }
                   setActiveTab('complements');
@@ -567,11 +591,12 @@ const Menu = () => {
                           const savedItem = await addMenuItem(currentItem);
                           // Atualizar currentItem com o novo ID (UUID) vindo do banco
                           setCurrentItem(savedItem);
-                          alert('Informações salvas! Agora você pode gerenciar os complementos.');
+                          triggerToast('Informações básicas salvas!');
                         } else {
                           // Atualizar item existente
                           await updateMenuItem(currentItem.id, currentItem);
                           setIsModalOpen(false); // Fecha o modal apenas na edição de itens existentes
+                          triggerToast('Item atualizado com sucesso!');
                         }
                       } catch (err) {
                         console.error('Erro ao salvar item:', err);
