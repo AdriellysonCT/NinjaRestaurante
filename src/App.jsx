@@ -9,6 +9,7 @@ import './styles/layout.css';
 // Importar componentes
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Importar páginas
 import Dashboard from './pages/Dashboard';
@@ -153,15 +154,17 @@ function App() {
   }, []);
   
   return (
-    <Router>
-      <ThemeProvider>
-        <AuthProvider>
-          <AppProvider>
-            <AppRoutes />
-          </AppProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppProvider>
+              <AppRoutes />
+            </AppProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

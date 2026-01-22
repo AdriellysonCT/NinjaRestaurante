@@ -190,7 +190,7 @@ const MenuItem = ({ item, onEdit, onToggleAvailability }) => {
 
 const Menu = () => {
   // Usar o contexto da aplicação
-  const { menuItems, addMenuItem, updateMenuItem, toggleMenuItemAvailability, isOnline } = useAppContext();
+  const { menuItems, addMenuItem, updateMenuItem, toggleMenuItemAvailability } = useAppContext();
   const { restauranteId } = useAuth();  // ✅ Pegar do contexto de autenticação
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('Todos');
@@ -582,6 +582,15 @@ const Menu = () => {
                   </button>
                   <button 
                     onClick={async () => {
+                      if (!currentItem.name?.trim()) {
+                        triggerToast('O nome do item é obrigatório');
+                        return;
+                      }
+                      if (currentItem.price === undefined || currentItem.price === null || currentItem.price < 0) {
+                        triggerToast('O preço deve ser um valor válido');
+                        return;
+                      }
+
                       try {
                         // Verificar se é um novo item (não existe na lista atual ou tem ID numérico alto)
                         const isNewItem = typeof currentItem.id === 'number' && currentItem.id > 1000;

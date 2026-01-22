@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import ImprimirComanda from './ImprimirComanda';
 import DeliveryChat from './DeliveryChat';
 import { ratingService } from '../services/ratingService';
+import { formatPhoneForWhatsApp, formatDisplayPhone } from '../utils/phoneFormatter';
 // Detalhes do pedido - modal estilizado escuro
 
 export const OrderDetailModal = ({ isOpen, onClose, order }) => {
@@ -46,19 +47,6 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
     }
   }, [order]);
 
-  // Função para formatar número de telefone para WhatsApp
-  const formatPhoneForWhatsApp = (phone) => {
-    // Remover todos os caracteres não numéricos
-    const numericOnly = phone ? phone.replace(/\D/g, '') : '';
-    
-    // Se o número já começar com 55 (código do Brasil), não adicionar novamente
-    if (numericOnly.startsWith('55') && numericOnly.length >= 12) {
-      return numericOnly;
-    }
-    
-    // Adicionar 55 (Brasil) se não tiver código de país
-    return `55${numericOnly}`;
-  };
 
   // Ações simples: imprimir e WhatsApp
   const handlePrint = () => {
@@ -72,15 +60,15 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
 
   const handleWhatsApp = () => {
     const phoneRaw = order.telefone_cliente || order.customerPhone || order.phone || '';
-    const digits = (phoneRaw || '').replace(/\D/g, '');
-    if (!digits) {
-      alert('Telefone do cliente não informado neste pedido.');
+    const formattedPhone = formatPhoneForWhatsApp(phoneRaw);
+    
+    if (!formattedPhone) {
+      alert('Telefone do cliente inválido ou não informado.');
       return;
     }
-    // Se o número tiver 10 ou 11 dígitos (formato BR sem DDI), prefixa 55
-    const withCountry = digits.length <= 13 && !digits.startsWith('55') ? `55${digits}` : digits;
+    
     const message = `Olá ${order.nome_cliente || order.customerName || ''}, sobre seu pedido #${order.numero_pedido}`;
-    window.open(`https://wa.me/${withCountry}?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   // Helpers de exibição
@@ -340,7 +328,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
             <div className="text-sm bg-secondary p-3 rounded-lg flex items-center justify-between gap-2 text-foreground font-bold shadow-inner">
               <div className="flex items-center gap-2">
                 <Icons.PhoneIcon className="w-4 h-4 text-muted-foreground" />
-                <span>{order.telefone_cliente || order.customerPhone || 'Não informado'}</span>
+                <span>{formatDisplayPhone(order.telefone_cliente || order.customerPhone)}</span>
               </div>
               <span className="text-[10px] text-muted-foreground/60 font-medium">via NinjaPay</span>
             </div>
