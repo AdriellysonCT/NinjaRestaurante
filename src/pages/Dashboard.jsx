@@ -604,56 +604,8 @@ const Dashboard = () => {
   // Copiar pedido para entregas_padronizadas
   // Removido: agora a sincronização é feita por trigger no banco de dados
 
-<<<<<<< HEAD
-  // Função para tocar som de notificação
-  const playNotificationSound = useCallback(() => {
-    logger.log('Tentando tocar som de notificação...');
-    if (notificationSoundRef.current) {
-      logger.log('Elemento de áudio encontrado, tocando som...');
-      notificationSoundRef.current.currentTime = 0;
-      notificationSoundRef.current.play().catch((e) => {
-        console.warn("Erro ao tocar áudio do arquivo:", e);
-        // Fallback: criar som usando Web Audio API
-        try {
-          logger.log('Tentando fallback com Web Audio API...');
-          // @ts-ignore - Suporte para navegadores antigos
-          const AudioContextClass =
-            window.AudioContext || window.webkitAudioContext;
-          if (AudioContextClass) {
-            const audioContext = new AudioContextClass();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-            oscillator.frequency.setValueAtTime(
-              600,
-              audioContext.currentTime + 0.1
-            );
-
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(
-              0.01,
-              audioContext.currentTime + 0.3
-            );
-
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
-            logger.log('Fallback executado com sucesso');
-          }
-        } catch (fallbackError) {
-          console.warn("Erro no fallback de áudio:", fallbackError);
-        }
-      });
-    } else {
-      console.warn('Elemento de áudio não encontrado');
-    }
-  }, []);
-
-=======
->>>>>>> bfc716f51c360a663c6a8c1ff9b59c1a203001b4
+  // DESABILITADO: Lógica de som movida para AppContext para evitar conflitos
+  // O AppContext já gerencia o som de notificação com loop e verificação contínua
   // DESABILITADO: Lógica de som movida para AppContext para evitar conflitos
   // O AppContext já gerencia o som de notificação com loop e verificação contínua
 
