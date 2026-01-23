@@ -1,6 +1,6 @@
 // Serviço para impressão de comandas e outros documentos
 import { supabase } from '../lib/supabase';
-import logger from '../utils/logger';
+import { logger } from "../utils/logger";
 
 const PRINT_HISTORY_KEY = 'fome-ninja-print-history';
 const PRINT_SETTINGS_KEY = 'fome-ninja-print-settings';
