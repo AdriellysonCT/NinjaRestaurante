@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import logger from '../utils/logger';
 
 /**
  * Serviço para gerenciar Complementos no FomeNinja
@@ -34,7 +35,7 @@ export const getComplements = async (restauranteId) => {
           .eq('id_complemento', comp.id);
 
         if (assocError) {
-          console.error('Erro ao buscar grupos do complemento:', assocError);
+          logger.error('Erro ao buscar grupos do complemento:', assocError);
           return { ...comp, groupIds: [] };
         }
 
@@ -47,7 +48,7 @@ export const getComplements = async (restauranteId) => {
 
     return { success: true, data: complementsWithGroups };
   } catch (error) {
-    console.error('Erro ao buscar complementos:', error);
+    logger.error('Erro ao buscar complementos:', error);
     return { success: false, error: error.message };
   }
 };
@@ -62,8 +63,9 @@ export const createComplement = async (restauranteId, complementData) => {
       .insert([{
         id_restaurante: restauranteId,
         nome: complementData.name,
+        descricao: complementData.description || null,
         preco: complementData.price,
-        imagem: complementData.image || null,
+        imagem_url: complementData.image || null,
         disponivel: complementData.available ?? true
       }])
       .select()
@@ -72,7 +74,7 @@ export const createComplement = async (restauranteId, complementData) => {
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Erro ao criar complemento:', error);
+    logger.error('Erro ao criar complemento:', error);
     return { success: false, error: error.message };
   }
 };
@@ -86,8 +88,9 @@ export const updateComplement = async (complementId, complementData) => {
       .from('complementos')
       .update({
         nome: complementData.name,
+        descricao: complementData.description || null,
         preco: complementData.price,
-        imagem: complementData.image || null,
+        imagem_url: complementData.image || null,
         disponivel: complementData.available ?? true
       })
       .eq('id', complementId)
@@ -97,7 +100,7 @@ export const updateComplement = async (complementId, complementData) => {
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Erro ao atualizar complemento:', error);
+    logger.error('Erro ao atualizar complemento:', error);
     return { success: false, error: error.message };
   }
 };
@@ -115,7 +118,7 @@ export const deleteComplement = async (complementId) => {
     if (error) throw error;
     return { success: true };
   } catch (error) {
-    console.error('Erro ao deletar complemento:', error);
+    logger.error('Erro ao deletar complemento:', error);
     return { success: false, error: error.message };
   }
 };
@@ -135,7 +138,7 @@ export const toggleComplementAvailability = async (complementId) => {
     if (fetchError) {
       // Se a coluna não existir, mostrar mensagem específica
       if (fetchError.code === '42703' || fetchError.message.includes('does not exist')) {
-        console.error('❌ Coluna "disponivel" não existe na tabela complementos');
+        logger.error('❌ Coluna "disponivel" não existe na tabela complementos');
         return { 
           success: false, 
           error: 'A coluna "disponivel" não existe. Execute o script: adicionar_coluna_disponivel.sql' 
@@ -156,7 +159,7 @@ export const toggleComplementAvailability = async (complementId) => {
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Erro ao alternar disponibilidade:', error);
+    logger.error('Erro ao alternar disponibilidade:', error);
     return { success: false, error: error.message };
   }
 };
@@ -177,7 +180,7 @@ export const getGroups = async (restauranteId) => {
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Erro ao buscar grupos:', error);
+    logger.error('Erro ao buscar grupos:', error);
     return { success: false, error: error.message };
   }
 };
@@ -192,6 +195,8 @@ export const createGroup = async (restauranteId, groupData) => {
       .insert([{
         id_restaurante: restauranteId,
         nome: groupData.name,
+        descricao: groupData.description || null,
+        secao: groupData.section || null,
         tipo_selecao: groupData.selectionType,
         obrigatorio: groupData.required ?? false
       }])
@@ -201,7 +206,7 @@ export const createGroup = async (restauranteId, groupData) => {
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Erro ao criar grupo:', error);
+    logger.error('Erro ao criar grupo:', error);
     return { success: false, error: error.message };
   }
 };
@@ -215,6 +220,8 @@ export const updateGroup = async (groupId, groupData) => {
       .from('grupos_complementos')
       .update({
         nome: groupData.name,
+        descricao: groupData.description || null,
+        secao: groupData.section || null,
         tipo_selecao: groupData.selectionType,
         obrigatorio: groupData.required
       })
@@ -225,7 +232,7 @@ export const updateGroup = async (groupId, groupData) => {
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Erro ao atualizar grupo:', error);
+    logger.error('Erro ao atualizar grupo:', error);
     return { success: false, error: error.message };
   }
 };
@@ -243,7 +250,7 @@ export const deleteGroup = async (groupId) => {
     if (error) throw error;
     return { success: true };
   } catch (error) {
-    console.error('Erro ao deletar grupo:', error);
+    logger.error('Erro ao deletar grupo:', error);
     return { success: false, error: error.message };
   }
 };
@@ -269,7 +276,7 @@ export const getGroupComplements = async (groupId) => {
     const complements = data.map(item => item.complementos);
     return { success: true, data: complements };
   } catch (error) {
-    console.error('Erro ao buscar complementos do grupo:', error);
+    logger.error('Erro ao buscar complementos do grupo:', error);
     return { success: false, error: error.message };
   }
 };
@@ -301,7 +308,7 @@ export const associateComplementsToGroup = async (groupId, complementIds) => {
 
     return { success: true };
   } catch (error) {
-    console.error('Erro ao associar complementos ao grupo:', error);
+    logger.error('Erro ao associar complementos ao grupo:', error);
     return { success: false, error: error.message };
   }
 };
@@ -316,7 +323,7 @@ export const associateComplementsToGroup = async (groupId, complementIds) => {
  */
 export const associateGroupsToMenuItem = async (menuItemId, groupsData) => {
   try {
-    console.log('💾 Salvando associação:', { menuItemId, groupsData });
+    logger.log('💾 Salvando associação:', { menuItemId, groupsData });
     
     // Converter para array simples de IDs se necessário
     let groupIds = [];
@@ -337,7 +344,7 @@ export const associateGroupsToMenuItem = async (menuItemId, groupsData) => {
       .eq('item_id', menuItemId);
 
     if (deleteError) {
-      console.error('Erro ao remover associações antigas:', deleteError);
+      logger.error('Erro ao remover associações antigas:', deleteError);
       throw deleteError;
     }
 
@@ -349,22 +356,22 @@ export const associateGroupsToMenuItem = async (menuItemId, groupsData) => {
         ativo: true
       }));
 
-      console.log('📦 Inserindo associações:', associations);
+      logger.log('📦 Inserindo associações:', associations);
 
       const { error: insertError } = await supabase
         .from('item_complemento_grupo')
         .insert(associations);
 
       if (insertError) {
-        console.error('Erro ao inserir associações:', insertError);
+        logger.error('Erro ao inserir associações:', insertError);
         throw insertError;
       }
     }
 
-    console.log('✅ Grupos salvos com sucesso!');
+    logger.log('✅ Grupos salvos com sucesso!');
     return { success: true };
   } catch (error) {
-    console.error('❌ Erro ao associar grupos ao item:', error);
+    logger.error('❌ Erro ao associar grupos ao item:', error);
     return { success: false, error: error.message };
   }
 };
@@ -375,7 +382,7 @@ export const associateGroupsToMenuItem = async (menuItemId, groupsData) => {
  */
 export const getMenuItemGroups = async (menuItemId) => {
   try {
-    console.log('🔍 Buscando grupos do item:', menuItemId);
+    logger.log('🔍 Buscando grupos do item:', menuItemId);
     
     const { data, error } = await supabase
       .from('item_complemento_grupo')
@@ -387,14 +394,14 @@ export const getMenuItemGroups = async (menuItemId) => {
       .eq('ativo', true);
 
     if (error) {
-      console.error('Erro na query:', error);
+      logger.error('Erro na query:', error);
       throw error;
     }
     
-    console.log('📦 Grupos encontrados:', data);
+    logger.log('📦 Grupos encontrados:', data);
     return { success: true, data };
   } catch (error) {
-    console.error('❌ Erro ao buscar grupos do item:', error);
+    logger.error('❌ Erro ao buscar grupos do item:', error);
     return { success: false, error: error.message };
   }
 };
@@ -424,7 +431,7 @@ export const getMenuItemComplements = async (menuItemId) => {
     if (gruposError) throw gruposError;
     return { success: true, data: grupos };
   } catch (error) {
-    console.error('Erro ao buscar complementos do item:', error);
+    logger.error('Erro ao buscar complementos do item:', error);
     return { success: false, error: error.message };
   }
 };
@@ -435,7 +442,7 @@ export const getMenuItemComplements = async (menuItemId) => {
  */
 export const getGroupComplementsWithDetails = async (groupId) => {
   try {
-    console.log('🔍 Buscando complementos do grupo:', groupId);
+    logger.log('🔍 Buscando complementos do grupo:', groupId);
     
     const { data, error } = await supabase
       .from('grupos_complementos_itens')
@@ -446,14 +453,14 @@ export const getGroupComplementsWithDetails = async (groupId) => {
       .eq('id_grupo', groupId);
 
     if (error) {
-      console.error('Erro na query:', error);
+      logger.error('Erro na query:', error);
       throw error;
     }
     
-    console.log('📦 Complementos do grupo encontrados:', data);
+    logger.log('📦 Complementos do grupo encontrados:', data);
     return { success: true, data: data || [] };
   } catch (error) {
-    console.error('❌ Erro ao buscar complementos do grupo:', error);
+    logger.error('❌ Erro ao buscar complementos do grupo:', error);
     return { success: false, error: error.message, data: [] };
   }
 };

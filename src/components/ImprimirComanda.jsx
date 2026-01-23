@@ -42,7 +42,7 @@ export default function ImprimirComanda({ pedido, restaurante, auto = true, reim
   const linhas = useMemo(() => {
     const nomeSite = 'Fome Ninja Restaurante';
     const nomeRest = restaurante?.nome_fantasia || 'Restaurante';
-    const end1 = `${restaurante?.rua || ''}, ${restaurante?.numero || ''} (${restaurante?.complemento || 'Colegio'})`.trim();
+    const end1 = `${restaurante?.rua || ''}, ${restaurante?.numero || ''} ${restaurante?.complemento ? `(${restaurante.complemento})` : ''}`.trim();
     const end2 = `${restaurante?.bairro || ''}, ${restaurante?.cidade || ''}`.trim();
     const tel = `Tel: ${restaurante?.telefone || ''}`;
     const cnpj = `CNPJ: ${restaurante?.cnpj || ''}`;

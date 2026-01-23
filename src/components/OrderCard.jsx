@@ -77,7 +77,7 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
 
   return (
     <div
-      className={`bg-gray-800 rounded-lg p-4 space-y-3 cursor-pointer hover:shadow-md transition-shadow`}
+      className="bg-card rounded-lg p-4 space-y-3 cursor-pointer hover:shadow-md transition-shadow border border-border"
       onClick={() => onClick && onClick(order)}
     >
       <div className="flex justify-between items-start">
@@ -85,12 +85,12 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
           <h3 className="font-bold text-card-foreground">Pedido #{order.numero_pedido}</h3>
           <p className="text-sm text-muted-foreground">{order.customerName}</p>
           <div className="flex items-center gap-2">
-            <p className="text-sm text-orange-500 font-semibold">{(order.paymentType || order.paymentMethod || 'DINHEIRO').toUpperCase()}</p>
+            <p className="text-sm text-primary font-bold">{(order.paymentType || order.paymentMethod || 'DINHEIRO').toUpperCase()}</p>
             {/* Indicador de status de pagamento */}
             <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
               order.paymentStatus === 'pago' ? 'bg-green-600 text-white' :
-              order.paymentStatus === 'pendente' ? 'bg-yellow-600 text-white' :
-              'bg-red-600 text-white'
+              order.paymentStatus === 'pendente' ? 'bg-warning text-warning-foreground' :
+              'bg-destructive text-destructive-foreground'
             }`}>
               {order.paymentStatus === 'pago' ? '🟢 Pago' :
                order.paymentStatus === 'pendente' ? '🟡 Pendente' :
@@ -112,11 +112,11 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
           </div>
         </div>
         <div className="text-right">
-          <p className="font-bold text-lg text-orange-500">
+          <p className="font-black text-lg text-primary">
             R$ {(parseFloat(order.total) || 0).toFixed(2)}
           </p>
           {order.isVip && (
-            <div className="flex items-center justify-end gap-1 text-xs text-yellow-400 mt-1">
+            <div className="flex items-center justify-end gap-1 text-xs text-warning mt-1 font-bold">
               <Icons.NinjaStarIcon className="w-3 h-3 fill-current" />
               <span>Cliente VIP</span>
             </div>
@@ -124,19 +124,17 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
         </div>
       </div>
 
-      <ul className="text-sm space-y-1">
-        {order.items.map((item, index) => <li key={index}>{item.qty}x {item.name}</li>)}
+      <ul className="text-sm space-y-1 text-muted-foreground border-t border-border/50 pt-2">
+        {order.items.map((item, index) => <li key={index} className="flex justify-between"><span>{item.qty}x {item.name}</span></li>)}
       </ul>
 
       {/* Mostrar troco para pedidos pendentes (dinheiro) */}
       {order.paymentStatus === 'pendente' && order.troco > 0 && (
-        <div className="mt-2 p-2 bg-yellow-900/20 border border-yellow-600/30 rounded">
-          <div className="flex items-center gap-2">
-            <Icons.CoinIcon className="w-4 h-4 text-yellow-400" />
-            <span className="text-yellow-400 text-xs font-semibold">
-              Troco: R$ {order.troco.toFixed(2)}
-            </span>
-          </div>
+        <div className="mt-2 p-2 bg-warning/20 border border-warning/50 rounded flex items-center gap-2">
+          <Icons.CoinIcon className="w-4 h-4 text-warning" />
+          <span className="text-warning text-xs font-bold">
+            Troco: R$ {order.troco.toFixed(2)}
+          </span>
         </div>
       )}
 
@@ -144,16 +142,16 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
       {order.status === 'aceito' && order.started_at && order.prepTime > 0 && (
         <div>
           <div className="flex justify-between items-center text-sm mb-1">
-            <span className="font-semibold">{statusTempo}:</span>
-            <span className={`flex items-center gap-1 ${statusTempo === 'Atrasado' ? 'text-red-500 font-bold' : ''}`}>
+            <span className="font-semibold text-card-foreground">{statusTempo}:</span>
+            <span className={`flex items-center gap-1 font-bold ${statusTempo === 'Atrasado' ? 'text-destructive' : 'text-primary'}`}>
               <Icons.ClockIcon className="w-4 h-4"/>
-              {tempoRestante} MIN
+              {tempoRestante}m
             </span>
           </div>
-          <div className="w-full bg-gray-700 rounded">
+          <div className="w-full bg-secondary rounded-full h-1.5">
             <div
-              className={`h-2 rounded transition-all duration-1000 ease-linear ${
-                statusTempo === 'Atrasado' ? 'bg-red-500' : 'bg-orange-500'
+              className={`h-1.5 rounded-full transition-all duration-1000 ease-linear shadow-sm ${
+                statusTempo === 'Atrasado' ? 'bg-destructive animate-pulse' : 'bg-primary'
               }`}
               style={{ width: `${progressPercentage}%` }}
             ></div>
@@ -165,19 +163,19 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
         {order.status === 'disponivel' && (
           <button
             onClick={handleAcceptClick}
-            className="w-full px-3 py-2 text-sm font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center justify-center gap-1"
+            className="w-full px-3 py-2 text-sm font-bold rounded-md bg-success text-white hover:bg-success/90 transition-all flex items-center justify-center gap-1 shadow-sm"
           >
             <Icons.CheckCircleIcon className="w-4 h-4" />
-            Aceitar
+            Aceitar Pedido
           </button>
         )}
         {order.status === 'aceito' && (
             <button
               onClick={handleReadyClick}
-              className="w-full px-3 py-2 text-sm font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors flex items-center justify-center gap-1"
+              className="w-full px-3 py-2 text-sm font-bold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-all flex items-center justify-center gap-1 shadow-sm"
             >
               <Icons.CheckCircleIcon className="w-4 h-4" />
-              {(order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local') ? 'Finalizar Pedido' : 'Pronto Para Entrega'}
+              {(order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local') ? 'Concluir Pedido' : 'Pronto Para Entrega'}
             </button>
         )}
       </div>

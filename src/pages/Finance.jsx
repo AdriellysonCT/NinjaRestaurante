@@ -6,7 +6,22 @@ import * as financeService from '../services/financeService';
 import { TransactionModal, AccountModal, SupplierModal, GoalModal } from '../components/FinanceModals';
 import FecharCaixaButton from '../components/FecharCaixaButton';
 import HistoricoFechamentos from '../components/HistoricoFechamentos';
-import CuponsManager from '../components/CuponsManager';
+import { motion, AnimatePresence } from 'framer-motion';
+import * as Icons from '../components/icons/index.jsx';
+import * as fechamentoCaixaService from '../services/fechamentoCaixaService';
+
+const SuccessToast = ({ message, show }) => (
+  <div
+    className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[1000000] bg-success text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 font-bold transition-all duration-300 ${
+      show ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-90 pointer-events-none'
+    }`}
+  >
+    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+      <Icons.CheckIcon className="w-4 h-4" />
+    </div>
+    {message}
+  </div>
+);
 
 // Listas simples (somente leitura) para sincronizar com dados reais
 const TransactionsList = ({ onEdit, onChanged }) => {
@@ -106,7 +121,15 @@ const TransactionsList = ({ onEdit, onChanged }) => {
             <div className={t.tipo === 'entrada' ? 'text-success font-semibold' : 'text-destructive font-semibold'}>
               R$ {Number(t.valor || 0).toFixed(2)}
             </div>
-            <button onClick={()=> onEdit && onEdit(t)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button 
+              onClick={()=> {
+                console.log('Editando transação:', t);
+                onEdit && onEdit(t);
+              }} 
+              className="px-2 py-1 border border-border rounded-md text-sm"
+            >
+              Editar
+            </button>
             <button onClick={()=> handleDelete(t.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
           </div>
         </div>
@@ -205,7 +228,15 @@ const AccountsList = ({ onEdit, onChanged }) => {
               </p>
               <span className="text-xs text-muted-foreground">{c.status}</span>
             </div>
-            <button onClick={()=> onEdit && onEdit(c)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button 
+              onClick={()=> {
+                console.log('Editando conta:', c);
+                onEdit && onEdit(c);
+              }} 
+              className="px-2 py-1 border border-border rounded-md text-sm"
+            >
+              Editar
+            </button>
             <button onClick={()=> handleDelete(c.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
           </div>
         </div>
@@ -283,7 +314,15 @@ const SuppliersList = ({ onEdit, onChanged }) => {
           </div>
           <div className="flex items-center gap-3">
             <span className={s.ativo ? 'text-success' : 'text-muted-foreground'}>{s.ativo ? 'Ativo' : 'Inativo'}</span>
-            <button onClick={()=> onEdit && onEdit(s)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button 
+              onClick={()=> {
+                console.log('Editando fornecedor:', s);
+                onEdit && onEdit(s);
+              }} 
+              className="px-2 py-1 border border-border rounded-md text-sm"
+            >
+              Editar
+            </button>
             <button onClick={()=> handleDelete(s.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
           </div>
         </div>
@@ -362,7 +401,15 @@ const GoalsList = ({ onEdit, onChanged }) => {
               <p className="text-primary font-semibold">R$ {Number(g.valor_meta || 0).toFixed(2)}</p>
               <span className="text-xs text-muted-foreground">{g.ativa ? 'Ativa' : 'Inativa'}</span>
             </div>
-            <button onClick={()=> onEdit && onEdit(g)} className="px-2 py-1 border border-border rounded-md text-sm">Editar</button>
+            <button 
+              onClick={()=> {
+                console.log('Editando meta:', g);
+                onEdit && onEdit(g);
+              }} 
+              className="px-2 py-1 border border-border rounded-md text-sm"
+            >
+              Editar
+            </button>
             <button onClick={()=> handleDelete(g.id)} className="px-2 py-1 border border-destructive text-destructive rounded-md text-sm">Excluir</button>
           </div>
         </div>
@@ -385,6 +432,14 @@ const Finance = () => {
   const [restaurantId, setRestaurantId] = useState(null);
   const [isLoadingRestaurant, setIsLoadingRestaurant] = useState(true);
   const [restaurantError, setRestaurantError] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const triggerSuccess = (msg) => {
+    setSuccessMessage(msg);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  };
 
   // Estados de dados reais por aba (sem mock)
   const [transactionsCount, setTransactionsCount] = useState(null);
@@ -406,6 +461,29 @@ const Finance = () => {
   const [fechamentosCount, setFechamentosCount] = useState(null);
   const [fechamentosLoading, setFechamentosLoading] = useState(false);
   const [fechamentosError, setFechamentosError] = useState(null);
+
+  // Carregamento de contagem inicial para dashboard
+  useEffect(() => {
+    if (restaurantId) {
+      const loadInitialCounts = async () => {
+        try {
+          const [t, a, g, f] = await Promise.all([
+             financeService.fetchTransactions({}),
+             financeService.fetchAccounts(),
+             financeService.fetchFinancialGoals(),
+             fechamentoCaixaService.fetchFechamentos(restaurantId)
+          ]);
+          setTransactionsCount(Array.isArray(t) ? t.length : 0);
+          setAccountsCount(Array.isArray(a) ? a.length : 0);
+          setGoalsCount(Array.isArray(g) ? g.length : 0);
+          setFechamentosCount(Array.isArray(f) ? f.length : 0);
+        } catch (err) {
+          console.warn('Erro ao carregar contagens iniciais:', err);
+        }
+      };
+      loadInitialCounts();
+    }
+  }, [restaurantId]);
 
   // Modais
   const [transactionModalOpen, setTransactionModalOpen] = useState(false);
@@ -547,7 +625,6 @@ const Finance = () => {
             { key: 'suppliers', label: 'Fornecedores' },
             { key: 'goals', label: 'Metas' },
             { key: 'fechamentos', label: 'Fechamentos' },
-            { key: 'cupons', label: 'Cupons' },
             { key: 'reports', label: 'Relatórios' }
           ].map(({ key, label }) => (
             <button
@@ -570,22 +647,32 @@ const Finance = () => {
         {activeTab === 'dashboard' && (
           <div>
             <h2 className="text-2xl font-bold mb-4 text-foreground">Dashboard Financeiro</h2>
-            {isLoadingRestaurant ? (
-              <div className="flex items-center justify-center py-10 text-muted-foreground">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mr-2"></div>
-                Carregando dados do restaurante...
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="ninja-card bg-primary/5 p-4 border-primary/20">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Transações</p>
+                  <p className="text-2xl font-bold text-primary">{transactionsLoading ? '...' : transactionsCount || 0}</p>
+                </div>
+                <div className="ninja-card bg-primary/5 p-4 border-primary/20">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Contas Pendentes</p>
+                  <p className="text-2xl font-bold text-primary">{accountsLoading ? '...' : accountsCount || 0}</p>
+                </div>
+                <div className="ninja-card bg-primary/5 p-4 border-primary/20">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Metas Ativas</p>
+                  <p className="text-2xl font-bold text-primary">{goalsLoading ? '...' : goalsCount || 0}</p>
+                </div>
+                <div className="ninja-card bg-primary/5 p-4 border-primary/20">
+                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Fechamentos</p>
+                  <p className="text-2xl font-bold text-primary">{fechamentosLoading ? '...' : fechamentosCount || 0}</p>
+                </div>
               </div>
-            ) : restaurantError ? (
-              <div className="text-center text-destructive py-10">
-                Ocorreu um erro ao carregar o restaurante.
-              </div>
-            ) : !restaurantId ? (
-              <div className="text-center text-muted-foreground py-10">
-                Configurando seu restaurante...
-              </div>
-            ) : (
-              <DashboardFinanceiro restauranteId={restaurantId} />
-            )}
+              {restaurantId ? (
+                <DashboardFinanceiro restauranteId={restaurantId} />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                  <p className="text-muted-foreground">Configurando ambiente financeiro...</p>
+                </div>
+              )}
           </div>
         )}
 
@@ -607,7 +694,11 @@ const Finance = () => {
                   Registrar Reforço
                 </button>
               <button 
-                  onClick={() => { setEditingTransaction(null); setTransactionModalOpen(true); }}
+                  onClick={() => { 
+                    console.log('Botão Nova Transação clicado');
+                    setEditingTransaction(null); 
+                    setTransactionModalOpen(true); 
+                  }}
                   className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
                   Nova Transação
@@ -631,7 +722,11 @@ const Finance = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-foreground">Contas a Pagar/Receber</h2>
               <button 
-                onClick={() => { setEditingAccount(null); setAccountModalOpen(true); }}
+                onClick={() => { 
+                  console.log('Botão Nova Conta clicado');
+                  setEditingAccount(null); 
+                  setAccountModalOpen(true); 
+                }}
                 className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
                 Nova Conta
@@ -654,7 +749,11 @@ const Finance = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-foreground">Fornecedores</h2>
               <button 
-                onClick={() => { setEditingSupplier(null); setSupplierModalOpen(true); }}
+                onClick={() => { 
+                  console.log('Botão Novo Fornecedor clicado');
+                  setEditingSupplier(null); 
+                  setSupplierModalOpen(true); 
+                }}
                 className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
                 Novo Fornecedor
@@ -677,7 +776,11 @@ const Finance = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-foreground">Metas Financeiras</h2>
               <button 
-                onClick={() => { setEditingGoal(null); setGoalModalOpen(true); }}
+                onClick={() => { 
+                  console.log('Botão Nova Meta clicado');
+                  setEditingGoal(null); 
+                  setGoalModalOpen(true); 
+                }}
                 className="px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
                 Nova Meta
@@ -715,20 +818,59 @@ const Finance = () => {
           </div>
         )}
 
-        {activeTab === 'cupons' && (
-          <div>
-            {!restaurantId ? (
-              <p className="text-muted-foreground text-center py-10">Carregando dados do restaurante...</p>
-            ) : (
-              <CuponsManager restauranteId={restaurantId} />
-            )}
-          </div>
-        )}
 
         {activeTab === 'reports' && (
-          <div>
-            <h2 className="text-2xl font-bold mb-4 text-foreground">Relatórios Financeiros</h2>
-            <p className="text-muted-foreground text-center">Relatórios em desenvolvimento...</p>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-foreground">Relatórios Financeiros</h2>
+              <button 
+                onClick={() => window.print()} 
+                className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-all font-semibold"
+              >
+                <Icons.FileTextIcon className="w-4 h-4" />
+                Imprimir Relatório
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="ninja-card p-6 border-l-4 border-l-primary hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Icons.TrendingUpIcon className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 className="font-bold">Fluxo de Caixa</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">Análise detalhada de todas as entradas e saídas por período.</p>
+                <span className="text-xs font-semibold py-1 px-2 bg-success/10 text-success rounded-full">Ativo</span>
+              </div>
+
+              <div className="ninja-card p-6 border-l-4 border-l-blue-500 hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <Icons.ShoppingBagIcon className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <h3 className="font-bold">Vendas por Produto</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">Ranking de produtos mais vendidos e faturamento individual.</p>
+                <span className="text-xs font-semibold py-1 px-2 bg-success/10 text-success rounded-full">Ativo</span>
+              </div>
+
+              <div className="ninja-card p-6 border-l-4 border-l-purple-500 hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-purple-500/10 rounded-lg">
+                    <Icons.PieChartIcon className="w-6 h-6 text-purple-500" />
+                  </div>
+                  <h3 className="font-bold">DRE Simplificado</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">Demonstrativo de resultados para visão clara do lucro real.</p>
+                <span className="text-xs font-semibold py-1 px-2 bg-yellow-500/10 text-yellow-500 rounded-full">Beta</span>
+              </div>
+            </div>
+
+            <div className="mt-8 p-10 bg-secondary/20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center">
+               <Icons.BarChart3Icon className="w-16 h-16 text-muted-foreground/30 mb-4" />
+               <p className="text-muted-foreground font-medium">Selecione um dos relatórios acima para visualizar os dados detalhados.</p>
+            </div>
           </div>
         )}
       </div>
@@ -743,6 +885,7 @@ const Finance = () => {
             if (editingTransaction) await financeService.updateTransaction(editingTransaction.id, payload);
             else await financeService.createTransaction(payload);
             setTransactionModalOpen(false);
+            triggerSuccess('Transação salva com sucesso!');
             if (activeTab === 'transactions') {
               const data = await financeService.fetchTransactions({});
               setTransactionsCount(Array.isArray(data) ? data.length : 0);
@@ -761,9 +904,10 @@ const Finance = () => {
         suppliers={suppliersList}
         onSave={async (payload) => {
           try {
-            if (editingAccount) await financeService.updateAccount ? await financeService.updateAccount(editingAccount.id, payload) : await financeService.createAccount(payload);
+            if (editingAccount) await financeService.updateAccount(editingAccount.id, payload);
             else await financeService.createAccount(payload);
             setAccountModalOpen(false);
+            triggerSuccess('Conta salva com sucesso!');
             if (activeTab === 'accounts') {
               const data = await financeService.fetchAccounts();
               setAccountsCount(Array.isArray(data) ? data.length : 0);
@@ -780,9 +924,10 @@ const Finance = () => {
         supplier={editingSupplier}
         onSave={async (payload) => {
           try {
-            if (editingSupplier) await financeService.updateSupplier ? await financeService.updateSupplier(editingSupplier.id, payload) : await financeService.createSupplier(payload);
+            if (editingSupplier) await financeService.updateSupplier(editingSupplier.id, payload);
             else await financeService.createSupplier(payload);
             setSupplierModalOpen(false);
+            triggerSuccess('Fornecedor salvo com sucesso!');
             if (activeTab === 'suppliers') {
               const data = await financeService.fetchSuppliers();
               setSuppliersCount(Array.isArray(data) ? data.length : 0);
@@ -799,9 +944,10 @@ const Finance = () => {
         goal={editingGoal}
         onSave={async (payload) => {
           try {
-            if (editingGoal) await financeService.updateFinancialGoal ? await financeService.updateFinancialGoal(editingGoal.id, payload) : await financeService.createFinancialGoal(payload);
+            if (editingGoal) await financeService.updateFinancialGoal(editingGoal.id, payload);
             else await financeService.createFinancialGoal(payload);
             setGoalModalOpen(false);
+            triggerSuccess('Meta salva com sucesso!');
             if (activeTab === 'goals') {
               const data = await financeService.fetchFinancialGoals();
               setGoalsCount(Array.isArray(data) ? data.length : 0);
@@ -811,8 +957,11 @@ const Finance = () => {
           }
         }}
       />
+
+      <SuccessToast show={showSuccess} message={successMessage} />
     </div>
   );
+
 };
 
 export default Finance;

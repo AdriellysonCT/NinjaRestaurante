@@ -12,6 +12,7 @@ import * as authService from '../services/authService';
 import * as horariosService from '../services/horariosService';
 import { useToast } from '../hooks/useToast';
 import { ToastContainer } from '../components/Toast';
+import logger from '../utils/logger';
 
 const Settings = () => {
   // Hook de toast para notificações
@@ -99,7 +100,8 @@ const Settings = () => {
     cnpj: '',
     telefone: '',
     email: '',
-    nomeResponsavel: ''
+    nomeResponsavel: '',
+    chavePix: ''
   });
 
   // Estados para endereço
@@ -129,7 +131,8 @@ const Settings = () => {
             telefone: dados.telefone || '',
             email: dados.email || '',
             nomeResponsavel: dados.nome_responsavel || '',
-            imagemUrl: dados.imagem_url || ''
+            imagemUrl: dados.imagem_url || '',
+            chavePix: dados.chave_pix || ''
           });
           
           if (dados.nome_fantasia) {
@@ -152,7 +155,7 @@ const Settings = () => {
           setFormEndereco(enderecoData);
         }
       } catch (error) {
-        console.error('Erro ao recarregar dados:', error);
+        logger.error('Erro ao recarregar dados:', error);
       }
     };
     
@@ -169,7 +172,8 @@ const Settings = () => {
         telefone: restaurante.telefone || '',
         email: restaurante.email || '',
         nomeResponsavel: restaurante.nome_responsavel || '',
-        imagemUrl: restaurante.imagem_url || ''
+        imagemUrl: restaurante.imagem_url || '',
+        chavePix: restaurante.chave_pix || ''
       });
       
       if (restaurante.nome_fantasia) {
@@ -204,14 +208,14 @@ const Settings = () => {
       
       try {
         setLoadingHorarios(true);
-        console.log('📅 Carregando horários do banco...');
+        logger.log('📅 Carregando horários do banco...');
         
         const horarios = await horariosService.buscarHorarios(restauranteId);
         setOpeningHours(horarios);
         
-        console.log('✅ Horários carregados:', horarios);
+        logger.log('✅ Horários carregados:', horarios);
       } catch (error) {
-        console.error('❌ Erro ao carregar horários:', error);
+        logger.error('❌ Erro ao carregar horários:', error);
         error('Erro ao carregar horários. Usando valores padrão.', 3000);
       } finally {
         setLoadingHorarios(false);
@@ -227,12 +231,12 @@ const Settings = () => {
       if (!restauranteId) return;
       
       try {
-        console.log('🔍 Verificando status do restaurante...');
+        logger.log('🔍 Verificando status do restaurante...');
         const status = await horariosService.verificarRestauranteAberto(restauranteId);
         setStatusAberto(status);
-        console.log('✅ Status verificado:', status);
+        logger.log('✅ Status verificado:', status);
       } catch (error) {
-        console.error('❌ Erro ao verificar status:', error);
+        logger.error('❌ Erro ao verificar status:', error);
         
         // Se for erro de permissão RLS, avisar
         if (error.code === '42501' || error.message?.includes('permission denied')) {
@@ -288,7 +292,7 @@ const Settings = () => {
         window.location.reload();
       }, 2000);
     } catch (err) {
-      console.error('Erro ao salvar endereço:', err);
+      logger.error('Erro ao salvar endereço:', err);
       error('Erro ao salvar endereço. Tente novamente.', 4000);
     }
   };
@@ -326,13 +330,13 @@ const Settings = () => {
   
   // ✅ Manipulador de mudança de horários com salvamento automático
   const handleOpeningHoursChange = async (day, field, value) => {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🔄 INICIANDO SALVAMENTO DE HORÁRIO');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📋 Dia:', day);
-    console.log('📋 Campo:', field);
-    console.log('📋 Valor:', value);
-    console.log('📋 Restaurante ID:', restauranteId);
+    logger.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    logger.log('🔄 INICIANDO SALVAMENTO DE HORÁRIO');
+    logger.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    logger.log('📋 Dia:', day);
+    logger.log('📋 Campo:', field);
+    logger.log('📋 Valor:', value);
+    logger.log('📋 Restaurante ID:', restauranteId);
     
     // Atualizar estado local imediatamente
     setOpeningHours(prev => ({
@@ -345,7 +349,7 @@ const Settings = () => {
     
     // Salvar no banco de dados
     if (!restauranteId) {
-      console.error('❌ ERRO: restauranteId não disponível!');
+      logger.error('❌ ERRO: restauranteId não disponível!');
       error('Erro: ID do restaurante não encontrado', 3000);
       return;
     }
@@ -358,14 +362,14 @@ const Settings = () => {
         [field]: value
       };
       
-      console.log('📦 Horário a ser salvo:', horarioAtualizado);
-      console.log('🚀 Chamando horariosService.salvarHorario...');
+      logger.log('📦 Horário a ser salvo:', horarioAtualizado);
+      logger.log('🚀 Chamando horariosService.salvarHorario...');
       
       const resultado = await horariosService.salvarHorario(restauranteId, day, horarioAtualizado);
       
-      console.log('✅ Resultado do salvamento:', resultado);
-      console.log(`✅ Horário de ${day} salvo com sucesso`);
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      logger.log('✅ Resultado do salvamento:', resultado);
+      logger.log(`✅ Horário de ${day} salvo com sucesso`);
+      logger.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       
       // Reverificar status do restaurante após salvar
       const novoStatus = await horariosService.verificarRestauranteAberto(restauranteId);
@@ -373,17 +377,17 @@ const Settings = () => {
       
       success(`Horário de ${horariosService.obterNomeDia(day)} atualizado!`, 2000);
     } catch (error) {
-      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.error('❌ ERRO AO SALVAR HORÁRIO');
-      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.error('❌ Tipo:', error.constructor.name);
-      console.error('❌ Mensagem:', error.message);
-      console.error('❌ Código:', error.code);
-      console.error('❌ Detalhes:', error.details);
-      console.error('❌ Hint:', error.hint);
-      console.error('❌ Stack:', error.stack);
-      console.error('❌ Objeto completo:', error);
-      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      logger.error('❌ ERRO AO SALVAR HORÁRIO');
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      logger.error('❌ Tipo:', error.constructor.name);
+      logger.error('❌ Mensagem:', error.message);
+      logger.error('❌ Código:', error.code);
+      logger.error('❌ Detalhes:', error.details);
+      logger.error('❌ Hint:', error.hint);
+      logger.error('❌ Stack:', error.stack);
+      logger.error('❌ Objeto completo:', error);
+      logger.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
       
       error('Erro ao salvar horário. Verifique o console (F12).', 5000);
     } finally {
@@ -453,7 +457,7 @@ const Settings = () => {
         
         alert('Configurações importadas com sucesso!');
       } catch (error) {
-        console.error('Erro ao importar configurações:', error);
+        logger.error('Erro ao importar configurações:', error);
         alert('Arquivo de configuração inválido.');
       }
     };
@@ -503,7 +507,7 @@ const Settings = () => {
       setRestaurantName(dadosRestaurante.nomeFantasia);
       alert('Dados do restaurante atualizados com sucesso!');
     } catch (error) {
-      console.error('Erro ao atualizar dados do restaurante:', error);
+      logger.error('Erro ao atualizar dados do restaurante:', error);
       alert('Erro ao atualizar dados do restaurante. Por favor, tente novamente.');
     }
   };
@@ -620,6 +624,20 @@ const Settings = () => {
               <label className="block text-sm font-medium mb-1">Nome do Responsável*</label>
               <input type="text" className="w-full bg-input px-3 py-2 rounded-md" value={dadosRestaurante.nomeResponsavel} onChange={(e) => handleRestauranteChange('nomeResponsavel', e.target.value)} placeholder="Nome da pessoa responsável pelo restaurante" />
             </div>
+            <div>
+              <label className="text-sm font-medium mb-1 flex items-center gap-2">
+                Chave PIX
+                <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Transferência</span>
+              </label>
+              <input 
+                type="text" 
+                className="w-full bg-input px-3 py-2 rounded-md border border-border focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                value={dadosRestaurante.chavePix} 
+                onChange={(e) => handleRestauranteChange('chavePix', e.target.value)} 
+                placeholder="E-mail, CPF, CNPJ, Celular ou Chave Aleatória" 
+              />
+              <p className="text-xs text-muted-foreground mt-1">Sua chave PIX será enviada ao administrador para realização de pagamentos e transferências.</p>
+            </div>
             
             {/* Seção de Logo */}
             <div className="mt-8 border-t border-border pt-6">
@@ -660,7 +678,7 @@ const Settings = () => {
                                 window.location.reload();
                               }, 2000);
                             } catch (err) {
-                              console.error('Erro ao atualizar logo:', err);
+                              logger.error('Erro ao atualizar logo:', err);
                               error('Erro ao atualizar logo. Tente novamente.', 4000);
                             }
                           }
@@ -709,7 +727,7 @@ const Settings = () => {
                                 window.location.reload();
                               }, 2000);
                             } catch (err) {
-                              console.error('Erro ao adicionar logo:', err);
+                              logger.error('Erro ao adicionar logo:', err);
                               error('Erro ao adicionar logo. Tente novamente.', 4000);
                             }
                           } else {
@@ -994,8 +1012,8 @@ const Settings = () => {
             
             {/* Configurações de Impressão */}
             <PrintConfig 
-              onPrinterSelect={(printer) => console.log('Impressora selecionada:', printer)}
-              onTemplateChange={(template) => console.log('Modelo selecionado:', template)}
+              onPrinterSelect={(printer) => logger.log('Impressora selecionada:', printer)}
+              onTemplateChange={(template) => logger.log('Modelo selecionado:', template)}
             />
           </div>
         )}

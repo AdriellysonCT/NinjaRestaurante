@@ -1,5 +1,6 @@
 // Serviço para impressão de comandas e outros documentos
 import { supabase } from '../lib/supabase';
+import logger from '../utils/logger';
 
 const PRINT_HISTORY_KEY = 'fome-ninja-print-history';
 const PRINT_SETTINGS_KEY = 'fome-ninja-print-settings';
@@ -43,7 +44,7 @@ try {
     printHistory = JSON.parse(savedHistory);
   }
 } catch (error) {
-  console.error('Erro ao carregar histórico de impressões:', error);
+  logger.error('Erro ao carregar histórico de impressões:', error);
 }
 
 // Carregar configurações de impressão do localStorage
@@ -54,7 +55,7 @@ try {
     printSettings = { ...defaultPrintSettings, ...JSON.parse(savedSettings) };
   }
 } catch (error) {
-  console.error('Erro ao carregar configurações de impressão:', error);
+  logger.error('Erro ao carregar configurações de impressão:', error);
 }
 
 // Função para buscar dados do restaurante logado
@@ -71,13 +72,13 @@ async function buscarDadosRestaurantePrint() {
       .single();
 
     if (error) {
-      console.error('Erro ao buscar dados do restaurante:', error);
+      logger.error('Erro ao buscar dados do restaurante:', error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Erro ao buscar dados do restaurante:', error);
+    logger.error('Erro ao buscar dados do restaurante:', error);
     return null;
   }
 }
@@ -117,13 +118,13 @@ async function atualizarConfiguracoesRestaurante() {
       
       // Salvar no localStorage
       localStorage.setItem(PRINT_SETTINGS_KEY, JSON.stringify(printSettings));
-      console.log('Configurações do restaurante atualizadas:', printSettings.companyInfo);
+      logger.log('Configurações do restaurante atualizadas:', printSettings.companyInfo);
       
       // Retornar também o bairro/cidade para uso no rodapé
       return bairroCidade;
     }
   } catch (error) {
-    console.error('Erro ao atualizar configurações do restaurante:', error);
+    logger.error('Erro ao atualizar configurações do restaurante:', error);
   }
 }
 
@@ -136,7 +137,7 @@ const savePrintHistory = () => {
     }
     localStorage.setItem(PRINT_HISTORY_KEY, JSON.stringify(printHistory));
   } catch (error) {
-    console.error('Erro ao salvar histórico de impressões:', error);
+    logger.error('Erro ao salvar histórico de impressões:', error);
   }
 };
 
@@ -162,8 +163,8 @@ const sendToPrinter = async (content, settings = {}) => {
   const paperWidth = settings.paperWidth || printSettings.paperWidth || 80;
   const printerName = settings.printerName || printSettings.printerName;
   
-  console.log('Enviando para impressora:', printerName);
-  console.log('Largura do papel:', paperWidth + 'mm');
+  logger.log('Enviando para impressora:', printerName);
+  logger.log('Largura do papel:', paperWidth + 'mm');
   
   // Criar iframe oculto para impressão (melhor compatibilidade que window.open)
   const printFrame = document.createElement('iframe');
@@ -287,7 +288,7 @@ const sendToPrinter = async (content, settings = {}) => {
             message: `Impresso em ${printerName}`
           });
         } catch (error) {
-          console.error('Erro ao imprimir:', error);
+          logger.error('Erro ao imprimir:', error);
           // Fallback: usar window.print diretamente
           window.print();
           resolve({
@@ -311,7 +312,7 @@ export const printService = {
   // Função para imprimir comanda de pedido
   printOrderTicket: async (order, options = {}) => {
     try {
-      console.log('Imprimindo comanda para o pedido #' + order.id);
+      logger.log('Imprimindo comanda para o pedido #' + order.id);
       
       // Atualizar configurações com dados do restaurante e obter bairro/cidade
       const bairroCidade = await atualizarConfiguracoesRestaurante();
@@ -340,7 +341,7 @@ export const printService = {
         historyEntry
       };
     } catch (error) {
-      console.error('Erro ao imprimir comanda:', error);
+      logger.error('Erro ao imprimir comanda:', error);
       
       // Registrar erro no histórico
       addToPrintHistory(
@@ -360,7 +361,7 @@ export const printService = {
   // Função para reimprimir comanda
   reprintOrderTicket: async (order, options = {}) => {
     try {
-      console.log('Reimprimindo comanda para o pedido #' + order.id);
+      logger.log('Reimprimindo comanda para o pedido #' + order.id);
       
       // Atualizar configurações com dados do restaurante e obter bairro/cidade
       const bairroCidade = await atualizarConfiguracoesRestaurante();
@@ -389,7 +390,7 @@ export const printService = {
         historyEntry
       };
     } catch (error) {
-      console.error('Erro ao reimprimir comanda:', error);
+      logger.error('Erro ao reimprimir comanda:', error);
       
       // Registrar erro no histórico
       addToPrintHistory(
@@ -409,7 +410,7 @@ export const printService = {
   // Função para imprimir relatório de pedidos
   printOrdersReport: async (orders, reportType = 'daily', options = {}) => {
     try {
-      console.log(`Imprimindo relatório ${reportType} de pedidos`);
+      logger.log(`Imprimindo relatório ${reportType} de pedidos`);
       
       // Mesclar configurações padrão com opções específicas
       const settings = { ...printSettings, ...options };
@@ -435,7 +436,7 @@ export const printService = {
         historyEntry
       };
     } catch (error) {
-      console.error('Erro ao imprimir relatório:', error);
+      logger.error('Erro ao imprimir relatório:', error);
       
       // Registrar erro no histórico
       addToPrintHistory(
@@ -455,7 +456,7 @@ export const printService = {
   // Função para imprimir múltiplas comandas de uma vez
   printMultipleTickets: async (orders, options = {}) => {
     try {
-      console.log(`Imprimindo ${orders.length} comandas em lote`);
+      logger.log(`Imprimindo ${orders.length} comandas em lote`);
       
       const results = [];
       let successCount = 0;
@@ -467,7 +468,7 @@ export const printService = {
           results.push(result);
           if (result.success) successCount++;
         } catch (error) {
-          console.error(`Erro ao imprimir comanda para pedido #${order.id}:`, error);
+          logger.error(`Erro ao imprimir comanda para pedido #${order.id}:`, error);
           results.push({
             success: false,
             message: `Erro ao imprimir comanda para pedido #${order.id}: ${error.message}`,
@@ -490,7 +491,7 @@ export const printService = {
         results
       };
     } catch (error) {
-      console.error('Erro ao imprimir comandas em lote:', error);
+      logger.error('Erro ao imprimir comandas em lote:', error);
       
       // Registrar erro no histórico
       addToPrintHistory(
@@ -539,7 +540,7 @@ export const printService = {
         settings: { ...printSettings }
       };
     } catch (error) {
-      console.error('Erro ao atualizar configurações de impressão:', error);
+      logger.error('Erro ao atualizar configurações de impressão:', error);
       return {
         success: false,
         message: 'Erro ao atualizar configurações de impressão: ' + error.message
@@ -559,7 +560,7 @@ export const printService = {
         settings: { ...printSettings }
       };
     } catch (error) {
-      console.error('Erro ao restaurar configurações de impressão:', error);
+      logger.error('Erro ao restaurar configurações de impressão:', error);
       return {
         success: false,
         message: 'Erro ao restaurar configurações de impressão: ' + error.message
@@ -570,7 +571,7 @@ export const printService = {
   // Função para imprimir relatório de caixa
   printCashReport: async (relatorio, options = {}) => {
     try {
-      console.log('Imprimindo relatório de caixa');
+      logger.log('Imprimindo relatório de caixa');
       
       // Mesclar configurações padrão com opções específicas
       const settings = { ...printSettings, ...options };
@@ -600,7 +601,7 @@ export const printService = {
         historyEntry
       };
     } catch (error) {
-      console.error('Erro ao imprimir relatório de caixa:', error);
+      logger.error('Erro ao imprimir relatório de caixa:', error);
       
       // Registrar erro no histórico
       addToPrintHistory(
@@ -730,11 +731,11 @@ export const printService = {
   // Impressão automática ao aceitar pedido
   autoPrintOnAccept: async (order, restaurante) => {
     if (!printService.isAutoPrintEnabled()) {
-      console.log('Impressão automática desabilitada');
+      logger.log('Impressão automática desabilitada');
       return { success: false, message: 'Impressão automática desabilitada' };
     }
     
-    console.log('🖨️ Iniciando impressão automática para pedido #' + (order.numero_pedido || order.id));
+    logger.log('🖨️ Iniciando impressão automática para pedido #' + (order.numero_pedido || order.id));
     
     try {
       // Formatar pedido para impressão
@@ -765,14 +766,14 @@ export const printService = {
       });
       
       if (result.success) {
-        console.log('✅ Impressão automática concluída com sucesso');
+        logger.log('✅ Impressão automática concluída com sucesso');
       } else {
         console.warn('⚠️ Impressão automática falhou:', result.message);
       }
       
       return result;
     } catch (error) {
-      console.error('❌ Erro na impressão automática:', error);
+      logger.error('❌ Erro na impressão automática:', error);
       return { success: false, message: error.message };
     }
   },

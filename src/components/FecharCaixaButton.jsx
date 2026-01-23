@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import * as fechamentoCaixaService from '../services/fechamentoCaixaService';
+import { supabase } from '../lib/supabase';
 
 const FecharCaixaModal = ({ isOpen, onClose, resumo, onConfirm, loading }) => {
   if (!isOpen || !resumo) return null;
@@ -16,6 +17,13 @@ const FecharCaixaModal = ({ isOpen, onClose, resumo, onConfirm, loading }) => {
               {new Date(resumo.dataInicio).toLocaleString('pt-BR')} - {resumo.dataFim.toLocaleString('pt-BR')}
             </p>
           </div>
+
+          {resumo.chavePix && (
+            <div className="bg-primary/5 p-3 rounded-md border border-primary/20">
+              <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">Chave PIX para Recebimento</p>
+              <p className="text-sm font-semibold text-primary">{resumo.chavePix}</p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <h3 className="font-semibold text-foreground mb-2">📊 Resumo do Fechamento</h3>
@@ -98,6 +106,25 @@ export default function FecharCaixaButton({ restauranteId, onFechamentoCreated }
         alert('❌ Carteira não encontrada. Entre em contato com o suporte.');
         return;
       }
+      
+      // 2.5 Buscar dados do restaurante (incluindo chave PIX)
+      const { data: restauranteData, error: restError } = await supabase
+        .from('restaurantes_app')
+        .select('chave_pix')
+        .eq('id', restauranteId)
+        .single();
+      
+      if (restError) {
+        console.warn('⚠️ Erro ao buscar chave PIX do restaurante:', restError);
+      }
+      
+      const chavePix = restauranteData?.chave_pix;
+      
+      if (!chavePix) {
+        if (!window.confirm('⚠️ Chave PIX não encontrada nas configurações. Deseja continuar o fechamento mesmo assim? O administrador precisará de outra forma para lhe pagar.')) {
+           return;
+        }
+      }
 
       // 3. Buscar último fechamento
       const ultimoFechamento = await fechamentoCaixaService.fetchUltimoFechamento(restauranteId);
@@ -126,7 +153,8 @@ export default function FecharCaixaButton({ restauranteId, onFechamentoCreated }
         dataFim: new Date(),
         ...valores,
         taxaPlataformaPercent,
-        carteiraId: carteira.id
+        carteiraId: carteira.id,
+        chavePix: chavePix
       });
       setModalOpen(true);
     } catch (error) {
@@ -178,7 +206,7 @@ export default function FecharCaixaButton({ restauranteId, onFechamentoCreated }
         className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 00-2 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
         {loading ? 'Calculando...' : 'Fechar Caixa'}
       </button>

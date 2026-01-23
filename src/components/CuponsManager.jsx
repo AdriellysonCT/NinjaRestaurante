@@ -80,7 +80,7 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
                 type="text"
                 value={formData.codigo}
                 onChange={(e) => setFormData({ ...formData, codigo: e.target.value.toUpperCase() })}
-                className="w-full px-3 py-2 border border-border rounded-md uppercase"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md uppercase text-foreground"
                 placeholder="BEMVINDO10"
                 required
                 maxLength={20}
@@ -93,7 +93,7 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
               <select
                 value={formData.ativo ? 'true' : 'false'}
                 onChange={(e) => setFormData({ ...formData, ativo: e.target.value === 'true' })}
-                className="w-full px-3 py-2 border border-border rounded-md"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
               >
                 <option value="true">Ativo</option>
                 <option value="false">Inativo</option>
@@ -107,7 +107,7 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
               type="text"
               value={formData.descricao}
               onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-              className="w-full px-3 py-2 border border-border rounded-md"
+              className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
               placeholder="Ganhe 10% de desconto na primeira compra"
               required
             />
@@ -120,7 +120,7 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
               <select
                 value={formData.tipo_desconto}
                 onChange={(e) => setFormData({ ...formData, tipo_desconto: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
                 required
               >
                 <option value="percentual">Percentual (%)</option>
@@ -141,7 +141,7 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
                   max={formData.tipo_desconto === 'percentual' ? '100' : undefined}
                   value={formData.valor_desconto}
                   onChange={(e) => setFormData({ ...formData, valor_desconto: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-md"
+                  className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
                   required
                 />
               </div>
@@ -158,7 +158,7 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
                 min="0"
                 value={formData.valor_minimo_pedido}
                 onChange={(e) => setFormData({ ...formData, valor_minimo_pedido: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
                 placeholder="0.00"
               />
             </div>
@@ -172,7 +172,7 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
                   min="0"
                   value={formData.valor_maximo_desconto}
                   onChange={(e) => setFormData({ ...formData, valor_maximo_desconto: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-md"
+                  className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
                   placeholder="Opcional"
                 />
                 <p className="text-xs text-muted-foreground mt-1">Limite o desconto máximo em reais</p>
@@ -189,7 +189,7 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
                 min="1"
                 value={formData.limite_uso_total}
                 onChange={(e) => setFormData({ ...formData, limite_uso_total: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
                 placeholder="Ilimitado"
               />
               <p className="text-xs text-muted-foreground mt-1">Deixe vazio para ilimitado</p>
@@ -202,7 +202,7 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
                 min="1"
                 value={formData.limite_uso_por_cliente}
                 onChange={(e) => setFormData({ ...formData, limite_uso_por_cliente: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
                 placeholder="1"
               />
             </div>
@@ -216,7 +216,7 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
                 type="datetime-local"
                 value={formData.data_inicio}
                 onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
                 required
               />
             </div>
@@ -227,7 +227,7 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
                 type="datetime-local"
                 value={formData.data_fim}
                 onChange={(e) => setFormData({ ...formData, data_fim: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md"
+                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
               />
               <p className="text-xs text-muted-foreground mt-1">Deixe vazio para sem data de expiração</p>
             </div>
@@ -295,10 +295,10 @@ const CupomCard = ({ cupom, onEdit, onDelete, onToggleAtivo, onViewStats }) => {
               <span className="px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded">Inativo</span>
             )}
             {isExpired && (
-              <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded">Expirado</span>
+              <span className="px-2 py-0.5 bg-destructive/20 text-destructive text-xs rounded">Expirado</span>
             )}
             {isExpiringSoon && !isExpired && (
-              <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded">Expira em breve</span>
+              <span className="px-2 py-0.5 bg-warning/20 text-warning text-xs rounded">Expira em breve</span>
             )}
           </div>
           <p className="text-sm text-muted-foreground">{cupom.descricao}</p>
@@ -339,8 +339,8 @@ const CupomCard = ({ cupom, onEdit, onDelete, onToggleAtivo, onViewStats }) => {
           onClick={() => onToggleAtivo(cupom.id, !cupom.ativo)}
           className={`flex-1 px-3 py-1.5 text-sm rounded-md ${
             cupom.ativo
-              ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-              : 'bg-green-100 text-green-800 hover:bg-green-200'
+              ? 'bg-warning/20 text-warning hover:bg-warning/30'
+              : 'bg-success/20 text-success hover:bg-success/30'
           }`}
         >
           {cupom.ativo ? 'Desativar' : 'Ativar'}
@@ -466,11 +466,15 @@ export default function CuponsManager({ restauranteId }) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Cupons de Desconto</h2>
-          <p className="text-sm text-muted-foreground">Crie e gerencie cupons para seus clientes</p>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+            🎟️
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Gerenciar Cupons</h2>
+            <p className="text-sm text-muted-foreground">Configurações e descontos ativos</p>
+          </div>
         </div>
         <button
           onClick={() => {
@@ -489,23 +493,23 @@ export default function CuponsManager({ restauranteId }) {
           type="text"
           value={filters.search}
           onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          placeholder="Buscar por código ou descrição..."
-          className="flex-1 min-w-[200px] px-3 py-2 border border-border rounded-md"
-        />
-        <select
-          value={filters.ativo}
-          onChange={(e) => setFilters({ ...filters, ativo: e.target.value })}
-          className="px-3 py-2 border border-border rounded-md"
-        >
-          <option value="all">Todos os status</option>
-          <option value="true">Ativos</option>
-          <option value="false">Inativos</option>
-        </select>
-        <select
-          value={filters.tipo_desconto}
-          onChange={(e) => setFilters({ ...filters, tipo_desconto: e.target.value })}
-          className="px-3 py-2 border border-border rounded-md"
-        >
+           placeholder="Buscar por código ou descrição..."
+           className="flex-1 min-w-[200px] px-3 py-2 bg-input border border-border rounded-md text-foreground"
+         />
+         <select
+           value={filters.ativo}
+           onChange={(e) => setFilters({ ...filters, ativo: e.target.value })}
+           className="px-3 py-2 bg-input border border-border rounded-md text-foreground"
+         >
+           <option value="all">Todos os status</option>
+           <option value="true">Ativos</option>
+           <option value="false">Inativos</option>
+         </select>
+         <select
+           value={filters.tipo_desconto}
+           onChange={(e) => setFilters({ ...filters, tipo_desconto: e.target.value })}
+           className="px-3 py-2 bg-input border border-border rounded-md text-foreground"
+         >
           <option value="all">Todos os tipos</option>
           <option value="percentual">Percentual</option>
           <option value="valor_fixo">Valor Fixo</option>

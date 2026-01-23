@@ -19,7 +19,7 @@ const normalizeComplement = (complement) => ({
   name: complement.nome || complement.name,
   price: complement.preco || complement.price,
   available: complement.disponivel !== undefined ? complement.disponivel : complement.available,
-  image: complement.imagem || complement.image,
+  image: complement.imagem || complement.imagem_url || complement.image,
   groupIds: complement.groupIds || []
 });
 
@@ -135,9 +135,12 @@ const MenuItemComplements = ({ menuItem, groups, complements, onSave }) => {
 
   // Salvar todas as alterações no banco
   const handleSaveAll = async () => {
-    if (!menuItem.id) {
-      console.error('❌ Item sem ID, não é possível salvar complementos');
-      addToast('Item sem ID, não é possível salvar complementos', 'error');
+    // Verificar se o ID é um UUID válido (padrão Supabase)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(menuItem.id);
+    
+    if (!menuItem.id || !isUUID) {
+      console.error('❌ Item sem ID válido (UUID necessário), não é possível salvar complementos:', menuItem.id);
+      addToast('Por favor, salve primeiro as informações básicas do item antes de gerenciar complementos.', 'error');
       return;
     }
 

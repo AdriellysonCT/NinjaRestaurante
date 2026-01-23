@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 // Ícone definido diretamente - solução definitiva
 const XIcon = (props) => (
@@ -8,16 +9,18 @@ const XIcon = (props) => (
   </svg>
 );
 
-// Debug logging
-if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-  console.log('🔧 [MODAL] Modal.jsx carregado');
-  console.log('🔧 [MODAL] XIcon definido:', typeof XIcon);
-}
-
 export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
   
-  // Definir largura máxima baseada no tamanho
   const maxWidths = {
     sm: '400px',
     md: '550px',
@@ -25,58 +28,64 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
     xl: '1200px'
   };
   
+  // Renderizando DIRETAMENTE no componente, sem Portal, para evitar erros de renderização global
   return (
     <div 
-      style={{
+      style={{ 
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        zIndex: 999999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '1rem'
+        padding: '16px',
+        zIndex: 2147483647,
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        backdropFilter: 'blur(8px)',
+        pointerEvents: 'all'
       }}
       onClick={onClose}
     >
       <div 
         style={{
-          backgroundColor: '#1a1a1a',
-          borderRadius: '12px',
-          padding: '1.25rem',
           width: '100%',
           maxWidth: maxWidths[size] || maxWidths.md,
-          maxHeight: '85vh',
+          maxHeight: '90vh',
           overflowY: 'auto',
           position: 'relative',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-          border: '1px solid #2d2d2d'
+          backgroundColor: '#111111',
+          color: '#ffffff',
+          padding: '24px',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         }}
         onClick={e => e.stopPropagation()}
       >
-        <button 
-          onClick={onClose}
-          style={{
-            position: 'absolute',
-            top: '0.75rem',
-            right: '0.75rem',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#9ca3af',
-            padding: '0.25rem',
-            zIndex: 10
-          }}
-          onMouseEnter={(e) => e.target.style.color = '#ffffff'}
-          onMouseLeave={(e) => e.target.style.color = '#9ca3af'}
-        >
-          <XIcon className="w-5 h-5" />
-        </button>
-        {title && <h2 className="text-xl font-bold mb-4 text-white">{title}</h2>}
-        {children}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '16px' }}>
+          {title && <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>{title}</h2>}
+          <button 
+            onClick={onClose}
+            style={{
+              padding: '8px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              color: 'rgba(255, 255, 255, 0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <XIcon style={{ width: '24px', height: '24px' }} />
+          </button>
+        </div>
+        <div className="modal-body">
+          {children}
+        </div>
       </div>
     </div>
   );

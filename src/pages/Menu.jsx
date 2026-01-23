@@ -8,6 +8,20 @@ import { useAuth } from '../context/AuthContext';
 import ExcelImport from '../components/ExcelImport';
 import MenuItemComplements from '../components/MenuItemComplements';
 import complementsService from '../services/complementsService';
+import { AnimatePresence } from 'framer-motion';
+
+const SuccessToast = ({ message, show }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 50, x: '-50%', scale: 0.8 }}
+    animate={show ? { opacity: 1, y: 0, x: '-50%', scale: 1 } : { opacity: 0, y: 50, x: '-50%', scale: 0.8 }}
+    className="fixed bottom-10 left-1/2 z-[2147483647] bg-[hsl(var(--color-success))] text-white px-8 py-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 font-bold border border-white/20 backdrop-blur-md"
+  >
+    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+      <Icons.CheckIcon className="w-5 h-5" />
+    </div>
+    <span className="text-lg">{message}</span>
+  </motion.div>
+);
 
 // Componente para o item do cardápio
 const initialMenuItems = [
@@ -176,7 +190,7 @@ const MenuItem = ({ item, onEdit, onToggleAvailability }) => {
 
 const Menu = () => {
   // Usar o contexto da aplicação
-  const { menuItems, addMenuItem, updateMenuItem, toggleMenuItemAvailability, isOnline } = useAppContext();
+  const { menuItems, addMenuItem, updateMenuItem, toggleMenuItemAvailability } = useAppContext();
   const { restauranteId } = useAuth();  // ✅ Pegar do contexto de autenticação
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('Todos');
@@ -191,6 +205,14 @@ const Menu = () => {
   const [groups, setGroups] = useState([]);
   const [complements, setComplements] = useState([]);
   const [loadingComplements, setLoadingComplements] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const triggerToast = (msg) => {
+    setToastMessage(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
   // Extrair categorias únicas dos itens do menu
   useEffect(() => {
@@ -314,10 +336,12 @@ const Menu = () => {
   
   const handleSaveComplements = (updatedItem) => {
     setCurrentItem(updatedItem);
+    triggerToast('Complementos vinculados com sucesso!');
   };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+      <SuccessToast show={showToast} message={toastMessage} />
       <div className="flex justify-end gap-3">
         <button 
           onClick={() => setIsImportModalOpen(true)}
@@ -434,14 +458,25 @@ const Menu = () => {
                 📝 Informações
               </button>
               <button
-                onClick={() => setActiveTab('complements')}
-                className={`px-4 py-2 rounded-t-md font-semibold transition-colors ${
+                onClick={() => {
+                  const isNewItem = typeof currentItem.id === 'number' && currentItem.id > 1000;
+                  if (isNewItem) {
+                    triggerToast('Salve o item antes de gerenciar complementos');
+                    return;
+                  }
+                  setActiveTab('complements');
+                }}
+                className={`px-4 py-2 rounded-t-md font-semibold transition-colors flex items-center gap-2 ${
                   activeTab === 'complements'
                     ? 'bg-[#ff6f00] text-white'
                     : 'bg-[#1a1a1a] text-gray-400 hover:bg-[#2a2a2a]'
-                }`}
+                } ${typeof currentItem.id === 'number' && currentItem.id > 1000 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={typeof currentItem.id === 'number' && currentItem.id > 1000 ? "Salve o item primeiro" : ""}
               >
                 🍔 Complementos
+                {typeof currentItem.id === 'number' && currentItem.id > 1000 && (
+                  <span className="text-[10px] bg-red-500/20 text-red-500 px-1 rounded">Bloqueado</span>
+                )}
               </button>
             </div>
 
@@ -560,18 +595,36 @@ const Menu = () => {
                     Cancelar
                   </button>
                   <button 
-                    onClick={() => {
-                      // Verificar se é um novo item (não existe na lista atual)
-                      const isNewItem = !menuItems.find(item => item.id === currentItem.id);
-                      
-                      if (isNewItem) {
-                        // Adicionar novo item
-                        addMenuItem(currentItem);
-                      } else {
-                        // Atualizar item existente
-                        handleSaveItem(currentItem);
+                    onClick={async () => {
+                      if (!currentItem.name?.trim()) {
+                        triggerToast('O nome do item é obrigatório');
+                        return;
                       }
-                      setIsModalOpen(false);
+                      if (currentItem.price === undefined || currentItem.price === null || currentItem.price < 0) {
+                        triggerToast('O preço deve ser um valor válido');
+                        return;
+                      }
+
+                      try {
+                        // Verificar se é um novo item (não existe na lista atual ou tem ID numérico alto)
+                        const isNewItem = typeof currentItem.id === 'number' && currentItem.id > 1000;
+                        
+                        if (isNewItem) {
+                          // Adicionar novo item
+                          const savedItem = await addMenuItem(currentItem);
+                          // Atualizar currentItem com o novo ID (UUID) vindo do banco
+                          setCurrentItem(savedItem);
+                          triggerToast('Informações básicas salvas!');
+                        } else {
+                          // Atualizar item existente
+                          await updateMenuItem(currentItem.id, currentItem);
+                          setIsModalOpen(false); // Fecha o modal apenas na edição de itens existentes
+                          triggerToast('Item atualizado com sucesso!');
+                        }
+                      } catch (err) {
+                        console.error('Erro ao salvar item:', err);
+                        alert('Erro ao salvar: ' + err.message);
+                      }
                     }} 
                     className="w-full py-2 text-sm font-semibold rounded-md bg-[hsl(var(--color-primary))] text-[hsl(var(--color-primary-foreground))] hover:bg-[hsla(var(--color-primary),0.9)]"
                   >

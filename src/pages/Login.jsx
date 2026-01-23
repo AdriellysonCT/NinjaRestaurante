@@ -76,9 +76,9 @@ export function Login() {
         </div>
         
         {loginSucesso ? (
-          <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-md text-center">
+          <div className="p-4 bg-success/20 border border-success text-success rounded-md text-center font-bold">
             <p className="font-medium">Login realizado com sucesso!</p>
-            <p className="mt-2">Redirecionando para o dashboard...</p>
+            <p className="mt-2 text-sm">Redirecionando para o dashboard...</p>
           </div>
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

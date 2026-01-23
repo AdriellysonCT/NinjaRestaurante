@@ -58,6 +58,7 @@ export async function cadastrarRestaurante(dadosRestaurante, senha) {
       telefone: dadosRestaurante.telefone || '',
       email: dadosRestaurante.email,
       nome_responsavel: dadosRestaurante.nomeResponsavel || dadosRestaurante.nome_responsavel || '',
+      chave_pix: dadosRestaurante.chavePix || '',
       ativo: true
     });
     
@@ -82,6 +83,7 @@ export async function cadastrarRestaurante(dadosRestaurante, senha) {
         latitude: dadosRestaurante.latitude || null,
         longitude: dadosRestaurante.longitude || null,
         conta_bancaria: dadosRestaurante.conta_bancaria || null,
+        chave_pix: dadosRestaurante.chavePix || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -208,6 +210,7 @@ export async function atualizarDadosRestaurante(dadosAtualizados) {
         telefone: dadosAtualizados.telefone,
         nome_responsavel: dadosAtualizados.nomeResponsavel,
         imagem_url: dadosAtualizados.imagemUrl || null,
+        chave_pix: dadosAtualizados.chavePix || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', user.id)

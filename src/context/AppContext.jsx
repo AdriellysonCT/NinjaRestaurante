@@ -88,10 +88,13 @@ export const AppProvider = ({ children }) => {
 
   // Função para normalizar tipo de pedido
   const normalizarTipoPedido = (tipoPedido) => {
-    const tipo = tipoPedido?.toLowerCase() || '';
-    if (tipo === 'entrega' || tipo === 'delivery') return 'entrega';
-    if (tipo === 'retirada' || tipo === 'pickup' || tipo === 'retirar') return 'retirada';
-    if (tipo === 'local' || tipo === 'consumo_local' || tipo === 'mesa' || tipo === 'dine_in') return 'local';
+    if (!tipoPedido) return 'entrega';
+    const tipo = String(tipoPedido).toLowerCase().trim();
+    
+    if (tipo.includes('entrega') || tipo.includes('delivery')) return 'entrega';
+    if (tipo.includes('retirada') || tipo.includes('retirar') || tipo.includes('pickup') || tipo.includes('balcao')) return 'retirada';
+    if (tipo.includes('local') || tipo.includes('consumo') || tipo.includes('mesa') || tipo.includes('salao') || tipo.includes('dine')) return 'local';
+    
     return 'entrega'; // padrão
   };
 
@@ -177,12 +180,26 @@ export const AppProvider = ({ children }) => {
     }, QUEUE_WINDOW);
   };
 
+  // Disponibilizar função de teste globalmente para debug
+  useEffect(() => {
+    window.testarSom = (tipo) => {
+      console.log('🧪 Teste de som iniciado para:', tipo);
+      setSoundUnlocked(true); // Forçar desbloqueio para teste
+      tocarSomDireto(tipo || 'entrega');
+    };
+    return () => { delete window.testarSom; };
+  }, []);
+
   // Função para tocar som direto (sem fila)
   const tocarSomDireto = (tipoPedido) => {
     // Usar refs para valores atualizados
     const prefAtual = soundPreferenceRef.current;
     const unlockedAtual = soundUnlockedRef.current;
-    const enabledAtual = prefAtual && unlockedAtual;
+    
+    // Se for um teste explícito (chamado pelo window.testarSom), ignoramos as travas
+    const isTest = window.testarSom && document.activeElement === document.body; // Heurística simples
+    
+    const enabledAtual = prefAtual || isTest; // Permitir teste mesmo se preferência estiver off
     
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('🔔 TOCANDO SOM DIRETO');
@@ -192,8 +209,14 @@ export const AppProvider = ({ children }) => {
     console.log('📋 soundUnlocked (ref):', unlockedAtual);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     
-    if (!enabledAtual) {
-      console.log('🔇 Som desabilitado - soundPreference:', prefAtual, 'soundUnlocked:', unlockedAtual);
+    // Tentar recuperar se estiver bloqueado mas houve interação recente
+    if (!unlockedAtual && navigator.userActivation?.hasBeenActive) {
+        console.log('🔓 Detectado UserActivation ativo, desbloqueando som...');
+        setSoundUnlocked(true);
+    }
+
+    if (!enabledAtual && !unlockedAtual) {
+      console.log('🔇 Som desabilitado ou bloqueado pelo navegador');
       return;
     }
     
@@ -203,40 +226,41 @@ export const AppProvider = ({ children }) => {
     // Selecionar o som EXATO baseado no tipo de pedido
     if (tipo === 'entrega') {
       audioRef = soundEntregaRef;
-      console.log('🔔 Selecionado: som de ENTREGA');
+      console.log('🔔 Selecionado: som de ENTREGA (/sounds/som_entrega.wav)');
     } else if (tipo === 'retirada') {
       audioRef = soundRetiradaRef;
-      console.log('🔔 Selecionado: som de RETIRADA');
+      console.log('🔔 Selecionado: som de RETIRADA (/sounds/som_retirada.wav)');
     } else if (tipo === 'local') {
       audioRef = soundConsumoLocalRef;
-      console.log('🔔 Selecionado: som de CONSUMO NO LOCAL');
+      console.log('🔔 Selecionado: som de CONSUMO NO LOCAL (/sounds/som_consumo_local.wav)');
     }
     
-    console.log('📋 audioRef existe?', !!audioRef);
-    console.log('📋 audioRef.current existe?', !!audioRef?.current);
-    
-    // Tocar o som
     if (audioRef?.current) {
-      console.log('▶️ Tocando som...');
-      audioRef.current.currentTime = 0;
-      audioRef.current.play()
-        .then(() => {
-          console.log('✅ Som tocado com sucesso!');
-          // Marcar como desbloqueado se conseguiu tocar
-          if (!soundUnlockedRef.current) {
-            setSoundUnlocked(true);
-          }
-        })
-        .catch((err) => {
-          // NotAllowedError é esperado quando o usuário ainda não interagiu com a página
-          if (err.name === 'NotAllowedError') {
-            console.log('⏳ Áudio bloqueado - aguardando interação do usuário...');
-          } else {
-            console.error('❌ Erro ao tocar som:', err.message);
-          }
-        });
+      console.log('▶️ Tentando reproduzir áudio...');
+      const audio = audioRef.current;
+      
+      // Resetar propriedades para garantir reprodução
+      audio.currentTime = 0;
+      audio.volume = 1.0;
+      audio.muted = false;
+      
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('✅ Som tocado com sucesso!');
+            if (!soundUnlockedRef.current) setSoundUnlocked(true);
+          })
+          .catch((err) => {
+            console.warn('❌ Falha na reprodução:', err);
+            if (err.name === 'NotAllowedError') {
+                console.log('🔒 O navegador bloqueou o som (Autoplay Policy). Interaja com a página primeiro.');
+            }
+          });
+      }
     } else {
-      console.warn('⚠️ Arquivo de som não encontrado para tipo:', tipoPedido);
+      console.warn('⚠️ Elemento de áudio não encontrado para:', tipo);
     }
   };
 
