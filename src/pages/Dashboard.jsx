@@ -6,6 +6,7 @@ import * as Icons from "../components/icons/index.jsx";
 import { OrderDetailModal } from "../components/OrderDetailModal";
 import { supabase } from "../lib/supabase";
 import { printService } from "../services/printService";
+import { logger } from "../utils/logger";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -55,7 +56,7 @@ const Dashboard = () => {
   const getVisualStage = (order) => {
     if (!order) return 'novas_missoes';
     
-    console.log(`Mapeando pedido ${order.numero_pedido}: status="${order.status}", tipo_pedido="${order.tipo_pedido}", entregador="${order.nome_entregador || 'nenhum'}"`);
+    logger.log(`Mapeando pedido ${order.numero_pedido}: status="${order.status}", tipo_pedido="${order.tipo_pedido}", entregador="${order.nome_entregador || 'nenhum'}"`);
     
     // Para pedidos de retirada/consumo local, fluxo simplificado
     // Fluxo: Novas Missões -> Em Preparo -> Concluído/Cancelado
@@ -168,7 +169,7 @@ const Dashboard = () => {
       setIsLoading(true);
       setError(null);
 
-      console.log("Buscando pedidos para restaurante:", restaurantId);
+      logger.log("Buscando pedidos para restaurante:", restaurantId);
 
       // Buscar pedidos com embedding explícito
       const { data: pedidosData, error: pedidosError } = await supabase
@@ -204,10 +205,10 @@ const Dashboard = () => {
         throw pedidosError;
       }
 
-      console.log("Pedidos encontrados:", pedidosData?.length || 0);
+      logger.log("Pedidos encontrados:", pedidosData?.length || 0);
 
       const pedidosDataFinal = pedidosData || [];
-      console.log("Pedidos processados:", pedidosDataFinal.length);
+      logger.log("Pedidos processados:", pedidosDataFinal.length);
 
       // Transformar dados para o formato esperado pelo frontend
       const formattedOrders = pedidosDataFinal.map((pedido) => {
@@ -216,7 +217,7 @@ const Dashboard = () => {
             const itemPrep = Number(item?.itens_cardapio?.tempo_preparo) || 0;
             return sum + itemPrep;
           }, 0) || 0;
-        console.log(
+        logger.log(
           "Processando pedido:",
           pedido.numero_pedido,
           "Status do banco:",
@@ -273,7 +274,7 @@ const Dashboard = () => {
         };
       });
 
-      console.log("Pedidos formatados:", formattedOrders.length);
+      logger.log("Pedidos formatados:", formattedOrders.length);
       setOrders(formattedOrders);
     } catch (error) {
       console.error("Erro ao buscar pedidos:", error);
@@ -299,14 +300,14 @@ const Dashboard = () => {
   const autoAcceptOrder = useCallback(async (order) => {
     // Verificar se já foi processado
     if (processedOrdersRef.current.has(order.id)) {
-      console.log(`⏭️ Pedido #${order.numero_pedido} já foi processado, ignorando...`);
+      logger.log(`⏭️ Pedido #${order.numero_pedido} já foi processado, ignorando...`);
       return false;
     }
     
     // Marcar como processado
     processedOrdersRef.current.add(order.id);
     
-    console.log(`🤖 Aceitando pedido automaticamente: #${order.numero_pedido}`);
+    logger.log(`🤖 Aceitando pedido automaticamente: #${order.numero_pedido}`);
     
     try {
       const { error: updateError } = await supabase
@@ -324,11 +325,11 @@ const Dashboard = () => {
         return false;
       }
       
-      console.log(`✅ Pedido #${order.numero_pedido} aceito automaticamente!`);
+      logger.log(`✅ Pedido #${order.numero_pedido} aceito automaticamente!`);
       
       // Impressão automática
       try {
-        console.log('🖨️ Disparando impressão automática...');
+        logger.log('🖨️ Disparando impressão automática...');
         const { data: restauranteData } = await supabase
           .from('restaurantes_app')
           .select('*')
@@ -354,7 +355,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!restaurantId) return;
 
-    console.log('📡 Configurando realtime para restaurante:', restaurantId);
+    logger.log('📡 Configurando realtime para restaurante:', restaurantId);
 
     const channel = supabase
       .channel(`pedidos_dashboard_${restaurantId}`)
@@ -370,7 +371,7 @@ const Dashboard = () => {
           const eventType = payload?.eventType;
           const pedidoNum = payload?.new?.numero_pedido || payload?.old?.numero_pedido;
           
-          console.log(`📨 Mudança detectada nos pedidos: ${eventType} - Pedido #${pedidoNum}`);
+          logger.log(`📨 Mudança detectada nos pedidos: ${eventType} - Pedido #${pedidoNum}`);
           
           // Log detalhado para UPDATE
           if (eventType === 'UPDATE') {
@@ -379,7 +380,7 @@ const Dashboard = () => {
             const hasDriver = payload?.new?.id_entregador || payload?.new?.nome_entregador;
             
             if (oldStatus !== newStatus) {
-              console.log(`  📊 Status mudou: "${oldStatus}" -> "${newStatus}"${hasDriver ? ' (com entregador)' : ''}`);
+              logger.log(`  📊 Status mudou: "${oldStatus}" -> "${newStatus}"${hasDriver ? ' (com entregador)' : ''}`);
             }
           }
           
@@ -387,7 +388,7 @@ const Dashboard = () => {
           if (eventType === 'INSERT' && autoAcceptRef.current) {
             const newOrder = payload.new;
             if (newOrder?.status === 'disponivel') {
-              console.log(`  🤖 Novo pedido detectado, aceitação automática ativada`);
+              logger.log(`  🤖 Novo pedido detectado, aceitação automática ativada`);
               // Pequeno delay para garantir que o pedido foi salvo completamente
               setTimeout(() => {
                 autoAcceptOrder(newOrder);
@@ -402,23 +403,23 @@ const Dashboard = () => {
               const newStatus = payload?.new?.status;
               const relevant = ['aceito','coletado','concluido'];
               if (oldStatus !== newStatus && relevant.includes(newStatus)) {
-                console.log(`  🔔 Badge de atualização ativado para pedido #${pedidoNum}`);
+                logger.log(`  🔔 Badge de atualização ativado para pedido #${pedidoNum}`);
                 setDriverUpdatedAt((prev) => ({ ...prev, [payload.new.id]: Date.now() }));
               }
             }
           } catch (_) {}
           
           // Recarregar pedidos quando houver mudanças (ATUALIZAÇÃO EM TEMPO REAL)
-          console.log(`  🔄 Recarregando pedidos em tempo real...`);
+          logger.log(`  🔄 Recarregando pedidos em tempo real...`);
           fetchOrders();
         }
       )
       .subscribe((status) => {
-        console.log('📡 Status do canal realtime:', status);
+        logger.log('📡 Status do canal realtime:', status);
       });
 
     return () => {
-      console.log('📡 Desconectando canal realtime');
+      logger.log('📡 Desconectando canal realtime');
       supabase.removeChannel(channel);
     };
   }, [restaurantId, fetchOrders, autoAcceptOrder]);
@@ -435,7 +436,7 @@ const Dashboard = () => {
       );
       
       if (pendingOrders.length > 0) {
-        console.log(`🔄 Verificação periódica: ${pendingOrders.length} pedidos pendentes encontrados`);
+        logger.log(`🔄 Verificação periódica: ${pendingOrders.length} pedidos pendentes encontrados`);
         for (const order of pendingOrders) {
           await autoAcceptOrder(order);
           await new Promise(resolve => setTimeout(resolve, 300)); // Delay entre pedidos
@@ -483,15 +484,15 @@ const Dashboard = () => {
 
   // Função para tocar som de notificação
   const playNotificationSound = useCallback(() => {
-    console.log('Tentando tocar som de notificação...');
+    logger.log('Tentando tocar som de notificação...');
     if (notificationSoundRef.current) {
-      console.log('Elemento de áudio encontrado, tocando som...');
+      logger.log('Elemento de áudio encontrado, tocando som...');
       notificationSoundRef.current.currentTime = 0;
       notificationSoundRef.current.play().catch((e) => {
         console.warn("Erro ao tocar áudio do arquivo:", e);
         // Fallback: criar som usando Web Audio API
         try {
-          console.log('Tentando fallback com Web Audio API...');
+          logger.log('Tentando fallback com Web Audio API...');
           // @ts-ignore - Suporte para navegadores antigos
           const AudioContextClass =
             window.AudioContext || window.webkitAudioContext;
@@ -517,7 +518,7 @@ const Dashboard = () => {
 
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.3);
-            console.log('Fallback executado com sucesso');
+            logger.log('Fallback executado com sucesso');
           }
         } catch (fallbackError) {
           console.warn("Erro no fallback de áudio:", fallbackError);
@@ -711,7 +712,7 @@ const Dashboard = () => {
         try {
           const orderToprint = orders.find(o => o.id === orderId);
           if (orderToprint) {
-            console.log('🖨️ Disparando impressão automática ao aceitar pedido...');
+            logger.log('🖨️ Disparando impressão automática ao aceitar pedido...');
             // Buscar dados do restaurante
             const { data: restauranteData } = await supabase
               .from('restaurantes_app')
@@ -730,7 +731,7 @@ const Dashboard = () => {
         }
       }
 
-      console.log(`Status do pedido ${orderId} atualizado para ${newStatus}`);
+      logger.log(`Status do pedido ${orderId} atualizado para ${newStatus}`);
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
       // Mostrar erro temporário
@@ -774,7 +775,7 @@ const Dashboard = () => {
       localStorage.setItem('fome-ninja-auto-accept', newValue ? 'true' : 'false');
     } catch (_) {}
     
-    console.log('🔄 Aceitação automática:', newValue ? 'ATIVADA' : 'DESATIVADA');
+    logger.log('🔄 Aceitação automática:', newValue ? 'ATIVADA' : 'DESATIVADA');
 
     // Se desativou, limpar lista de processados para permitir reprocessamento futuro
     if (!newValue) {
@@ -783,18 +784,18 @@ const Dashboard = () => {
     }
 
     // Se ativou, aceitar pedidos pendentes automaticamente
-    console.log('🔍 Verificando pedidos pendentes para aceitar automaticamente...');
+    logger.log('🔍 Verificando pedidos pendentes para aceitar automaticamente...');
     const pedidosPendentes = orders.filter(
       order => order.status === 'disponivel' && !processedOrdersRef.current.has(order.id)
     );
     
     if (pedidosPendentes.length === 0) {
-      console.log('ℹ️ Não há pedidos pendentes para aceitar');
+      logger.log('ℹ️ Não há pedidos pendentes para aceitar');
       return;
     }
     
     setProcessingAutoAccept(true);
-    console.log(`📋 Encontrados ${pedidosPendentes.length} pedidos pendentes para aceitar`);
+    logger.log(`📋 Encontrados ${pedidosPendentes.length} pedidos pendentes para aceitar`);
     
     let successCount = 0;
     let errorCount = 0;
@@ -805,11 +806,11 @@ const Dashboard = () => {
       
       // Verificar se ainda está ativado (usuário pode ter desativado durante o processamento)
       if (!autoAcceptRef.current) {
-        console.log('⏹️ Aceitação automática desativada durante processamento');
+        logger.log('⏹️ Aceitação automática desativada durante processamento');
         break;
       }
       
-      console.log(`⏳ Aceitando pedido ${i + 1}/${pedidosPendentes.length}: #${pedido.numero_pedido}...`);
+      logger.log(`⏳ Aceitando pedido ${i + 1}/${pedidosPendentes.length}: #${pedido.numero_pedido}...`);
       
       const success = await autoAcceptOrder(pedido);
       
@@ -828,9 +829,9 @@ const Dashboard = () => {
     setProcessingAutoAccept(false);
     
     if (errorCount > 0) {
-      console.log(`⚠️ Processamento concluído: ${successCount} aceitos, ${errorCount} erros`);
+      logger.log(`⚠️ Processamento concluído: ${successCount} aceitos, ${errorCount} erros`);
     } else {
-      console.log(`✅ Todos os ${successCount} pedidos pendentes foram aceitos!`);
+      logger.log(`✅ Todos os ${successCount} pedidos pendentes foram aceitos!`);
     }
     
     // Recarregar pedidos para atualizar a UI

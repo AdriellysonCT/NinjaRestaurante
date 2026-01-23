@@ -3,6 +3,8 @@ import { Modal } from './ui/Modal';
 import * as Icons from './icons/index.jsx';
 import { useAuth } from '../context/AuthContext';
 import ImprimirComanda from './ImprimirComanda';
+import { formatPhoneForWhatsApp } from '../utils/phoneFormatter';
+
 // Detalhes do pedido - modal estilizado escuro
 
 export const OrderDetailModal = ({ isOpen, onClose, order }) => {
@@ -14,19 +16,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
   const [error, setError] = useState(null);
   const [printJob, setPrintJob] = useState(null);
 
-  // Função para formatar número de telefone para WhatsApp
-  const formatPhoneForWhatsApp = (phone) => {
-    // Remover todos os caracteres não numéricos
-    const numericOnly = phone ? phone.replace(/\D/g, '') : '';
-    
-    // Se o número já começar com 55 (código do Brasil), não adicionar novamente
-    if (numericOnly.startsWith('55') && numericOnly.length >= 12) {
-      return numericOnly;
-    }
-    
-    // Adicionar 55 (Brasil) se não tiver código de país
-    return `55${numericOnly}`;
-  };
+
 
   // Ações simples: imprimir e WhatsApp
   const handlePrint = () => {
@@ -39,16 +29,16 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
   };
 
   const handleWhatsApp = () => {
-    const phoneRaw = order.telefone_cliente || order.customerPhone || order.phone || '';
-    const digits = (phoneRaw || '').replace(/\D/g, '');
-    if (!digits) {
-      alert('Telefone do cliente não informado neste pedido.');
+    const numericPhone = order.telefone_cliente || order.customerPhone || order.phone || '';
+    const formattedPhone = formatPhoneForWhatsApp(numericPhone);
+
+    if (!formattedPhone) {
+      alert('Telefone do cliente inválido ou não informado neste pedido.');
       return;
     }
-    // Se o número tiver 10 ou 11 dígitos (formato BR sem DDI), prefixa 55
-    const withCountry = digits.length <= 13 && !digits.startsWith('55') ? `55${digits}` : digits;
+    
     const message = `Olá ${order.nome_cliente || order.customerName || ''}, sobre seu pedido #${order.numero_pedido}`;
-    window.open(`https://wa.me/${withCountry}?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   // Helpers de exibição

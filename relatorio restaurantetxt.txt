@@ -1,0 +1,307 @@
+🔒 RELATÓRIO DE SEGURANÇA MOBILE - ANÁLISE DE INTEGRIDADE E ANTI-FRAUDE
+Aplicativo: Entrega Ninja (App de Entregadores)
+Versão Analisada: 2.1.0+20
+Data da Análise: 22/01/2026
+Analista: Especialista em Segurança Mobile
+
+📊 STATUS GERAL DE PROTEÇÃO
+⚠️ VULNERÁVEL - Nível de Risco: CRÍTICO
+O aplicativo NÃO possui nenhuma camada de proteção contra fraudes e manipulação de dispositivos. Está completamente exposto a ataques que podem comprometer a integridade do negócio.
+
+🎯 ANÁLISE DETALHADA POR VETOR DE ATAQUE
+1. ❌ DETECÇÃO DE ROOT/JAILBREAK
+Status: NÃO IMPLEMENTADO
+
+Evidências:
+
+✗ Nenhuma biblioteca de detecção de root encontrada no pubspec.yaml
+✗ Nenhuma verificação de binários suspeitos (su, busybox, Magisk)
+✗ Nenhuma checagem de diretórios modificados (/system/xbin, /sbin)
+✗ Nenhum código nativo (Kotlin/Java) para validação de integridade do sistema
+Risco de Negócio:
+
+Entregadores podem usar dispositivos rootados com módulos Xposed/Magisk para:
+Manipular valores de entregas em tempo real
+Burlar sistema de moedas/XP/ranking
+Interceptar comunicação com backend
+Desabilitar validações do app
+Recomendação:
+
+# Adicionar ao pubspec.yaml
+dependencies:
+  flutter_jailbreak_detection: ^1.10.0
+  safe_device: ^1.1.4
+2. ❌ ANTI-TAMPERING (PROTEÇÃO CONTRA APK MODIFICADO)
+Status: NÃO IMPLEMENTADO
+
+Evidências:
+
+✗ Nenhuma verificação de assinatura do APK
+✗ Nenhuma validação de integridade de código
+✗ Build configurado com chave de DEBUG em produção:
+// android/app/build.gradle.kts (linha 45)
+buildTypes {
+    release {
+        signingConfig = signingConfigs.getByName("debug") // ⚠️ CRÍTICO
+    }
+}
+Risco de Negócio:
+
+Versões modificadas do app podem ser redistribuídas com:
+Valores de entrega adulterados
+Sistema de pagamento desabilitado
+Taxas da plataforma removidas (5% identificado em fechamento_provider.dart:127)
+Backdoors para roubo de dados de clientes
+Recomendação:
+
+Configurar assinatura de produção com keystore próprio
+Implementar verificação de hash do APK no startup
+Usar ProGuard/R8 para ofuscação de código
+3. ❌ DETECÇÃO DE MOCK LOCATION (GPS FALSIFICADO)
+Status: NÃO IMPLEMENTADO - VULNERABILIDADE CRÍTICA
+
+Evidências:
+
+// lib/core/services/location_service.dart (linha 73)
+Position currentPosition = await Geolocator.getCurrentPosition(
+  desiredAccuracy: LocationAccuracy.medium, // ⚠️ Sem validação de mock
+  timeLimit: const Duration(seconds: 8), 
+);
+Análise do Código:
+
+✗ Nenhuma verificação de isMocked ou isFromMockProvider
+✗ Aceita qualquer coordenada GPS sem validação
+✗ Não verifica se o GPS está sendo simulado por apps como:
+Fake GPS Location
+GPS JoyStick
+Mock Locations
+Risco de Negócio - FRAUDE MASSIVA:
+
+Aceitar entregas sem estar na área:
+
+Entregador em casa aceita pedidos de qualquer região
+Simula estar próximo ao restaurante
+Marcar entrega como concluída sem sair de casa:
+
+// lib/presentation/deliveries/providers/delivery_provider.dart (linha 195)
+// Marca como coletado SEM validar proximidade real
+await _supabase.from('entregas_padronizadas').update({
+  'status': DeliveryStatus.coletado,
+})
+Burlar sistema de proximidade:
+
+// lib/core/services/location_service.dart (linha 115)
+// Calcula distância com coordenadas falsas
+final distance = calculateDistance(
+  currentLocation.latitude,
+  currentLocation.longitude,
+  destLat, destLng,
+);
+return distance <= proximityRadius; // ⚠️ Sempre retorna true com GPS fake
+Cenário Real de Fraude:
+
+1. Entregador instala "Fake GPS" no celular
+2. Aceita pedido de R$ 15,00 (bairro distante)
+3. Simula GPS no endereço do restaurante
+4. Marca como "coletado" (ganha código do pedido)
+5. Simula GPS no endereço do cliente
+6. Marca como "concluído"
+7. Recebe R$ 15,00 sem sair de casa
+8. Repete 20x por dia = R$ 300,00 de fraude diária
+Recomendação:
+
+// Adicionar validação de mock location
+Position position = await Geolocator.getCurrentPosition();
+
+// Android: Verificar se é mock
+if (position.isMocked) {
+  throw Exception('GPS simulado detectado. Use sua localização real.');
+}
+
+// Validações adicionais:
+// - Verificar se accuracy < 50 metros
+// - Comparar com última localização conhecida (velocidade impossível)
+// - Validar com triangulação de torres de celular (backend)
+4. ❌ SSL PINNING (PROTEÇÃO CONTRA MAN-IN-THE-MIDDLE)
+Status: NÃO IMPLEMENTADO
+
+Evidências:
+
+// lib/core/services/supabase_service.dart (linha 3)
+class SupabaseService {
+  final SupabaseClient supabase = Supabase.instance.client;
+  // ⚠️ Nenhuma configuração de SSL Pinning
+}
+Risco de Negócio:
+
+Interceptação de tráfego com ferramentas como:
+Charles Proxy
+Burp Suite
+mitmproxy
+Exposição de:
+Tokens de autenticação
+Dados de clientes (endereços, telefones)
+Valores de entregas
+Chaves de API do Supabase
+Recomendação:
+
+dependencies:
+  http_certificate_pinning: ^2.1.1
+5. ❌ DETECÇÃO DE EMULADORES
+Status: NÃO IMPLEMENTADO
+
+Evidências:
+
+✗ Nenhuma verificação de hardware real vs simulado
+✗ Permite execução em Android Studio Emulator, Genymotion, BlueStacks
+Risco de Negócio:
+
+Automação de fraudes em larga escala
+Bots aceitando/concluindo entregas automaticamente
+Testes de penetração facilitados
+6. ❌ PROTEÇÃO CONTRA MEMORY TAMPERING
+Status: NÃO IMPLEMENTADO
+
+Evidências:
+
+✗ Nenhuma proteção contra Lucky Patcher
+✗ Nenhuma proteção contra GameGuardian
+✗ Valores críticos armazenados em memória sem criptografia:
+// lib/presentation/deliveries/providers/delivery_provider.dart
+double totalBruto = 0.0; // ⚠️ Pode ser modificado em runtime
+final totalLiquido = totalBruto - totalDescontos; // ⚠️ Cálculo manipulável
+Risco de Negócio:
+
+Modificação de valores em tempo real:
+Moedas/XP infinitos
+Ganhos inflados
+Taxa da plataforma zerada
+🚨 VULNERABILIDADES CRÍTICAS IDENTIFICADAS
+🔴 CRÍTICO #1: Sistema de Fechamento de Expediente Vulnerável
+Arquivo: lib/presentation/fechamento/providers/fechamento_provider.dart
+
+// Linha 127 - Taxa calculada no CLIENTE (manipulável)
+const taxaPercentual = 0.05; // 5%
+final taxaApp = totalBruto * taxaPercentual;
+final totalLiquido = totalBruto - totalDescontos;
+Fraude Possível:
+
+Modificar taxaPercentual para 0% com Lucky Patcher
+Receber 100% do valor bruto
+🔴 CRÍTICO #2: Aceitar Entrega Sem Validação de Localização
+Arquivo: lib/presentation/deliveries/providers/delivery_provider.dart
+
+// Linha 195 - Aceita pedido sem verificar se está próximo
+Future<bool> acceptDelivery(String deliveryId, [BuildContext? context]) async {
+  // ⚠️ NENHUMA validação de proximidade ao restaurante
+  final updateResult = await _supabase.from('entregas_padronizadas').update({
+    'status': DeliveryStatus.aceito,
+    'id_entregador': userId,
+  })
+}
+Fraude Possível:
+
+Aceitar entregas de qualquer lugar do Brasil
+Monopolizar pedidos de regiões lucrativas
+🔴 CRÍTICO #3: Marcar Como Concluído Sem Validação
+Arquivo: lib/presentation/deliveries/providers/delivery_provider.dart
+
+// Linha 350 - Conclui entrega sem verificar proximidade ao destino
+Future<bool> completeDelivery(String deliveryId, FinanceProvider financeProvider) async {
+  await _supabase.from('entregas_padronizadas').update({
+    'status': DeliveryStatus.concluido,
+    'fim': DateTime.now().toIso8601String(),
+  }).eq('id', deliveryId);
+  
+  // ⚠️ Adiciona ganhos SEM validar se realmente entregou
+  await financeProvider.loadFinancialData();
+}
+🟡 MÉDIO #4: Permissões Excessivas no AndroidManifest
+Arquivo: android/app/src/main/AndroidManifest.xml
+
+<!-- Linha 38 - Permite localização em background sem restrições -->
+<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+Risco:
+
+Rastreamento contínuo mesmo offline
+Consumo excessivo de bateria
+Violação de privacidade
+💰 IMPACTO FINANCEIRO ESTIMADO
+Cenário de Fraude por Entregador Mal-Intencionado:
+| Tipo de Fraude | Ganho por Dia | Ganho Mensal | Detecção | |----------------|---------------|--------------|----------| | GPS Fake (20 entregas/dia × R
+15)∣R 300 | R
+9.000∣Imposs 
+ı
+ˊ
+ vel∣∣Taxazerada(LuckyPatcher)∣+R 15 | +R
+450∣Imposs 
+ı
+ˊ
+ vel∣∣Aceitarpedidosdequalquerregi 
+a
+~
+ o∣+R 100 | +R
+3.000∣Dif 
+ı
+ˊ
+ cil∣∣∗∗TOTALPORENTREGADOR∗∗∣∗∗R 415** | R$ 12.450 | - |
+
+Com 10 entregadores fraudadores: R
+124.500/m 
+e
+^
+ sdepreju 
+ı
+ˊ
+ zo∗∗Com100entregadoresfraudadores:∗∗R 1.245.000/mês de prejuízo
+
+🛡️ RECOMENDAÇÕES PRIORITÁRIAS
+🔥 URGENTE (Implementar em 1-2 semanas):
+Detecção de Mock Location:
+dependencies:
+  geolocator: ^10.1.0
+  trust_location: ^2.0.14 # Detecta GPS fake
+Validação de Proximidade Obrigatória:
+// Antes de aceitar entrega
+final distanciaRestaurante = await LocationService.calculateDistance(...);
+if (distanciaRestaurante > 500) { // 500 metros
+  throw Exception('Você precisa estar próximo ao restaurante');
+}
+
+// Antes de concluir entrega
+final distanciaCliente = await LocationService.calculateDistance(...);
+if (distanciaCliente > 100) { // 100 metros
+  throw Exception('Você precisa estar próximo ao endereço de entrega');
+}
+Mover Cálculos Críticos para Backend:
+-- Calcular taxa no servidor (Supabase Function)
+CREATE OR REPLACE FUNCTION calcular_fechamento(p_user_id UUID)
+RETURNS JSON AS $$
+  -- Cálculo seguro no servidor
+  -- Taxa não pode ser manipulada pelo cliente
+$$;
+📋 IMPORTANTE (Implementar em 1 mês):
+Root Detection:
+dependencies:
+  flutter_jailbreak_detection: ^1.10.0
+SSL Pinning:
+dependencies:
+  http_certificate_pinning: ^2.1.1
+Assinatura de Produção:
+// Criar keystore próprio
+signingConfig = signingConfigs.getByName("release")
+🔍 DESEJÁVEL (Implementar em 3 meses):
+Detecção de Emuladores
+Ofuscação de Código (ProGuard)
+Validação de Integridade do APK
+Logs de Auditoria no Backend
+📝 CONCLUSÃO
+O aplicativo Entrega Ninja está completamente vulnerável a fraudes. A ausência de validações básicas de GPS e a execução de cálculos financeiros no cliente tornam o sistema facilmente explorável.
+
+Prioridade Máxima: Implementar detecção de Mock Location e validação de proximidade antes de qualquer release em produção.
+
+Estimativa de Esforço:
+
+Correções urgentes: 40-60 horas de desenvolvimento
+Testes de segurança: 20 horas
+Total: ~2 semanas com 1 desenvolvedor

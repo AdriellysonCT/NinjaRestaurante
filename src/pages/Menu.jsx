@@ -270,6 +270,20 @@ const Menu = () => {
   };
 
   const handleSaveItem = (updatedItem) => {
+    // Validação básica
+    if (!updatedItem.name || !updatedItem.name.trim()) {
+      alert('O nome do item é obrigatório');
+      return;
+    }
+    if (updatedItem.price === undefined || updatedItem.price === null || updatedItem.price < 0) {
+      alert('O preço do item é obrigatório e não pode ser negativo');
+      return;
+    }
+    if (!updatedItem.category) {
+      alert('A categoria do item é obrigatória');
+      return;
+    }
+
     updateMenuItem(updatedItem.id, updatedItem);
     setIsModalOpen(false);
   };

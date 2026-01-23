@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from './lib/supabase.js';
+import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 import './styles/direct-styles.css';
 import './styles/layout.css';
@@ -198,13 +199,15 @@ function App() {
   
   return (
     <Router>
-      <AuthProvider>
-        <AppProvider>
-          <ThemeContext.Provider value={{ theme: 'dark', toggleTheme: () => {} }}>
-            <AppRoutes />
-          </ThemeContext.Provider>
-        </AppProvider>
-      </AuthProvider>
+      <ErrorBoundary>
+        <AuthProvider>
+          <AppProvider>
+            <ThemeContext.Provider value={{ theme: 'dark', toggleTheme: () => {} }}>
+              <AppRoutes />
+            </ThemeContext.Provider>
+          </AppProvider>
+        </AuthProvider>
+      </ErrorBoundary>
     </Router>
   );
 }
