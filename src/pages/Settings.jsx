@@ -12,7 +12,7 @@ import * as authService from '../services/authService';
 import * as horariosService from '../services/horariosService';
 import { useToast } from '../hooks/useToast';
 import { ToastContainer } from '../components/Toast';
-import logger from '../utils/logger';
+import { logger } from '../utils/logger';
 
 const Settings = () => {
   // Hook de toast para notificações
@@ -1005,7 +1005,6 @@ const Settings = () => {
                 </div>
                 <button onClick={() => setIsBatchPrintOpen(true)} className="p-4 border rounded-lg flex items-center justify-center text-foreground hover:bg-muted">Imprimir Lote</button>
                 <button onClick={() => setIsPrintHistoryOpen(true)} className="p-4 border rounded-lg flex items-center justify-center text-foreground hover:bg-muted">Histórico de Impressão</button>
-                <button onClick={() => setIsPrintConfigModalOpen(true)} className="p-4 border rounded-lg flex items-center justify-center text-foreground hover:bg-muted">Configurar Impressão</button>
                 <button onClick={exportData} className="p-4 border rounded-lg flex items-center justify-center text-foreground hover:bg-muted">Exportar CSV</button>
               </div>
             </div>

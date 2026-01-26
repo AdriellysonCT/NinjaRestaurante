@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import ReactDOM from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TableIcon, UsersIcon, ClockIcon } from '../components/icons/definitions.jsx';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { fetchTables, updateTableStatus, associateOrderToTable, createTable } from '../services/tableService';
-import { createOrder, addItemToOrder, removeItemFromOrder } from '../services/orderService';
+import { fetchTables, updateTableStatus, createTable, releaseTable } from '../services/tableService';
 import { fetchMenuItems } from '../services/menuService';
+import { addItemToMesa, fetchMesaItems, removeItemFromMesa, finalizarMesa } from '../services/mesaItemsService';
+import { printService } from '../services/printService';
 import { supabase } from '../lib/supabase';
 
 // Helpers need to be defined BEFORE using them in TableCard
@@ -109,6 +111,10 @@ const Tables = () => {
   const [showContaModal, setShowContaModal] = useState(false);
   const [contaItens, setContaItens] = useState([]);
   const [contaPedido, setContaPedido] = useState(null);
+  const [addingItem, setAddingItem] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [customerName, setCustomerName] = useState('');
 
   // Atualizar o tempo a cada minuto
   useEffect(() => {
@@ -127,6 +133,32 @@ const Tables = () => {
     } else {
       setLoading(false);
     }
+  }, [restaurante?.id]);
+
+  // Subscription Realtime para mesas
+  useEffect(() => {
+    if (!restaurante?.id) return;
+
+    const channel = supabase
+      .channel('mesas_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'mesas',
+          filter: `id_restaurante=eq.${restaurante.id}`
+        },
+        (payload) => {
+          console.log('Mudança detectada em mesas:', payload);
+          loadTables(); // Recarrega as mesas quando houver mudança
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [restaurante?.id]);
 
   // Função para carregar mesas
@@ -173,41 +205,52 @@ const Tables = () => {
     setShowActionsModal(true);
   };
 
-  const ensureOrderForTable = async (table) => {
-    if (table.id_pedido) return table.id_pedido;
-    const novo = await createOrder({
-      id_restaurante: restaurante.id,
-      mesa_numero: table.numero,
-      tipo_pedido: 'local',
-      status: 'disponivel',
-    });
-    await associateOrderToTable(table.id, novo.id);
-    await loadTables();
-    return novo.id;
-  };
-
   const handleQuickAddItem = async (menuItemId) => {
     try {
-      if (!activeOrderForAdd?.id) return;
+      if (!actionMesa?.id) return;
+      setAddingItem(menuItemId);
       const qty = Number(qtyByItem[menuItemId] || 1);
       const note = noteByItem[menuItemId] || '';
-      await addItemToOrder({ orderId: activeOrderForAdd.id, restaurantId: restaurante.id, menuItemId, quantity: qty, note });
+      
+      await addItemToMesa(actionMesa.id, menuItemId, qty, note);
+      
       setQtyByItem((p)=> ({...p, [menuItemId]: 1}));
       setNoteByItem((p)=> ({...p, [menuItemId]: ''}));
+      await new Promise(r => setTimeout(r, 500));
     } catch (e) {
-      alert('Erro ao adicionar item.');
+      alert('Erro ao adicionar item: ' + e.message);
+    } finally {
+      setAddingItem(null);
     }
   };
 
   const openContaDaMesa = async (table) => {
-    const orderId = await ensureOrderForTable(table);
-    const { data } = await supabase
-      .from('itens_pedido')
-      .select('id, quantidade, preco_unitario, preco_total, observacao_item, itens_cardapio(nome)')
-      .eq('id_pedido', orderId);
-    setContaItens(data||[]);
-    setContaPedido({ id: orderId, mesa: table.numero });
-    setShowContaModal(true);
+    try {
+      const itens = await fetchMesaItems(table.id);
+      setContaItens(itens);
+      setContaPedido({ id: table.id, mesa: table.numero });
+      setShowContaModal(true);
+    } catch (error) {
+      alert('Erro ao carregar conta: ' + error.message);
+    }
+  };
+
+  const handleFinalizarMesa = async (metodoPagamento) => {
+    try {
+      if (!contaPedido) return;
+      
+      const nomeCliente = customerName || `Mesa ${contaPedido.mesa}`;
+      await finalizarMesa(contaPedido.id, metodoPagamento, nomeCliente);
+      
+      setShowContaModal(false);
+      setShowPaymentModal(false);
+      setCustomerName('');
+      await loadTables();
+      
+      alert('Mesa finalizada com sucesso!');
+    } catch (error) {
+      alert('Erro ao finalizar mesa: ' + error.message);
+    }
   };
 
   // Calcular tempo de ocupação
@@ -218,8 +261,6 @@ const Tables = () => {
     const diff = Math.floor((new Date() - start) / (1000 * 60)); // Diferença em minutos
     return diff;
   };
-
-  // helpers agora definidos acima (antes do TableCard)
 
   if (loading) {
     return (
@@ -286,153 +327,482 @@ const Tables = () => {
         ))}
       </div>
 
-      {/* Modal para Adicionar Mesa */}
-      {showNewTableModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-card border border-border rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-xl font-bold text-foreground mb-4">Adicionar Nova Mesa</h2>
+      {/* Modal para Adicionar Mesa - COM PORTAL */}
+      {showNewTableModal && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4" 
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999 }}
+        >
+          <div className="bg-gradient-to-br from-card via-card to-card/95 border-2 border-primary/40 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scaleIn">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 px-6 py-5 border-b border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center">
+                    <span className="text-2xl">🪑</span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">Adicionar Nova Mesa</h2>
+                    <p className="text-xs text-muted-foreground">Configure os detalhes da mesa</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowNewTableModal(false)}
+                  className="w-8 h-8 rounded-full bg-secondary/50 hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
             
-            <div className="space-y-4">
+            {/* Body */}
+            <div className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Número da Mesa
+                <label className="block text-sm font-semibold text-foreground mb-2">
+                  Número da Mesa <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="number"
                   value={newTableNumber}
                   onChange={(e) => setNewTableNumber(e.target.value)}
-                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground font-bold text-lg transition-colors focus:outline-none"
                   placeholder="Ex: 1"
+                  autoFocus
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Capacidade
+                <label className="block text-sm font-semibold text-foreground mb-2">
+                  Capacidade <span className="text-destructive">*</span>
                 </label>
                 <select
                   value={newTableCapacity}
                   onChange={(e) => setNewTableCapacity(e.target.value)}
-                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground transition-colors focus:outline-none"
                 >
-                  <option value="2">2 pessoas</option>
-                  <option value="4">4 pessoas</option>
-                  <option value="6">6 pessoas</option>
-                  <option value="8">8 pessoas</option>
+                  <option value="2">👥 2 pessoas</option>
+                  <option value="4">👥👥 4 pessoas</option>
+                  <option value="6">👥👥👥 6 pessoas</option>
+                  <option value="8">👥👥👥👥 8 pessoas</option>
                 </select>
               </div>
             </div>
             
-            <div className="flex gap-3 mt-6">
+            {/* Footer */}
+            <div className="px-6 pb-6 flex gap-3">
               <button
                 onClick={() => setShowNewTableModal(false)}
-                className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors"
+                className="flex-1 px-4 py-3 border-2 border-border text-foreground rounded-xl hover:bg-secondary transition-colors font-semibold"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCreateTable}
-                className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-xl hover:shadow-lg transition-all font-bold"
               >
-                Criar Mesa
+                + Criar Mesa
               </button>
             </div>
           </div>
-        </div>
+          
+          {/* Estilos de animação */}
+          <style jsx>{`
+            @keyframes scaleIn {
+              from { transform: scale(0.95); opacity: 0; }
+              to { transform: scale(1); opacity: 1; }
+            }
+            
+            .animate-scaleIn {
+              animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+          `}</style>
+        </div>,
+        document.body
       )}
 
-      {/* Modal Conta da Mesa (resumo simplificado) */}
-      {showContaModal && contaPedido && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      {/* Modal Conta da Mesa - COM PORTAL */}
+      {showContaModal && contaPedido && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50000 }}>
           <div className="bg-card border border-border rounded-lg p-6 w-full max-w-lg mx-4">
             <h2 className="text-xl font-bold text-foreground mb-4">Conta da Mesa {contaPedido.mesa}</h2>
             <div className="space-y-2 max-h-80 overflow-auto">
               {contaItens.length === 0 ? (
-                <div className="text-gray-600">Nenhum item.</div>
+                <div className="text-muted-foreground">Nenhum item adicionado.</div>
               ) : (
                 contaItens.map((it)=> (
-                  <div key={it.id} className="flex items-center justify-between border-b pb-2">
+                  <div key={it.id} className="flex items-center justify-between border-b border-border pb-2">
                     <div>
-                      <div className="font-medium">{it.itens_cardapio?.nome}</div>
-                      <div className="text-sm text-gray-600">{it.quantidade} x R$ {Number(it.preco_unitario||0).toFixed(2)}</div>
-                      {it.observacao_item && (
-                        <div className="text-xs text-gray-500">Obs: {it.observacao_item}</div>
+                      <div className="font-medium text-foreground">{it.itens_cardapio?.nome}</div>
+                      <div className="text-sm text-muted-foreground">{it.quantidade} x R$ {Number(it.preco_unitario||0).toFixed(2)}</div>
+                      {it.observacao && (
+                        <div className="text-xs text-muted-foreground">Obs: {it.observacao}</div>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="font-semibold">R$ {Number(it.preco_total ?? (Number(it.quantidade||0)*Number(it.preco_unitario||0))).toFixed(2)}</div>
-                      <button onClick={async()=>{ await removeItemFromOrder({ orderItemId: it.id, orderId: contaPedido.id }); await openContaDaMesa({ id_pedido: contaPedido.id, numero: contaPedido.mesa }); }} className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600">Remover</button>
+                      <div className="font-semibold text-foreground">R$ {(Number(it.quantidade||0)*Number(it.preco_unitario||0)).toFixed(2)}</div>
+                      <button 
+                        onClick={async()=>{ 
+                          await removeItemFromMesa(it.id); 
+                          const itens = await fetchMesaItems(contaPedido.id);
+                          setContaItens(itens);
+                        }} 
+                        className="px-2 py-1 text-sm bg-destructive text-white rounded hover:bg-destructive/80"
+                      >
+                        Remover
+                      </button>
                     </div>
                   </div>
                 ))
               )}
             </div>
-            <div className="border-t mt-4 pt-3 flex justify-between">
-              <div className="font-semibold">Total</div>
-              <div className="font-bold">R$ {Number(contaItens.reduce((acc, it)=> acc + Number(it.preco_total ?? (Number(it.quantidade||0)*Number(it.preco_unitario||0))), 0)).toFixed(2)}</div>
+            <div className="border-t border-border mt-4 pt-3 flex justify-between">
+              <div className="font-semibold text-foreground">Total</div>
+              <div className="font-bold text-primary text-xl">
+                R$ {contaItens.reduce((acc, it)=> acc + (Number(it.quantidade||0)*Number(it.preco_unitario||0)), 0).toFixed(2)}
+              </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={()=>setShowContaModal(false)} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Fechar</button>
+              <button 
+                onClick={()=>setShowContaModal(false)} 
+                className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-secondary"
+              >
+                Fechar
+              </button>
+              <button 
+                onClick={async () => {
+                  try {
+                    await printService.printOrderTicket({
+                      id: contaPedido.id,
+                      numero_pedido: contaPedido.mesa,
+                      customerName: `Mesa ${contaPedido.mesa}`,
+                      items: contaItens.map(it => ({
+                        name: it.itens_cardapio?.nome,
+                        qty: it.quantidade,
+                        price: it.preco_unitario,
+                        observacao: it.observacao
+                      })),
+                      total: contaItens.reduce((acc, it)=> acc + (Number(it.quantidade||0)*Number(it.preco_unitario||0)), 0),
+                      tipo_pedido: 'local'
+                    });
+                  } catch (error) {
+                    alert('Erro ao imprimir: ' + error.message);
+                  }
+                }} 
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-bold flex items-center justify-center gap-2"
+              >
+                <span>🖨️</span>
+                Imprimir
+              </button>
+              <button 
+                onClick={() => {
+                  setShowPaymentModal(true);
+                }} 
+                className="flex-1 px-4 py-3 bg-success text-white rounded-lg hover:brightness-110 font-bold"
+              >
+                Finalizar
+              </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Modal Ações da Mesa */}
-      {showActionsModal && actionMesa && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Mesa {actionMesa.numero} - Ações</h2>
-            <div className="grid grid-cols-2 gap-3">
-              <button onClick={async ()=>{ await updateTableStatus(actionMesa.id,'disponivel'); await loadTables(); setShowActionsModal(false); }} className="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">Disponível</button>
-              <button onClick={async ()=>{ await updateTableStatus(actionMesa.id,'reservada'); await loadTables(); setShowActionsModal(false); }} className="px-3 py-2 bg-yellow-200 rounded hover:bg-yellow-300">Reservar</button>
-              <button onClick={async ()=>{ await updateTableStatus(actionMesa.id,'ocupada',{ started_at: new Date().toISOString() }); const id = await ensureOrderForTable(actionMesa); setActiveOrderForAdd({ id, mesa: actionMesa.numero }); setShowAddItemModal(true); setShowActionsModal(false); }} className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Adicionar Itens</button>
-              <button onClick={async ()=>{ await openContaDaMesa(actionMesa); setShowActionsModal(false); }} className="px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600">Conta da Mesa</button>
+      {/* Modal Pagamento - COM PORTAL PARA FICAR NA FRENTE */}
+      {showPaymentModal && contaPedido && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999 }}>
+          <div className="bg-card border border-border rounded-3xl p-6 w-full max-w-md mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-2xl font-black text-foreground mb-2">Finalizar Mesa {contaPedido.mesa}</h2>
+            <p className="text-sm text-muted-foreground mb-6">Escolha o método de pagamento</p>
+            
+            <div className="space-y-3 mb-6">
+              {[
+                { id: 'dinheiro', label: 'Dinheiro', icon: '💵' },
+                { id: 'pix', label: 'PIX', icon: '📱' },
+                { id: 'cartao_credito', label: 'Cartão de Crédito', icon: '💳' },
+                { id: 'cartao_debito', label: 'Cartão de Débito', icon: '💳' }
+              ].map(method => (
+                <button
+                  key={method.id}
+                  onClick={() => setPaymentMethod(method.id)}
+                  className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all border-2 ${
+                    paymentMethod === method.id
+                      ? 'bg-primary/20 border-primary text-primary'
+                      : 'bg-secondary/50 border-transparent text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  <span className="text-2xl">{method.icon}</span>
+                  <span className="font-bold">{method.label}</span>
+                </button>
+              ))}
             </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={()=> setShowActionsModal(false)} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Fechar</button>
+
+            <div className="border-t border-border pt-4 mb-6">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Total a Pagar</span>
+                <span className="text-2xl font-black text-primary">
+                  R$ {contaItens.reduce((acc, it)=> acc + (Number(it.quantidade||0)*Number(it.preco_unitario||0)), 0).toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  setPaymentMethod('');
+                }}
+                className="flex-1 px-4 py-3 border border-border text-foreground rounded-xl hover:bg-secondary"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleFinalizarMesa(paymentMethod)}
+                disabled={!paymentMethod}
+                className={`flex-1 px-4 py-3 rounded-xl font-bold ${
+                  paymentMethod
+                    ? 'bg-success text-white hover:brightness-110'
+                    : 'bg-muted text-muted-foreground/30 cursor-not-allowed'
+                }`}
+              >
+                Confirmar
+              </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Modal Adicionar Itens */}
-      {showAddItemModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-          <div className="w-full max-w-4xl mx-4 rounded-lg overflow-hidden bg-background border border-primary">
-            <div className="p-4 flex items-center justify-between bg-card border-b border-primary">
-              <h2 className="text-lg font-bold text-primary">Adicionar Itens — Mesa {activeOrderForAdd?.mesa}</h2>
+      {/* Modal Ações da Mesa - REDESIGN MODERNO COM PORTAL */}
+      {showActionsModal && actionMesa && typeof document !== 'undefined' && document.body && ReactDOM.createPortal(
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowActionsModal(false)}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999 }}
+        >
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ type: "spring", duration: 0.3 }}
+            className="bg-card border border-border rounded-3xl shadow-2xl w-full max-w-md overflow-hidden relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-6 py-5 border-b border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center">
+                    <TableIcon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-foreground">Mesa {actionMesa.numero}</h2>
+                    <p className="text-xs text-muted-foreground font-medium">Escolha uma ação</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowActionsModal(false)}
+                  className="w-8 h-8 rounded-full bg-secondary/50 hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Actions Grid */}
+            <div className="p-6 space-y-3">
+              <button 
+                onClick={async () => { 
+                  await updateTableStatus(actionMesa.id, 'disponivel'); 
+                  await loadTables(); 
+                  setShowActionsModal(false); 
+                }} 
+                className="w-full flex items-center gap-4 px-5 py-4 bg-secondary/50 hover:bg-secondary rounded-2xl transition-all group border border-border hover:border-primary/30"
+              >
+                <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <span className="text-xl">✓</span>
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-bold text-foreground">Marcar Disponível</div>
+                  <div className="text-xs text-muted-foreground">Mesa livre para novos clientes</div>
+                </div>
+              </button>
+
+              <button 
+                onClick={async () => { 
+                  await updateTableStatus(actionMesa.id, 'reservada'); 
+                  await loadTables(); 
+                  setShowActionsModal(false); 
+                }} 
+                className="w-full flex items-center gap-4 px-5 py-4 bg-secondary/50 hover:bg-secondary rounded-2xl transition-all group border border-border hover:border-primary/30"
+              >
+                <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <span className="text-xl">🔒</span>
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-bold text-foreground">Reservar Mesa</div>
+                  <div className="text-xs text-muted-foreground">Bloquear para reserva</div>
+                </div>
+              </button>
+
+              <button 
+                onClick={async () => { 
+                  // Marcar mesa como ocupada se não estiver
+                  if (actionMesa.status !== 'ocupada') {
+                    await updateTableStatus(actionMesa.id, 'ocupada', { started_at: new Date().toISOString() });
+                    await loadTables();
+                  }
+                  
+                  setShowAddItemModal(true); 
+                  setShowActionsModal(false); 
+                }} 
+                className="w-full flex items-center gap-4 px-5 py-4 bg-primary/10 hover:bg-primary/20 rounded-2xl transition-all group border border-primary/30"
+              >
+                <div className="w-10 h-10 bg-primary/30 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <span className="text-xl">➕</span>
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-bold text-primary">Adicionar Itens</div>
+                  <div className="text-xs text-muted-foreground">Fazer pedido para a mesa</div>
+                </div>
+              </button>
+
+              <button 
+                onClick={async () => { 
+                  await openContaDaMesa(actionMesa); 
+                  setShowActionsModal(false); 
+                }} 
+                className="w-full flex items-center gap-4 px-5 py-4 bg-secondary/50 hover:bg-secondary rounded-2xl transition-all group border border-border hover:border-success/30"
+              >
+                <div className="w-10 h-10 bg-success/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <span className="text-xl">💰</span>
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="font-bold text-foreground">Conta da Mesa</div>
+                  <div className="text-xs text-muted-foreground">Ver itens e total</div>
+                </div>
+              </button>
+            </div>
+
+            {/* Finalizar Mesa - Sempre disponível */}
+            <div className="px-6 pb-6">
+              <button 
+                onClick={async () => { 
+                  await openContaDaMesa(actionMesa);
+                  setShowActionsModal(false);
+                  setShowPaymentModal(true);
+                }} 
+                className="w-full flex items-center justify-center gap-3 px-5 py-4 bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 text-white rounded-2xl transition-all font-bold shadow-lg hover:shadow-xl"
+              >
+                <span className="text-xl">🏁</span>
+                Finalizar e Liberar Mesa
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>,
+        document.body
+      )}
+
+      {/* Modal Adicionar Itens - COM PORTAL */}
+      {showAddItemModal && actionMesa && typeof document !== 'undefined' && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div className="w-full max-w-4xl rounded-lg overflow-hidden bg-background border border-primary flex flex-col max-h-[90vh] relative">
+            {/* Header */}
+            <div className="p-4 flex items-center justify-between bg-card border-b border-primary flex-shrink-0">
+              <h2 className="text-lg font-bold text-primary">Adicionar Itens — Mesa {actionMesa.numero}</h2>
               <button onClick={() => setShowAddItemModal(false)} className="text-muted-foreground hover:text-foreground">✕</button>
             </div>
-            <div className="p-4">
-              <div className="flex flex-wrap gap-3 mb-4">
-                <input value={searchTerm} onChange={(e)=>setSearchTerm(e.target.value)} placeholder="Buscar item..." className="flex-1 min-w-[200px] px-3 py-2 rounded-md bg-input text-foreground border border-border focus:border-primary focus:outline-none" />
-                <select value={categoryFilter} onChange={(e)=>setCategoryFilter(e.target.value)} className="px-3 py-2 rounded-md bg-input text-foreground border border-border focus:border-primary focus:outline-none">
+            
+            {/* Barra de Pesquisa FIXA */}
+            <div className="px-4 py-3 bg-background border-b border-border flex-shrink-0">
+              <div className="flex flex-wrap gap-3">
+                <input 
+                  value={searchTerm} 
+                  onChange={(e) => setSearchTerm(e.target.value)} 
+                  placeholder="Buscar item..." 
+                  className="flex-1 min-w-[200px] px-3 py-2 rounded-md bg-input text-foreground border border-border focus:border-primary focus:outline-none" 
+                />
+                <select 
+                  value={categoryFilter} 
+                  onChange={(e) => setCategoryFilter(e.target.value)} 
+                  className="px-3 py-2 rounded-md bg-input text-foreground border border-border focus:border-primary focus:outline-none"
+                >
                   <option value="">Todas categorias</option>
-                  {[...new Set(menuItems.map(i=>i.categoria).filter(Boolean))].map(cat=> (<option key={cat} value={cat}>{cat}</option>))}
+                  {[...new Set(menuItems.map(i => i.categoria).filter(Boolean))].map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
                 </select>
               </div>
+            </div>
+
+            {/* Área de Scroll com os Itens */}
+            <div className="p-4 overflow-y-auto flex-1 scrollbar-hide">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {menuItems.filter(i => (categoryFilter ? i.categoria === categoryFilter : true)).filter(i => i.nome?.toLowerCase().includes(searchTerm.toLowerCase())).map((it)=> (
-                  <div key={it.id} className="rounded-lg p-3 flex flex-col relative bg-card border border-border">
-                    <div className="text-foreground font-semibold mb-1 truncate">{it.nome}</div>
-                    <div className="text-sm text-muted-foreground mb-2 truncate">{it.categoria || '—'}</div>
-                    <div className="text-primary font-bold mb-3">R$ {Number(it.preco||0).toFixed(2)}</div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <input type="number" min={1} value={qtyByItem[it.id] || 1} onChange={(e)=> setQtyByItem(prev=> ({ ...prev, [it.id]: parseInt(e.target.value||'1',10) }))} className="w-20 px-2 py-1 rounded bg-input text-foreground border border-border focus:border-primary focus:outline-none" />
-                      <input type="text" placeholder="Obs." value={noteByItem[it.id] || ''} onChange={(e)=> setNoteByItem(prev=> ({ ...prev, [it.id]: e.target.value }))} className="flex-1 px-2 py-1 rounded bg-input text-foreground border border-border focus:border-primary focus:outline-none" />
+                {menuItems
+                  .filter(i => (categoryFilter ? i.categoria === categoryFilter : true))
+                  .filter(i => i.nome?.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map((it) => (
+                    <div key={it.id} className="rounded-lg p-3 flex flex-col bg-card border border-border">
+                      <div className="text-foreground font-semibold mb-1 truncate" title={it.nome}>{it.nome}</div>
+                      <div className="text-sm text-muted-foreground mb-2 truncate">{it.categoria || '—'}</div>
+                      <div className="text-primary font-bold mb-3">R$ {Number(it.preco || 0).toFixed(2)}</div>
+                      
+                      <div className="space-y-2 mt-auto">
+                        <input 
+                          type="number" 
+                          min={1} 
+                          value={qtyByItem[it.id] || 1} 
+                          onChange={(e) => setQtyByItem(prev => ({ ...prev, [it.id]: parseInt(e.target.value || '1', 10) }))} 
+                          className="w-full px-3 py-2 rounded bg-input text-foreground border border-border focus:border-primary focus:outline-none text-center font-bold" 
+                          placeholder="Qtd"
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="Observações (opcional)" 
+                          value={noteByItem[it.id] || ''} 
+                          onChange={(e) => setNoteByItem(prev => ({ ...prev, [it.id]: e.target.value }))} 
+                          className="w-full px-3 py-2 rounded bg-input text-foreground border border-border focus:border-primary focus:outline-none text-sm" 
+                        />
+                      </div>
+                      
+                      <button 
+                        onClick={() => handleQuickAddItem(it.id)} 
+                        disabled={addingItem === it.id}
+                        className={`w-full px-3 py-2 rounded text-primary-foreground mt-2 transition-colors font-bold ${
+                          addingItem === it.id 
+                            ? 'bg-success cursor-default' 
+                            : 'bg-primary hover:bg-primary/90'
+                        }`}
+                      >
+                        {addingItem === it.id ? '✓ Adicionado!' : 'Adicionar'}
+                      </button>
                     </div>
-                    <button onClick={()=> handleQuickAddItem(it.id)} className="w-full px-3 py-2 rounded text-primary-foreground mt-auto bg-primary hover:bg-primary/90 transition-colors">Adicionar</button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button onClick={()=> setShowAddItemModal(false)} className="px-4 py-2 rounded bg-muted text-muted-foreground hover:bg-muted/80 transition-colors">Fechar</button>
-                <button onClick={async ()=>{ setShowAddItemModal(false); if (activeOrderForAdd?.id) { await openContaDaMesa({ id_pedido: activeOrderForAdd.id, numero: activeOrderForAdd.mesa }); } }} className="px-4 py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">Finalizar</button>
+                  ))}
               </div>
             </div>
+
+            <div className="p-4 border-t border-border flex justify-end gap-3 flex-shrink-0 bg-background">
+              <button 
+                onClick={() => setShowAddItemModal(false)} 
+                className="px-4 py-2 rounded bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+              >
+                Fechar
+              </button>
+              <button 
+                onClick={async () => { 
+                  setShowAddItemModal(false); 
+                  await openContaDaMesa(actionMesa); 
+                }} 
+                className="px-4 py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                Ver Conta
+              </button>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

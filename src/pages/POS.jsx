@@ -1,890 +1,451 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from '../components/icons/index.jsx';
-const { CashRegisterIcon, DollarSignIcon, CreditCardIcon, QrCodeIcon, CalculatorIcon, PrinterIcon } = Icons;
 import { useAppContext } from '../context/AppContext';
 import { printService } from '../services/printService';
 import { createOrder } from '../services/orderService';
+import { logger } from '../utils/logger';
 
 const POS = () => {
   const { menuItems } = useAppContext();
   const [cart, setCart] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [cashReceived, setCashReceived] = useState('');
-  const [showCalculator, setShowCalculator] = useState(false);
   const [customerName, setCustomerName] = useState('');
-  const [popularItems, setPopularItems] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
   
-  // Novos estados para as funcionalidades
-  const [comandas, setComandas] = useState([]); // Sistema de comandas
+  const [comandas, setComandas] = useState([]); 
   const [comandaAtiva, setComandaAtiva] = useState(null);
   const [numeroComanda, setNumeroComanda] = useState('');
-  const [itensEmFalta, setItensEmFalta] = useState([]);
   const [showComandas, setShowComandas] = useState(false);
-  const [showItensEmFalta, setShowItensEmFalta] = useState(false);
 
-  // Extrair categorias únicas dos itens do menu
-  useEffect(() => {
-    const uniqueCategories = ['Todos', ...new Set(menuItems.map(item => item.category))];
-    setCategories(uniqueCategories);
-    
-    // Definir itens populares (simulação - em um ambiente real, isso viria de estatísticas)
-    const popular = menuItems
-      .filter(item => item.available)
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 6);
-    setPopularItems(popular);
-    
-    // Simular itens em falta (baseado em disponibilidade)
-    const emFalta = menuItems.filter(item => !item.available);
-    setItensEmFalta(emFalta);
+  // Ref para scroll horizontal com mouse wheel
+  const categoriesScrollRef = useRef(null);
+
+  const categories = useMemo(() => {
+    return ['Todos', ...new Set(menuItems.map(item => item.category))];
   }, [menuItems]);
 
-  // Carregar comandas do localStorage
+  const popularItems = useMemo(() => {
+    return menuItems.filter(item => item.available && item.featured).slice(0, 6);
+  }, [menuItems]);
+
   useEffect(() => {
-    const savedComandas = localStorage.getItem('fome-ninja-comandas');
-    if (savedComandas) {
-      setComandas(JSON.parse(savedComandas));
-    }
+    const saved = localStorage.getItem('fome-ninja-comandas');
+    if (saved) setComandas(JSON.parse(saved));
   }, []);
 
-  // Salvar comandas no localStorage
   useEffect(() => {
     localStorage.setItem('fome-ninja-comandas', JSON.stringify(comandas));
   }, [comandas]);
 
-  // Filtrar itens do menu
-  const filteredItems = menuItems.filter(item => {
-    const matchesCategory = selectedCategory === 'Todos' || item.category === selectedCategory;
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const isAvailable = item.available;
-    
-    return matchesCategory && matchesSearch && isAvailable;
-  });
+  // Hook para scroll horizontal com mouse wheel
+  useEffect(() => {
+    const scrollContainer = categoriesScrollRef.current;
+    if (!scrollContainer) return;
 
-  // Adicionar item ao carrinho
+    const handleWheel = (e) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        scrollContainer.scrollLeft += e.deltaY;
+      }
+    };
+
+    scrollContainer.addEventListener('wheel', handleWheel, { passive: false });
+    return () => scrollContainer.removeEventListener('wheel', handleWheel);
+  }, []);
+
+  const filteredItems = useMemo(() => {
+    return menuItems.filter(item => {
+      const matchesCategory = selectedCategory === 'Todos' || item.category === selectedCategory;
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch && item.available;
+    });
+  }, [menuItems, selectedCategory, searchTerm]);
+
   const addToCart = (item) => {
-    const existingItem = cart.find(cartItem => cartItem.id === item.id);
-    
-    if (existingItem) {
-      setCart(cart.map(cartItem => 
-        cartItem.id === item.id 
-          ? { ...cartItem, qty: cartItem.qty + 1 } 
-          : cartItem
-      ));
-    } else {
-      setCart([...cart, { ...item, qty: 1 }]);
-    }
+    setCart(prev => {
+      const existing = prev.find(i => i.id === item.id);
+      if (existing) {
+        return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
+      }
+      return [...prev, { ...item, qty: 1 }];
+    });
   };
 
-  // Remover item do carrinho
   const removeFromCart = (itemId) => {
-    const existingItem = cart.find(item => item.id === itemId);
-    
-    if (existingItem.qty > 1) {
-      setCart(cart.map(item => 
-        item.id === itemId 
-          ? { ...item, qty: item.qty - 1 } 
-          : item
-      ));
-    } else {
-      setCart(cart.filter(item => item.id !== itemId));
-    }
+    setCart(prev => {
+      const existing = prev.find(i => i.id === itemId);
+      if (existing.qty > 1) {
+        return prev.map(i => i.id === itemId ? { ...i, qty: i.qty - 1 } : i);
+      }
+      return prev.filter(i => i.id !== itemId);
+    });
   };
 
-  // Limpar carrinho
   const clearCart = () => {
     setCart([]);
     setPaymentMethod('');
     setCashReceived('');
     setCustomerName('');
-    setShowCalculator(false);
+    setComandaAtiva(null);
   };
 
-  // Calcular total do carrinho
   const cartTotal = cart.reduce((total, item) => total + (item.price * item.qty), 0);
-
-  // Calcular troco
   const calculateChange = () => {
-    if (!cashReceived || paymentMethod !== 'cash') return 0;
-    const received = parseFloat(cashReceived);
+    const received = parseFloat(cashReceived) || 0;
     return received > cartTotal ? received - cartTotal : 0;
   };
 
-  // Funções do sistema de comandas
-  const criarComanda = () => {
-    if (!numeroComanda.trim()) {
-      alert('Digite o número da comanda/mesa');
-      return;
+  const handleOpenComanda = () => {
+    if (!numeroComanda) return;
+    const exists = comandas.find(c => c.numero === numeroComanda);
+    if (exists) {
+        setComandaAtiva(exists);
+        setCart(exists.items);
+        setCustomerName(exists.customerName);
+    } else {
+        const newComanda = {
+            id: Date.now(),
+            numero: numeroComanda,
+            items: [],
+            total: 0,
+            customerName: `Mesa ${numeroComanda}`,
+            createdAt: new Date().toISOString()
+        };
+        setComandas([...comandas, newComanda]);
+        setComandaAtiva(newComanda);
+        setCart([]);
     }
-    
-    const comandaExistente = comandas.find(c => c.numero === numeroComanda);
-    if (comandaExistente) {
-      alert('Comanda já existe! Use "Abrir Comanda" para continuar.');
-      return;
-    }
-    
-    const novaComanda = {
-      id: Date.now(),
-      numero: numeroComanda,
-      items: [],
-      total: 0,
-      status: 'aberta',
-      createdAt: new Date().toISOString(),
-      customerName: customerName || `Mesa ${numeroComanda}`
-    };
-    
-    setComandas([...comandas, novaComanda]);
-    setComandaAtiva(novaComanda);
-    setCart([]);
     setNumeroComanda('');
-    alert(`Comanda ${numeroComanda} criada com sucesso!`);
-  };
-
-  const abrirComanda = (comanda) => {
-    setComandaAtiva(comanda);
-    setCart(comanda.items);
-    setCustomerName(comanda.customerName);
     setShowComandas(false);
   };
 
-  const salvarComanda = () => {
-    if (!comandaAtiva) return;
-    
-    const comandasAtualizadas = comandas.map(c => 
-      c.id === comandaAtiva.id 
-        ? { ...c, items: cart, total: cartTotal, updatedAt: new Date().toISOString() }
-        : c
-    );
-    
-    setComandas(comandasAtualizadas);
-    setComandaAtiva(null);
-    setCart([]);
-    setCustomerName('');
-    alert('Comanda salva com sucesso!');
-  };
-
-  const fecharComanda = async () => {
-    if (!comandaAtiva) return;
-    
-    if (cart.length === 0) {
-      alert('Adicione itens à comanda antes de fechar');
-      return;
-    }
-    
-    if (!paymentMethod) {
-      alert('Selecione um método de pagamento');
-      return;
-    }
-    
-    if (paymentMethod === 'cash' && parseFloat(cashReceived) < cartTotal) {
-      alert('Valor recebido é menor que o total da comanda!');
-      return;
-    }
-    
+  const handleFinishOrder = async () => {
+    if (cart.length === 0 || !paymentMethod || isProcessing) return;
     setIsProcessing(true);
-    
     try {
-      // Simular processamento
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Criar pedido final ajustado para a nova estrutura
       const orderData = {
-        customerName: comandaAtiva.customerName,
-        total: cartTotal,
-        subtotal: cartTotal, // Assumindo subtotal igual ao total por simplicidade
-        taxaEntrega: 0,
-        desconto: 0,
-        status: 'concluido',
-        tipoPedido: 'local',
-        paymentMethod,
-        pagamentoRecebido: paymentMethod === 'cash' ? true : false,
-        prepTime: 0,
-        deliveryTime: null,
-        isVip: false,
-        mesaNumero: comandaAtiva.numero,
-        observacoes: ''
-      };
-
-      // Salvar no Supabase
-      const savedOrder = await createOrder(orderData);
-
-      // Preparar order para impressão com itens
-      const orderForPrint = {
-        ...savedOrder,
-        items: cart,
-        cashReceived: paymentMethod === 'cash' ? parseFloat(cashReceived) : null,
-        change: paymentMethod === 'cash' ? calculateChange() : null,
-        timestamp: new Date().toISOString(),
-        type: 'comanda',
-        comandaNumero: comandaAtiva.numero
-      };
-      
-      // Imprimir comprovante
-      await printService.printOrderTicket(orderForPrint);
-      
-      // Remover comanda da lista
-      setComandas(comandas.filter(c => c.id !== comandaAtiva.id));
-      
-      // Mostrar confirmação
-      setOrderDetails(orderForPrint);
-      setOrderComplete(true);
-      
-      // Limpar estados
-      setComandaAtiva(null);
-      clearCart();
-      
-      setTimeout(() => {
-        setOrderComplete(false);
-        setOrderDetails(null);
-      }, 5000);
-    } catch (error) {
-      console.error('Erro ao fechar comanda:', error);
-      alert('Erro ao fechar comanda. Tente novamente.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const cancelarComanda = () => {
-    if (!comandaAtiva) return;
-    
-    if (confirm(`Deseja cancelar a comanda ${comandaAtiva.numero}?`)) {
-      setComandas(comandas.filter(c => c.id !== comandaAtiva.id));
-      setComandaAtiva(null);
-      clearCart();
-      alert('Comanda cancelada');
-    }
-  };
-
-  // Processar pagamento
-  const processPayment = async () => {
-    if (cart.length === 0) return;
-    
-    if (paymentMethod === 'cash' && parseFloat(cashReceived) < cartTotal) {
-      alert('Valor recebido é menor que o total da compra!');
-      return;
-    }
-    
-    setIsProcessing(true);
-    
-    try {
-      // Simular processamento de pagamento
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Criar objeto de pedido ajustado para a nova estrutura
-      const orderData = {
-        customerName: customerName || 'Cliente Balcão',
+        customerName: customerName || (comandaAtiva ? `Mesa ${comandaAtiva.numero}` : 'Balcão'),
         total: cartTotal,
         subtotal: cartTotal,
-        taxaEntrega: 0,
-        desconto: 0,
+        tipo_pedido: comandaAtiva ? 'local' : 'retirada',
         status: 'concluido',
-        tipoPedido: 'retirada',
-        paymentMethod,
-        pagamentoRecebido: true,
-        prepTime: 0,
-        deliveryTime: null,
-        isVip: false,
-        mesaNumero: null,
-        observacoes: ''
+        metodo_pagamento: paymentMethod,
+        pagamento_recebido_pelo_sistema: true,
+        mesa_numero: comandaAtiva?.numero || null,
+        items: cart.map(i => ({ 
+            id_item_cardapio: i.id, 
+            quantidade: i.qty, 
+            preco_unitario: i.price,
+            name: i.name 
+        }))
       };
-
-      // Salvar no Supabase
       const savedOrder = await createOrder(orderData);
-
-      // Preparar order para impressão com itens
-      const orderForPrint = {
+      await printService.printOrderTicket({
         ...savedOrder,
         items: cart,
-        cashReceived: paymentMethod === 'cash' ? parseFloat(cashReceived) : null,
-        change: paymentMethod === 'cash' ? calculateChange() : null,
-        timestamp: new Date().toISOString(),
-        type: 'pos'
-      };
-      
-      // Imprimir comprovante
-      const printResult = await printService.printOrderTicket(orderForPrint);
-      console.log('Comprovante impresso:', printResult);
-      
-      // Mostrar confirmação
-      setOrderDetails(orderForPrint);
+        troco: calculateChange(),
+        valor_recebido: parseFloat(cashReceived) || cartTotal
+      });
+      if (comandaAtiva) setComandas(prev => prev.filter(c => c.id !== comandaAtiva.id));
+      setOrderDetails({ ...savedOrder, change: calculateChange() });
       setOrderComplete(true);
-      
-      // Limpar carrinho após alguns segundos
-      setTimeout(() => {
-        clearCart();
-        setOrderComplete(false);
-        setOrderDetails(null);
-      }, 5000);
+      clearCart();
+      setTimeout(() => setOrderComplete(false), 4000);
     } catch (error) {
-      console.error('Erro ao processar pagamento:', error);
-      alert('Erro ao processar pagamento. Por favor, tente novamente.');
+      logger.error('Erro no checkout POS:', error);
+      alert('Falha ao processar venda: ' + error.message);
     } finally {
       setIsProcessing(false);
     }
-  };
-
-  // Renderizar calculadora
-  const renderCalculator = () => {
-    const buttons = [
-      '7', '8', '9',
-      '4', '5', '6',
-      '1', '2', '3',
-      '0', '00', '.',
-      'C', 'Exato', '⌫'
-    ];
-    
-    const handleCalcButton = (btn) => {
-      if (btn === 'C') {
-        setCashReceived('');
-      } else if (btn === '⌫') {
-        setCashReceived(prev => prev.slice(0, -1));
-      } else if (btn === 'Exato') {
-        setCashReceived(cartTotal.toFixed(2));
-      } else {
-        setCashReceived(prev => {
-          // Evitar múltiplos pontos decimais
-          if (btn === '.' && prev.includes('.')) return prev;
-          
-          // Limitar a 2 casas decimais
-          const newValue = prev + btn;
-          const parts = newValue.split('.');
-          if (parts.length > 1 && parts[1].length > 2) {
-            return prev;
-          }
-          
-          return newValue;
-        });
-      }
-    };
-    
-    return (
-      <div className="grid grid-cols-3 gap-2 mt-4">
-        {buttons.map((btn, index) => (
-          <button
-            key={index}
-            onClick={() => handleCalcButton(btn)}
-            className={`py-3 text-sm font-medium rounded-md ${
-              btn === 'Exato' 
-                ? 'bg-primary text-primary-foreground' 
-                : btn === 'C' || btn === '⌫' 
-                  ? 'bg-destructive text-destructive-foreground' 
-                  : 'bg-secondary text-secondary-foreground'
-            }`}
-          >
-            {btn}
-          </button>
-        ))}
-      </div>
-    );
   };
 
   return (
-    <div className="p-2 sm:p-4 space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-bold">PDV - Ponto de Venda</h2>
-        <div className="flex gap-2">
-          {/* Botões do sistema de comandas */}
-          <button 
-            onClick={() => setShowComandas(!showComandas)}
-            className="bg-primary text-primary-foreground px-3 py-1 rounded-md text-sm font-semibold hover:bg-primary/90"
-          >
-            Comandas ({comandas.length})
-          </button>
-          <button 
-            onClick={() => setShowItensEmFalta(!showItensEmFalta)}
-            className={`px-3 py-1 rounded-md text-sm font-semibold ${
-              itensEmFalta.length > 0 
-                ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' 
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
-          >
-            Em Falta ({itensEmFalta.length})
-          </button>
-          <button 
-            onClick={clearCart}
-            disabled={cart.length === 0 || isProcessing}
-            className="bg-destructive text-destructive-foreground px-3 py-1 rounded-md text-sm font-semibold hover:bg-destructive/90 disabled:opacity-50"
-          >
-            Limpar
-          </button>
-        </div>
-      </div>
-
-      {/* Sistema de Comandas */}
-      {showComandas && (
-        <div className="ninja-card p-4 space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="font-bold">Sistema de Comandas</h3>
-            <button 
-              onClick={() => setShowComandas(false)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              ✕
-            </button>
-          </div>
-          
-          {/* Criar nova comanda */}
-          <div className="flex gap-2">
-            <input 
-              type="text" 
-              placeholder="Número da mesa/comanda" 
-              className="flex-1 bg-input px-3 py-2 rounded-md text-sm"
-              value={numeroComanda}
-              onChange={(e) => setNumeroComanda(e.target.value)}
-            />
-            <button 
-              onClick={criarComanda}
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-semibold hover:bg-primary/90"
-            >
-              Nova Comanda
-            </button>
-          </div>
-          
-          {/* Lista de comandas */}
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {comandas.length > 0 ? (
-              comandas.map(comanda => (
-                <div key={comanda.id} className="flex justify-between items-center p-3 border border-border rounded-md">
-                  <div>
-                    <p className="font-medium">Mesa {comanda.numero}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {comanda.items.length} itens • R$ {comanda.total.toFixed(2)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(comanda.createdAt).toLocaleTimeString()}
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
-                    <button 
-                      onClick={() => abrirComanda(comanda)}
-                      className="bg-primary text-primary-foreground px-2 py-1 rounded text-xs hover:bg-primary/90"
-                    >
-                      Abrir
-                    </button>
-                    <button 
-                      onClick={() => {
-                        if (confirm(`Cancelar comanda ${comanda.numero}?`)) {
-                          setComandas(comandas.filter(c => c.id !== comanda.id));
-                        }
-                      }}
-                      className="bg-destructive text-destructive-foreground px-2 py-1 rounded text-xs hover:bg-destructive/90"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-muted-foreground py-4">Nenhuma comanda aberta</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Itens em Falta */}
-      {showItensEmFalta && (
-        <div className="ninja-card p-4 space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="font-bold text-destructive">Itens em Falta ({itensEmFalta.length})</h3>
-            <button 
-              onClick={() => setShowItensEmFalta(false)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              ✕
-            </button>
-          </div>
-          
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {itensEmFalta.length > 0 ? (
-              itensEmFalta.map(item => (
-                <div key={item.id} className="flex justify-between items-center p-3 border border-destructive/20 rounded-md bg-destructive/5">
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.category}</p>
-                  </div>
-                  <div className="text-xs text-destructive font-medium">
-                    Indisponível
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-muted-foreground py-4">Todos os itens estão disponíveis! 🎉</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Status da Comanda Ativa */}
-      {comandaAtiva && (
-        <div className="ninja-card p-4 bg-primary/10 border-primary/20">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="font-bold text-primary">Comanda Ativa: Mesa {comandaAtiva.numero}</h3>
-              <p className="text-xs text-muted-foreground">
-                Cliente: {comandaAtiva.customerName} • Criada: {new Date(comandaAtiva.createdAt).toLocaleTimeString()}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button 
-                onClick={salvarComanda}
-                className="bg-secondary text-secondary-foreground px-3 py-1 rounded-md text-sm font-semibold hover:bg-secondary/80"
-              >
-                Salvar
-              </button>
-              <button 
-                onClick={fecharComanda}
-                disabled={cart.length === 0 || !paymentMethod || isProcessing}
-                className="bg-success text-success-foreground px-3 py-1 rounded-md text-sm font-semibold hover:bg-success/90 disabled:opacity-50"
-              >
-                Fechar Comanda
-              </button>
-              <button 
-                onClick={cancelarComanda}
-                className="bg-destructive text-destructive-foreground px-3 py-1 rounded-md text-sm font-semibold hover:bg-destructive/90"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Coluna da esquerda - Itens do menu */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Filtros */}
-          <div className="ninja-card p-4 space-y-4">
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="flex-1">
-                <input 
-                  type="text" 
-                  placeholder="Buscar item..." 
-                  className="w-full bg-input px-3 py-2 rounded-md text-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div>
-                <select 
-                  className="bg-input px-3 py-2 rounded-md text-sm"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-          
-          {/* Itens populares */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Itens Populares</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-              {popularItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => addToCart(item)}
-                  className="ninja-card p-2 text-center hover:border-primary transition-colors"
-                >
-                  <div className="w-full h-16 bg-secondary/30 rounded-md mb-1 flex items-center justify-center">
-                    {item.image ? (
-                      <img src={item.image} alt={item.name} className="h-full object-cover rounded-md" />
-                    ) : (
-                      <span className="text-xs text-muted-foreground">{item.name.substring(0, 1)}</span>
-                    )}
-                  </div>
-                  <p className="text-xs font-medium truncate">{item.name}</p>
-                  <p className="text-xs text-primary">R$ {item.price.toFixed(2)}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Lista de itens */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Todos os Itens</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-[50vh] overflow-y-auto pr-2">
-              {filteredItems.map(item => (
-                <div
-                  key={item.id}
-                  onClick={() => addToCart(item)}
-                  className="ninja-card p-3 flex items-center gap-3 cursor-pointer hover:border-primary transition-colors"
-                >
-                  <div className="w-12 h-12 bg-secondary/30 rounded-md flex items-center justify-center">
-                    {item.image ? (
-                      <img src={item.image} alt={item.name} className="h-full object-cover rounded-md" />
-                    ) : (
-                      <span className="text-xs text-muted-foreground">{item.name.substring(0, 1)}</span>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{item.name}</p>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xs text-muted-foreground truncate">{item.category}</p>
-                      <p className="text-xs font-medium text-primary">R$ {item.price.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              
-              {filteredItems.length === 0 && (
-                <div className="col-span-full text-center py-8 text-muted-foreground">
-                  Nenhum item encontrado com os filtros atuais.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+    <div className="flex flex-col h-full bg-background p-4 gap-6 select-none">
+      <div className="flex flex-1 gap-6 overflow-hidden">
         
-        {/* Coluna da direita - Carrinho e pagamento */}
-        <div className="space-y-4">
-          {/* Carrinho */}
-          <div className="ninja-card p-4 space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-bold">Carrinho</h3>
-              <span className="text-xs text-muted-foreground">{cart.length} itens</span>
-            </div>
-            
-            <div className="space-y-2 max-h-[30vh] overflow-y-auto pr-2">
-              {cart.length > 0 ? (
-                cart.map(item => (
-                  <div key={item.id} className="flex justify-between items-center border-b border-border pb-2">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">R$ {item.price.toFixed(2)} x {item.qty}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">R$ {(item.price * item.qty).toFixed(2)}</p>
-                      <div className="flex items-center border border-border rounded-md">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeFromCart(item.id);
-                          }}
-                          className="px-2 py-1 text-xs"
-                        >
-                          -
-                        </button>
-                        <span className="px-2 py-1 text-xs">{item.qty}</span>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart(item);
-                          }}
-                          className="px-2 py-1 text-xs"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  Carrinho vazio
-                </div>
-              )}
-            </div>
-            
-            <div className="border-t border-border pt-4">
-              <div className="flex justify-between items-center">
-                <span className="font-bold">Total</span>
-                <span className="font-bold text-lg text-primary">R$ {cartTotal.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
+        {/* Coluna 1: PRODUTOS */}
+        <div className="flex-[7] flex flex-col gap-5 min-w-0">
           
-          {/* Informações do cliente */}
-          <div className="ninja-card p-4">
-            <label className="block text-sm font-medium mb-1">Nome do Cliente (opcional)</label>
-            <input 
-              type="text" 
-              className="w-full bg-input px-3 py-2 rounded-md text-sm"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Cliente balcão"
-            />
-          </div>
-          
-          {/* Métodos de pagamento */}
-          <div className="ninja-card p-4 space-y-4">
-            <h3 className="font-bold">Método de Pagamento</h3>
-            
-            <div className="grid grid-cols-3 gap-2">
-              <button 
-                onClick={() => {
-                  setPaymentMethod('cash');
-                  setShowCalculator(true);
-                }}
-                className={`flex flex-col items-center justify-center p-3 rounded-md ${
-                  paymentMethod === 'cash' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-secondary text-secondary-foreground'
-                }`}
-              >
-                <DollarSignIcon className="w-6 h-6 mb-1" />
-                <span className="text-xs">Dinheiro</span>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setPaymentMethod('card');
-                  setShowCalculator(false);
-                }}
-                className={`flex flex-col items-center justify-center p-3 rounded-md ${
-                  paymentMethod === 'card' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-secondary text-secondary-foreground'
-                }`}
-              >
-                <CreditCardIcon className="w-6 h-6 mb-1" />
-                <span className="text-xs">Cartão</span>
-              </button>
-              
-              <button 
-                onClick={() => {
-                  setPaymentMethod('pix');
-                  setShowCalculator(false);
-                }}
-                className={`flex flex-col items-center justify-center p-3 rounded-md ${
-                  paymentMethod === 'pix' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-secondary text-secondary-foreground'
-                }`}
-              >
-                <QrCodeIcon className="w-6 h-6 mb-1" />
-                <span className="text-xs">PIX</span>
-              </button>
+          {/* CABEÇALHO PILL - CORREÇÃO DE ALINHAMENTO MATEMÁTICO */}
+          <div className="bg-card border border-border h-16 rounded-full px-6 flex items-center justify-between shadow-sm flex-shrink-0">
+            <div className="flex items-center gap-3 h-full">
+              <div className="w-10 h-10 bg-[#fb923c20] rounded-xl flex items-center justify-center">
+                <Icons.CashRegisterIcon className="w-5 h-5 text-orange-400" />
+              </div>
+              <span className="text-xl font-black text-white leading-none tracking-tight">
+                PDV Balcão
+              </span>
             </div>
             
-            {/* Calculadora para pagamento em dinheiro */}
-            {paymentMethod === 'cash' && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium mb-1">Valor Recebido</label>
-                    <input 
-                      type="text" 
-                      className="w-full bg-input px-3 py-2 rounded-md text-sm"
-                      value={cashReceived}
-                      onChange={(e) => setCashReceived(e.target.value)}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Troco</label>
-                    <div className="bg-secondary/30 px-3 py-2 rounded-md text-sm">
-                      R$ {calculateChange().toFixed(2)}
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => setShowCalculator(!showCalculator)}
-                    className="mt-5 bg-secondary text-secondary-foreground p-2 rounded-md"
-                  >
-                    <CalculatorIcon className="w-5 h-5" />
-                  </button>
-                </div>
-                
-                {showCalculator && renderCalculator()}
-              </div>
-            )}
-            
-            {/* Botão de finalizar */}
             <button 
-              onClick={processPayment}
-              disabled={cart.length === 0 || !paymentMethod || isProcessing || 
-                (paymentMethod === 'cash' && (!cashReceived || parseFloat(cashReceived) < cartTotal))}
-              className="w-full py-3 text-sm font-semibold rounded-md bg-success text-success-foreground hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => setShowComandas(true)} 
+              className="bg-[#3b4b61] hover:bg-[#4a5b75] text-white px-6 h-11 rounded-full text-sm font-black flex items-center gap-2 transition-all shadow-md active:scale-95"
             >
-              {isProcessing ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-success-foreground border-t-transparent rounded-full animate-spin"></div>
-                  Processando...
-                </div>
-              ) : (
-                <div className="flex items-center justify-center gap-2">
-                  <PrinterIcon className="w-4 h-4" />
-                  Finalizar Pedido
-                </div>
-              )}
+              <Icons.ClipboardListIcon className="w-4 h-4 text-orange-400" />
+              <span className="leading-none">Comandas ({comandas.length})</span>
             </button>
           </div>
+
+          {/* BUSCA PILL */}
+          <div className="relative flex-shrink-0">
+            <div className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 flex items-center justify-center">
+              <Icons.SearchIcon className="w-5 h-5" />
+            </div>
+            <input 
+              type="text" 
+              placeholder="Pesquisar produto pelo nome..."
+              className="w-full bg-card border border-border h-14 rounded-full pl-16 pr-6 text-white text-base focus:ring-2 focus:ring-primary focus:outline-none transition-all placeholder:text-muted-foreground/50"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {/* CATEGORIAS PILLS - DESIGN MELHORADO SEM SCROLLBAR */}
+          <div className="relative flex-shrink-0">
+            <div 
+              ref={categoriesScrollRef}
+              className="flex items-center gap-3 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth"
+            >
+               {categories.map(cat => (
+                 <button
+                   key={cat}
+                   onClick={() => setSelectedCategory(cat)}
+                   className={`h-11 px-6 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap ${
+                     selectedCategory === cat 
+                       ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' 
+                       : 'bg-card border border-border text-muted-foreground hover:text-white hover:border-primary/30 hover:bg-card/80'
+                   }`}
+                 >
+                   {cat}
+                 </button>
+               ))}
+            </div>
+            {/* Gradient fade para indicar scroll */}
+            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+          </div>
+
+          {/* GRID DE PRODUTOS */}
+          <div className="flex-1 overflow-y-auto pr-2 space-y-8 pb-8 custom-scrollbar">
+             {popularItems.length > 0 && selectedCategory === 'Todos' && !searchTerm && (
+               <section className="space-y-4">
+                  <h3 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground/30 ml-4">Mais Vendidos</h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                     {popularItems.map(item => (
+                       <button
+                          key={item.id}
+                          onClick={() => addToCart(item)}
+                          className="bg-card border border-border p-3 rounded-2xl hover:border-primary/50 transition-all flex flex-col items-center gap-2 text-center group"
+                       >
+                          <div className="w-full aspect-square bg-secondary/30 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
+                             {item.image ? (
+                               <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                             ) : (
+                               <div className="text-2xl opacity-10">🍱</div>
+                             )}
+                          </div>
+                          <div className="space-y-0.5 w-full">
+                             <p className="font-bold text-[10px] text-white line-clamp-1">{item.name}</p>
+                             <p className="font-black text-primary text-xs">R$ {item.price.toFixed(2)}</p>
+                          </div>
+                       </button>
+                     ))}
+                  </div>
+               </section>
+             )}
+
+             <section className="space-y-4">
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground/30 ml-4">Todos os Itens</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                   {filteredItems.map(item => (
+                     <button
+                       key={item.id}
+                       onClick={() => addToCart(item)}
+                       className="bg-card border border-border p-4 rounded-3xl hover:bg-white/[0.02] hover:border-primary/30 transition-all flex items-center gap-5 text-left group active:scale-[0.98]"
+                     >
+                       <div className="w-16 h-16 bg-secondary/30 rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center">
+                          {item.image ? (
+                             <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                             <div className="text-2xl opacity-10">🍱</div>
+                          )}
+                       </div>
+                       <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-base text-white truncate mb-1">{item.name}</h4>
+                          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-50">{item.category}</p>
+                       </div>
+                       <div className="text-right">
+                          <p className="font-black text-primary text-base whitespace-nowrap">R$ {item.price.toFixed(2)}</p>
+                       </div>
+                     </button>
+                   ))}
+                </div>
+             </section>
+          </div>
         </div>
-      </div>
-      
-      {/* Confirmação de pedido */}
-      {orderComplete && orderDetails && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="ninja-card p-6 max-w-md w-full mx-4"
-          >
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center mx-auto">
-                <div className="w-8 h-8 bg-success rounded-full flex items-center justify-center">
-                  <span className="text-success-foreground text-lg">✓</span>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-bold">Pedido Finalizado!</h3>
-                <p className="text-sm text-muted-foreground">
-                  {orderDetails.type === 'comanda' 
-                    ? `Comanda ${orderDetails.comandaNumero} fechada com sucesso`
-                    : 'Pedido do balcão finalizado com sucesso'
-                  }
-                </p>
-              </div>
-              
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>Cliente:</span>
-                  <span className="font-medium">{orderDetails.customerName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Total:</span>
-                  <span className="font-medium">R$ {orderDetails.total.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Pagamento:</span>
-                  <span className="font-medium">
-                    {orderDetails.paymentMethod === 'cash' ? 'Dinheiro' : 
-                     orderDetails.paymentMethod === 'card' ? 'Cartão' : 'PIX'}
-                  </span>
-                </div>
-                {orderDetails.paymentMethod === 'cash' && (
+
+        {/* Coluna 2: CHECKOUT - REDESIGN LIMPO */}
+        <div className="flex-[3] flex flex-col gap-5 min-w-[340px]">
+          
+          {/* Card Carrinho - Estilo Moderno */}
+          <div className="bg-card border border-border rounded-3xl shadow-xl overflow-hidden flex-1 flex flex-col min-h-0">
+             <div className="px-6 py-4 flex justify-between items-center">
+                <h2 className="font-black text-lg text-foreground">Carrinho</h2>
+                <span className="text-sm font-bold text-muted-foreground">{cart.length} {cart.length === 1 ? 'item' : 'itens'}</span>
+             </div>
+             
+             <div className="flex-1 overflow-y-auto px-6 space-y-3 custom-scrollbar">
+                {cart.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground/40 py-12">
+                    <Icons.ShoppingBagIcon className="w-16 h-16 mb-3 opacity-20" />
+                    <p className="text-base font-bold">Carrinho vazio</p>
+                  </div>
+                ) : (
+                  cart.map(item => (
+                    <div key={item.id} className="flex items-center gap-3 py-3 border-b border-border/30 last:border-0">
+                       <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-sm text-foreground truncate">{item.name}</h4>
+                          <p className="text-xs text-primary font-black mt-0.5">R$ {item.price.toFixed(2)}</p>
+                       </div>
+                       <div className="flex items-center gap-3 bg-secondary/50 rounded-xl px-2 py-1">
+                          <button onClick={() => removeFromCart(item.id)} className="text-muted-foreground hover:text-primary transition-colors p-1">
+                            <Icons.MinusIcon className="w-4 h-4" />
+                          </button>
+                          <span className="font-black text-sm text-foreground min-w-[24px] text-center">{item.qty}</span>
+                          <button onClick={() => addToCart(item)} className="text-muted-foreground hover:text-primary transition-colors p-1">
+                            <Icons.PlusIcon className="w-4 h-4" />
+                          </button>
+                       </div>
+                    </div>
+                  ))
+                )}
+             </div>
+
+             <div className="px-6 py-5 border-t border-border bg-secondary/5 flex justify-between items-center">
+                <span className="text-base font-bold text-foreground">Total</span>
+                <div className="text-3xl font-black text-primary">R$ {cartTotal.toFixed(2)}</div>
+             </div>
+          </div>
+
+          {/* Card Nome do Cliente */}
+          <div className="bg-card border border-border rounded-3xl shadow-lg p-6">
+             <div className="flex justify-between items-center mb-3">
+                <h3 className="font-black text-base text-foreground">Nome do Cliente (opcional)</h3>
+                {comandaAtiva && (
+                  <div className="bg-primary/20 text-primary text-xs font-black px-3 py-1 rounded-full border border-primary/30">
+                      MESA {comandaAtiva.numero}
+                  </div>
+                )}
+             </div>
+             <input 
+                type="text" 
+                placeholder="Cliente balcão"
+                className="w-full bg-secondary/50 text-foreground px-5 py-3.5 rounded-2xl border border-border focus:border-primary/50 focus:outline-none font-medium text-sm transition-all placeholder:text-muted-foreground/50"
+                value={customerName}
+                onChange={e => setCustomerName(e.target.value)}
+             />
+          </div>
+
+          {/* Card Método de Pagamento */}
+          <div className="bg-card border border-border rounded-3xl shadow-lg p-6 space-y-5">
+             <h3 className="font-black text-base text-foreground">Método de Pagamento</h3>
+             
+             <div className="grid grid-cols-3 gap-3">
+                {[
+                    { id: 'cash', label: 'Dinheiro', icon: Icons.DollarSignIcon },
+                    { id: 'card', label: 'Cartão', icon: Icons.CreditCardIcon },
+                    { id: 'pix', label: 'PIX', icon: Icons.QrCodeIcon }
+                ].map(method => (
+                    <button 
+                        key={method.id}
+                        onClick={() => setPaymentMethod(method.id)}
+                        className={`flex flex-col items-center gap-2 py-5 rounded-2xl transition-all ${
+                            paymentMethod === method.id 
+                                ? 'bg-primary text-white shadow-lg shadow-primary/30' 
+                                : 'bg-secondary/50 text-muted-foreground hover:bg-secondary/70'
+                        }`}
+                    >
+                        <method.icon className="w-7 h-7" />
+                        <span className="text-xs font-bold">{method.label}</span>
+                    </button>
+                ))}
+             </div>
+
+             {paymentMethod === 'cash' && (
+               <div className="flex gap-3 animate-in fade-in slide-in-from-top-2 pt-2">
+                  <div className="flex-1">
+                     <input 
+                        type="number" 
+                        placeholder="Valor recebido"
+                        className="w-full bg-secondary/50 text-foreground p-4 rounded-2xl border border-border font-bold text-lg text-center focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground/50"
+                        value={cashReceived}
+                        onChange={e => setCashReceived(e.target.value)}
+                     />
+                  </div>
+                  <div className="flex-1 flex flex-col justify-center items-center bg-success/10 border-2 border-success/30 rounded-2xl px-3">
+                     <span className="text-xs font-bold text-success/70 uppercase">Troco</span>
+                     <span className="text-xl font-black text-success">R$ {calculateChange().toFixed(2)}</span>
+                  </div>
+               </div>
+             )}
+
+             <button 
+                disabled={cart.length === 0 || !paymentMethod || isProcessing}
+                onClick={handleFinishOrder}
+                className={`w-full py-5 rounded-2xl font-black text-base transition-all flex items-center justify-center gap-3 shadow-lg ${
+                  cart.length > 0 && paymentMethod && !isProcessing
+                    ? 'bg-success text-white hover:brightness-110 active:scale-[0.98]'
+                    : 'bg-secondary/30 text-muted-foreground/30 cursor-not-allowed'
+                }`}
+             >
+                {isProcessing ? (
+                  <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin" />
+                ) : (
                   <>
-                    <div className="flex justify-between">
-                      <span>Recebido:</span>
-                      <span className="font-medium">R$ {orderDetails.cashReceived.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Troco:</span>
-                      <span className="font-medium">R$ {orderDetails.change.toFixed(2)}</span>
-                    </div>
+                    <Icons.CheckIcon className="w-5 h-5" />
+                    Finalizar Pedido
                   </>
                 )}
-              </div>
-              
-              <p className="text-xs text-muted-foreground">
-                Comprovante impresso • Fechando automaticamente...
-              </p>
-            </div>
-          </motion.div>
+             </button>
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* MODAIS */}
+      <AnimatePresence>
+        {showComandas && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="bg-card border border-border w-full max-w-md rounded-[3rem] overflow-hidden shadow-2xl">
+                <div className="p-8 border-b border-border flex justify-between items-center bg-secondary/10">
+                   <h3 className="text-xl font-black text-primary">COMANDA VIVA</h3>
+                   <button onClick={() => setShowComandas(false)} className="bg-secondary p-2 rounded-full"> <Icons.XIcon className="w-5 h-5" /> </button>
+                </div>
+                <div className="p-8 space-y-6">
+                   <div className="flex gap-3">
+                      <input type="number" placeholder="Nº Mesa" className="flex-1 bg-secondary h-16 rounded-2xl border border-border font-black text-3xl text-center focus:ring-4 focus:ring-primary/10 outline-none" value={numeroComanda} onChange={e => setNumeroComanda(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleOpenComanda()} />
+                      <button onClick={handleOpenComanda} className="bg-primary text-white px-8 font-black rounded-2xl shadow-lg">ABRIR</button>
+                   </div>
+                   <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                      {comandas.map(c => (
+                        <div key={c.id} onClick={() => { setComandaAtiva(c); setCart(c.items); setCustomerName(c.customerName); setShowComandas(false); }} className="bg-secondary/20 p-5 rounded-2xl border border-border hover:border-primary transition-all flex justify-between items-center cursor-pointer">
+                           <div className="flex items-center gap-4"> 
+                              <div className="bg-card w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl text-primary">{c.numero}</div>
+                              <span className="font-black text-white">MESA {c.numero}</span>
+                           </div>
+                           <p className="font-black text-primary text-xl">R$ {c.total.toFixed(2)}</p>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

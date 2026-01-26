@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import logger from '../utils/logger';
+import { logger } from '../utils/logger';
 
 /**
  * Serviço para gerenciar Complementos no FomeNinja

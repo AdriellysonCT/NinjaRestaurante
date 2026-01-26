@@ -442,11 +442,12 @@ const Dashboard = () => {
 
 
 
-  // Função para tocar som de notificação (movida para o início para evitar TDZ)
-  const playNotificationSound = useCallback((type = 'order') => {
-    logger.log(`Tentando tocar som de notificação (${type})...`);
+  // Função para tocar som de notificação (DASHBOARD lida apenas com CHAT, ordens lidadas pelo AppContext)
+  const playNotificationSound = useCallback((type = 'chat') => {
+    logger.log(`Tentando tocar som de notificação na Dashboard (${type})...`);
     
-    // Se for som de chat (bip curto)
+    // DASHBOARD só toca bip para chat.
+    // O AppContext já lida com sons de novos pedidos em loop.
     if (type === 'chat') {
         try {
             // @ts-ignore
@@ -472,42 +473,6 @@ const Dashboard = () => {
         } catch (e) {
             console.warn("Erro ao tocar som de chat:", e);
         }
-        return;
-    }
-
-    if (notificationSoundRef.current) {
-      logger.log('Elemento de áudio encontrado, tocando som...');
-      notificationSoundRef.current.currentTime = 0;
-      notificationSoundRef.current.play().catch((e) => {
-        console.warn("Erro ao tocar áudio do arquivo:", e);
-        // Fallback: criar som usando Web Audio API
-        try {
-          logger.log('Tentando fallback com Web Audio API...');
-          // @ts-ignore
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          if (AudioContextClass) {
-            const audioContext = new AudioContextClass();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-            oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
-          }
-        } catch (fallbackError) {
-          console.warn("Erro no fallback de áudio:", fallbackError);
-        }
-      });
-    } else {
-      console.warn('Elemento de áudio não encontrado');
     }
   }, []);
 
@@ -1099,20 +1064,25 @@ const Dashboard = () => {
 
         {/* Banner Modo Batalha + Ranking */}
         <div className="flex gap-4 mb-4">
-          {/* Banner Modo Batalha */}
+          {/* Banner Informativo */}
           <div className="flex-1 bg-gradient-to-r from-primary to-primary/70 rounded-lg p-4 flex items-center justify-between shadow-lg">
             <div className="flex items-center gap-3">
               <Icons.NinjaStarIcon className="w-8 h-8 text-yellow-400 drop-shadow-md" />
               <div>
-                <h2 className="text-primary-foreground font-bold text-lg">Modo Batalha</h2>
+                <h2 className="text-primary-foreground font-bold text-lg">Fome Ninja</h2>
                 <p className="text-primary-foreground/90 text-sm">
-                  Você está 3 pedidos à frente do "Sushi Palace"!
+                  {orders.length > 0 
+                    ? `${orders.length} pedido${orders.length > 1 ? 's' : ''} no sistema hoje!`
+                    : 'Nenhum pedido ainda hoje. Vamos começar!'}
                 </p>
               </div>
             </div>
-            <button className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold py-2 px-4 rounded-lg shadow-sm transition-colors">
-              Ver Ranking
-            </button>
+            <div className="text-right">
+              <div className="text-primary-foreground/90 text-xs">Total de Hoje</div>
+              <div className="text-primary-foreground font-bold text-2xl">
+                R$ {orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0).toFixed(2)}
+              </div>
+            </div>
           </div>
 
           {/* Resumo de Pagamentos */}
@@ -1310,16 +1280,29 @@ const Dashboard = () => {
                         )}
 
                         {/* Badge via entregador */}
-                        {driverUpdatedAt[order.id] && ['aceito','coletado','concluido'].includes(order.status) && (
-                          <span
-                            title={`Atualizado às ${new Date(driverUpdatedAt[order.id]).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} pelo entregador`}
-                            className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 
-                              ${order.status === 'aceito' ? 'bg-blue-600' : order.status === 'coletado' ? 'bg-orange-600' : 'bg-gray-600'} text-white`}
-                            aria-label="Atualizado pelo entregador"
-                          >
-                            <Icons.TruckIcon className="w-3 h-3" />
-                            <span className="hidden sm:inline">via entregador</span>
-                          </span>
+                        {(driverUpdatedAt[order.id] || order.nome_entregador) && ['aceito','coletado','concluido'].includes(order.status) && (
+                          <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10">
+                            {driverUpdatedAt[order.id] && (
+                              <span
+                                title={`Atualizado às ${new Date(driverUpdatedAt[order.id]).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} pelo entregador`}
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 
+                                  ${order.status === 'aceito' ? 'bg-blue-600' : order.status === 'coletado' ? 'bg-orange-600' : 'bg-gray-600'} text-white shadow-sm animate-pulse`}
+                                aria-label="Atualizado pelo entregador"
+                              >
+                                <Icons.TruckIcon className="w-3 h-3" />
+                                <span className="hidden sm:inline">via entregador</span>
+                              </span>
+                            )}
+                            {order.nome_entregador && (
+                              <div 
+                                className="flex items-center gap-1 bg-success/20 text-success px-2 py-0.5 rounded-full text-[9px] font-black border border-success/30"
+                                title={`Entregador: ${order.nome_entregador}`}
+                              >
+                                <Icons.MessageSquareIcon className="w-3 h-3" />
+                                <span className="hidden sm:inline">CHAT ATIVO</span>
+                              </div>
+                            )}
+                          </div>
                         )}
                         <div className="flex justify-between items-start">
                           <div className="min-w-0 flex-1">
@@ -1398,6 +1381,7 @@ const Dashboard = () => {
           isOpen={!!selectedOrder}
           onClose={handleCloseModal}
           order={selectedOrder}
+          unreadCount={selectedOrder ? (unreadMessages[selectedOrder.id] || 0) : 0}
         />
 
         {/* Áudio de notificação */}

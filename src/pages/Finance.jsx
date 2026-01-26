@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import DashboardFinanceiro from '../components/DashboardFinanceiro';
+import SolicitacaoRepasse from '../components/SolicitacaoRepasseSimples';
 import * as financeService from '../services/financeService';
 import { TransactionModal, AccountModal, SupplierModal, GoalModal } from '../components/FinanceModals';
 import FecharCaixaButton from '../components/FecharCaixaButton';
@@ -620,6 +621,7 @@ const Finance = () => {
         <div className="flex border-b border-border overflow-x-auto">
           {[
             { key: 'dashboard', label: 'Dashboard' },
+            { key: 'repasses', label: 'Repasses' },
             { key: 'transactions', label: 'Transações' },
             { key: 'accounts', label: 'Contas' },
             { key: 'suppliers', label: 'Fornecedores' },
@@ -673,6 +675,19 @@ const Finance = () => {
                   <p className="text-muted-foreground">Configurando ambiente financeiro...</p>
                 </div>
               )}
+          </div>
+        )}
+
+        {activeTab === 'repasses' && (
+          <div>
+            {restaurantId ? (
+              <SolicitacaoRepasse restauranteId={restaurantId} />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                <p className="text-muted-foreground">Carregando dados do restaurante...</p>
+              </div>
+            )}
           </div>
         )}
 

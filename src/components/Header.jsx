@@ -287,7 +287,9 @@ export const Header = ({ toggleTheme, theme }) => {
 
   return (
     <header className="h-8 min-h-[32px] max-h-[32px] py-0 flex items-center justify-between px-3 border-b border-border bg-card sticky top-0 z-10">
-      <h1 className="text-xs font-bold text-card-foreground m-0 p-0">{title}</h1>
+      {title !== 'PDV Balcão' && <h1 className="text-xs font-bold text-card-foreground m-0 p-0">{title}</h1>}
+      {title === 'PDV Balcão' && <div />} 
+
       <div className="flex items-center gap-4">
         <button onClick={toggleTheme} className="text-muted-foreground hover:text-foreground p-1 m-0 transition-transform hover:scale-110">
           {theme === 'dark' ? <SunIcon className="w-5 h-5"/> : <MoonIcon className="w-5 h-5"/>}

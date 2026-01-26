@@ -69,11 +69,9 @@ export async function updateTableStatus(tableId, status, updates = {}) {
   try {
     const updateData = { status, ...updates };
 
-    // Se estiver mudando para disponível, limpar dados de ocupação
-    if (status === 'disponivel') {
-      updateData.started_at = null;
-      updateData.id_pedido = null;
-    }
+    // IMPORTANTE: Não limpar id_pedido automaticamente ao mudar para disponível
+    // Isso deve ser feito apenas quando o pedido for explicitamente finalizado
+    // através da função releaseTable()
 
     const { data, error } = await supabase
       .from('mesas')

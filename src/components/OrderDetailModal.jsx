@@ -8,7 +8,7 @@ import { ratingService } from '../services/ratingService';
 import { formatPhoneForWhatsApp, formatDisplayPhone } from '../utils/phoneFormatter';
 // Detalhes do pedido - modal estilizado escuro
 
-export const OrderDetailModal = ({ isOpen, onClose, order }) => {
+export const OrderDetailModal = ({ isOpen, onClose, order, unreadCount }) => {
   const { restaurante } = useAuth();
   const [isPrinting, setIsPrinting] = useState(false);
   const [showComments, setShowComments] = useState(false);
@@ -164,6 +164,16 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
                 <Icons.ClockIcon className="w-4 h-4 text-primary" />
                 {totalPrepMinutes > 0 ? `${totalPrepMinutes} min` : '-- min'}
               </p>
+              {order.status === 'em_preparo' && order.started_at && totalPrepMinutes > 0 && (
+                <div className="mt-2 w-full bg-secondary rounded-full h-1.5 overflow-hidden">
+                  <div 
+                    className="h-full bg-primary transition-all duration-1000"
+                    style={{ 
+                      width: `${Math.min(100, (Math.max(0, Date.now() - new Date(order.started_at).getTime()) / (totalPrepMinutes * 60000)) * 100)}%` 
+                    }}
+                  />
+                </div>
+              )}
             </div>
             <div>
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Pagamento</p>
@@ -379,13 +389,18 @@ export const OrderDetailModal = ({ isOpen, onClose, order }) => {
 
               <button
                 onClick={() => setShowChat(!showChat)}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-bold flex-1 transition-all shadow-sm border ${
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-bold flex-1 transition-all shadow-sm border relative ${
                   showChat 
                     ? 'bg-primary/10 border-primary text-primary' 
                     : 'bg-secondary hover:bg-secondary/80 text-foreground border-border'
                 }`}
               >
-                <span className="text-lg">💬</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center text-[10px] font-black border-2 border-background animate-bounce">
+                    {unreadCount}
+                  </span>
+                )}
+                <Icons.MessageSquareIcon className="w-4 h-4" />
                 Chat
               </button>
             </div>

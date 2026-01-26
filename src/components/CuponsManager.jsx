@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import * as cuponsService from '../services/cuponsService';
 
 const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
@@ -66,208 +67,319 @@ const CupomModal = ({ isOpen, onClose, cupom, onSave, restauranteId }) => {
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-background border border-border rounded-lg max-w-2xl w-full p-6 my-8">
-        <h2 className="text-2xl font-bold mb-4">{cupom ? 'Editar Cupom' : 'Novo Cupom'}</h2>
+  return ReactDOM.createPortal(
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn" 
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999 }}
+    >
+      <div className="bg-gradient-to-br from-card via-card to-card/95 border-2 border-primary/40 rounded-3xl shadow-2xl max-w-3xl w-full my-8 overflow-hidden animate-scaleIn">
+        {/* Header Moderno */}
+        <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 px-8 py-6 border-b border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-primary/20 rounded-2xl flex items-center justify-center">
+                <span className="text-3xl">🎟️</span>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">
+                  {cupom ? 'Editar Cupom' : 'Criar Novo Cupom'}
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {cupom ? 'Atualize as informações do cupom' : 'Configure um novo cupom promocional'}
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              disabled={loading}
+              className="w-10 h-10 rounded-full bg-secondary/50 hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Código e Descrição */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Body com scroll suave */}
+        <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[calc(100vh-300px)] overflow-y-auto">
+          {/* Código e Status */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-1">Código do Cupom *</label>
+              <label className="block text-sm font-semibold mb-2 text-foreground">
+                Código do Cupom <span className="text-destructive">*</span>
+              </label>
               <input
                 type="text"
                 value={formData.codigo}
                 onChange={(e) => setFormData({ ...formData, codigo: e.target.value.toUpperCase() })}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md uppercase text-foreground"
+                className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground font-mono font-bold text-lg transition-colors"
                 placeholder="BEMVINDO10"
                 required
                 maxLength={20}
               />
-              <p className="text-xs text-muted-foreground mt-1">Sem espaços, apenas letras e números</p>
+              <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Sem espaços, apenas letras e números
+              </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Status</label>
+              <label className="block text-sm font-semibold mb-2 text-foreground">Status</label>
               <select
                 value={formData.ativo ? 'true' : 'false'}
                 onChange={(e) => setFormData({ ...formData, ativo: e.target.value === 'true' })}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
+                className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground transition-colors"
               >
-                <option value="true">Ativo</option>
-                <option value="false">Inativo</option>
+                <option value="true">✅ Ativo</option>
+                <option value="false">⏸️ Inativo</option>
               </select>
             </div>
           </div>
 
+          {/* Descrição */}
           <div>
-            <label className="block text-sm font-medium mb-1">Descrição *</label>
+            <label className="block text-sm font-semibold mb-2 text-foreground">
+              Descrição <span className="text-destructive">*</span>
+            </label>
             <input
               type="text"
               value={formData.descricao}
               onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-              className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
+              className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground transition-colors"
               placeholder="Ganhe 10% de desconto na primeira compra"
               required
             />
           </div>
 
           {/* Tipo e Valor do Desconto */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Tipo de Desconto *</label>
-              <select
-                value={formData.tipo_desconto}
-                onChange={(e) => setFormData({ ...formData, tipo_desconto: e.target.value })}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
-                required
-              >
-                <option value="percentual">Percentual (%)</option>
-                <option value="valor_fixo">Valor Fixo (R$)</option>
-                <option value="frete_gratis">Frete Grátis</option>
-              </select>
-            </div>
-
-            {formData.tipo_desconto !== 'frete_gratis' && (
+          <div className="p-6 bg-primary/5 border-2 border-primary/20 rounded-2xl space-y-4">
+            <h3 className="font-bold text-foreground flex items-center gap-2">
+              <span className="text-xl">💰</span>
+              Configuração do Desconto
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Valor do Desconto * {formData.tipo_desconto === 'percentual' ? '(%)' : '(R$)'}
+                <label className="block text-sm font-semibold mb-2 text-foreground">
+                  Tipo de Desconto <span className="text-destructive">*</span>
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max={formData.tipo_desconto === 'percentual' ? '100' : undefined}
-                  value={formData.valor_desconto}
-                  onChange={(e) => setFormData({ ...formData, valor_desconto: e.target.value })}
-                  className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
+                <select
+                  value={formData.tipo_desconto}
+                  onChange={(e) => setFormData({ ...formData, tipo_desconto: e.target.value })}
+                  className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground transition-colors"
                   required
-                />
+                >
+                  <option value="percentual">📊 Percentual (%)</option>
+                  <option value="valor_fixo">💵 Valor Fixo (R$)</option>
+                  <option value="frete_gratis">🚚 Frete Grátis</option>
+                </select>
               </div>
-            )}
+
+              {formData.tipo_desconto !== 'frete_gratis' && (
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-foreground">
+                    Valor do Desconto <span className="text-destructive">*</span>
+                    <span className="text-muted-foreground font-normal ml-1">
+                      {formData.tipo_desconto === 'percentual' ? '(%)' : '(R$)'}
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max={formData.tipo_desconto === 'percentual' ? '100' : undefined}
+                    value={formData.valor_desconto}
+                    onChange={(e) => setFormData({ ...formData, valor_desconto: e.target.value })}
+                    className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground font-bold text-lg transition-colors"
+                    required
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Valores Mínimo e Máximo */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-1">Valor Mínimo do Pedido (R$)</label>
+              <label className="block text-sm font-semibold mb-2 text-foreground">
+                Valor Mínimo do Pedido (R$)
+              </label>
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 value={formData.valor_minimo_pedido}
                 onChange={(e) => setFormData({ ...formData, valor_minimo_pedido: e.target.value })}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
+                className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground transition-colors"
                 placeholder="0.00"
               />
+              <p className="text-xs text-muted-foreground mt-2">Opcional - Deixe vazio para sem mínimo</p>
             </div>
 
             {formData.tipo_desconto === 'percentual' && (
               <div>
-                <label className="block text-sm font-medium mb-1">Desconto Máximo (R$)</label>
+                <label className="block text-sm font-semibold mb-2 text-foreground">
+                  Desconto Máximo (R$)
+                </label>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
                   value={formData.valor_maximo_desconto}
                   onChange={(e) => setFormData({ ...formData, valor_maximo_desconto: e.target.value })}
-                  className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
+                  className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground transition-colors"
                   placeholder="Opcional"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Limite o desconto máximo em reais</p>
+                <p className="text-xs text-muted-foreground mt-2">Limite o desconto máximo em reais</p>
               </div>
             )}
           </div>
 
           {/* Limites de Uso */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Limite Total de Usos</label>
-              <input
-                type="number"
-                min="1"
-                value={formData.limite_uso_total}
-                onChange={(e) => setFormData({ ...formData, limite_uso_total: e.target.value })}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
-                placeholder="Ilimitado"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Deixe vazio para ilimitado</p>
-            </div>
+          <div className="p-6 bg-secondary/30 border-2 border-border rounded-2xl space-y-4">
+            <h3 className="font-bold text-foreground flex items-center gap-2">
+              <span className="text-xl">🎯</span>
+              Limites de Uso
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-foreground">
+                  Limite Total de Usos
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.limite_uso_total}
+                  onChange={(e) => setFormData({ ...formData, limite_uso_total: e.target.value })}
+                  className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground transition-colors"
+                  placeholder="∞ Ilimitado"
+                />
+                <p className="text-xs text-muted-foreground mt-2">Deixe vazio para ilimitado</p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Usos por Cliente</label>
-              <input
-                type="number"
-                min="1"
-                value={formData.limite_uso_por_cliente}
-                onChange={(e) => setFormData({ ...formData, limite_uso_por_cliente: e.target.value })}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
-                placeholder="1"
-              />
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-foreground">
+                  Usos por Cliente
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.limite_uso_por_cliente}
+                  onChange={(e) => setFormData({ ...formData, limite_uso_por_cliente: e.target.value })}
+                  className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground transition-colors"
+                  placeholder="1"
+                />
+              </div>
             </div>
           </div>
 
           {/* Datas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-1">Data de Início *</label>
+              <label className="block text-sm font-semibold mb-2 text-foreground">
+                Data de Início <span className="text-destructive">*</span>
+              </label>
               <input
                 type="datetime-local"
                 value={formData.data_inicio}
                 onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
+                className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground transition-colors"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Data de Fim</label>
+              <label className="block text-sm font-semibold mb-2 text-foreground">
+                Data de Fim
+              </label>
               <input
                 type="datetime-local"
                 value={formData.data_fim}
                 onChange={(e) => setFormData({ ...formData, data_fim: e.target.value })}
-                className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground"
+                className="w-full px-4 py-3 bg-input border-2 border-border hover:border-primary/50 focus:border-primary rounded-xl text-foreground transition-colors"
               />
-              <p className="text-xs text-muted-foreground mt-1">Deixe vazio para sem data de expiração</p>
+              <p className="text-xs text-muted-foreground mt-2">Deixe vazio para sem data de expiração</p>
             </div>
           </div>
 
           {/* Opções Adicionais */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="apenas_primeira_compra"
-              checked={formData.apenas_primeira_compra}
-              onChange={(e) => setFormData({ ...formData, apenas_primeira_compra: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="apenas_primeira_compra" className="text-sm">
-              Válido apenas para primeira compra do cliente
+          <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-xl">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                id="apenas_primeira_compra"
+                checked={formData.apenas_primeira_compra}
+                onChange={(e) => setFormData({ ...formData, apenas_primeira_compra: e.target.checked })}
+                className="w-5 h-5 rounded border-2 border-blue-400 text-blue-600 focus:ring-2 focus:ring-blue-500"
+              />
+              <div>
+                <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+                  Válido apenas para primeira compra do cliente
+                </span>
+                <p className="text-xs text-blue-600 dark:text-blue-300 mt-0.5">
+                  Ideal para atrair novos clientes
+                </p>
+              </div>
             </label>
           </div>
-
-          {/* Botões */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="flex-1 px-4 py-2 border border-border rounded-md hover:bg-secondary disabled:opacity-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
-            >
-              {loading ? 'Salvando...' : cupom ? 'Atualizar' : 'Criar Cupom'}
-            </button>
-          </div>
         </form>
+
+        {/* Footer com botões */}
+        <div className="px-8 py-6 bg-secondary/20 border-t border-border flex gap-4">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="flex-1 px-6 py-3 border-2 border-border text-foreground rounded-xl hover:bg-secondary transition-colors font-semibold disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-xl hover:shadow-lg transition-all font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Salvando...
+              </>
+            ) : (
+              <>
+                {cupom ? '✓ Atualizar Cupom' : '+ Criar Cupom'}
+              </>
+            )}
+          </button>
+        </div>
       </div>
-    </div>
+      
+      {/* Estilos de animação */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+          from { transform: scale(0.95); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-out;
+        }
+        
+        .animate-scaleIn {
+          animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+      `}</style>
+    </div>,
+    document.body
   );
 };
 

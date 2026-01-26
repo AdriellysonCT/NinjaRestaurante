@@ -100,6 +100,8 @@ export async function fetchOrders() {
         )
       `)
       .eq('id_restaurante', restaurante.id)
+      // Excluir pedidos de mesa (tipo_pedido = 'local') do dashboard principal
+      .neq('tipo_pedido', 'local')
       // Filtrar apenas pedidos com status_pagamento válido (pago ou pendente)
       .in('status_pagamento', ['pago', 'pendente'])
       .in('status', ['pendente', 'novo', 'disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido'])
