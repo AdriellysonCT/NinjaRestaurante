@@ -219,7 +219,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order, unreadCount }) => {
 
               {/* Sistema de Avaliação */}
               {(order.status === 'concluido' || order.status === 'finalizado') && (
-                <div className="mt-3 p-3 bg-secondary/30 rounded-xl border border-border/50">
+                <div className="mt-3 p-3 bg-card rounded-xl border border-border shadow-inner">
                   <h5 className="text-[10px] font-black text-primary uppercase mb-2">Avalie o Entregador</h5>
                   
                   {isRated ? (
@@ -268,7 +268,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order, unreadCount }) => {
                         value={ratingComment}
                         onChange={(e) => setRatingComment(e.target.value)}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full bg-secondary/50 text-xs px-3 py-2 rounded-lg border border-border focus:outline-none focus:ring-1 focus:ring-primary"
+                        className="w-full bg-secondary text-foreground text-xs px-3 py-2 rounded-lg border border-border focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                       
                       <button

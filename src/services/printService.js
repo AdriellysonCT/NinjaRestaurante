@@ -1,6 +1,7 @@
 // Serviço para impressão de comandas e outros documentos
 import { supabase } from '../lib/supabase';
 import { logger } from "../utils/logger";
+import { getTemplatesForSection } from "../utils/printTemplateConfig";
 
 const PRINT_HISTORY_KEY = 'fome-ninja-print-history';
 const PRINT_SETTINGS_KEY = 'fome-ninja-print-settings';
@@ -728,8 +729,8 @@ export const printService = {
     }
   },
   
-  // Impressão automática ao aceitar pedido
-  autoPrintOnAccept: async (order, restaurante) => {
+  // Impressão automática ao aceitar pedido ou finalizar no POS
+  autoPrintOnAccept: async (order, restauranteInput = null, section = 'dashboard') => {
     if (!printService.isAutoPrintEnabled()) {
       logger.log('Impressão automática desabilitada');
       return { success: false, message: 'Impressão automática desabilitada' };
@@ -738,7 +739,22 @@ export const printService = {
     logger.log('🖨️ Iniciando impressão automática para pedido #' + (order.numero_pedido || order.id));
     
     try {
-      // Formatar pedido para impressão
+      // 1. Buscar dados do restaurante se não fornecidos
+      let restaurante = restauranteInput;
+      if (!restaurante) {
+        restaurante = await buscarDadosRestaurantePrint();
+      }
+
+      // 2. Obter modelos configurados para a seção especificada
+      const templates = getTemplatesForSection(section);
+      logger.log(`📋 Modelos configurados para ${section}: ${templates.join(', ')}`);
+
+      if (templates.length === 0) {
+        logger.log('⚠️ Nenhum modelo de comanda selecionado para Dashboard');
+        return { success: false, message: 'Nenhum modelo selecionado nas configurações' };
+      }
+
+      // 3. Formatar pedido para o padrão do serviço
       const pedidoFormatado = {
         id: order.id,
         numero_pedido: order.numero_pedido || order.id,
@@ -755,23 +771,37 @@ export const printService = {
           notes: item.note || item.observacao_item || ''
         }))
       };
-      
-      const result = await printService.printOrderTicket(pedidoFormatado, {
-        companyInfo: {
-          name: restaurante?.nome_fantasia || '',
-          address: restaurante?.rua ? `${restaurante.rua}, ${restaurante.numero || ''}` : '',
-          phone: restaurante?.telefone || '',
-          cnpj: restaurante?.cnpj || ''
-        }
-      });
-      
-      if (result.success) {
-        logger.log('✅ Impressão automática concluída com sucesso');
-      } else {
-        console.warn('⚠️ Impressão automática falhou:', result.message);
+
+      const companyInfo = {
+        name: restaurante?.nome_fantasia || '',
+        address: restaurante?.rua ? `${restaurante.rua}, ${restaurante.numero || ''}` : '',
+        phone: restaurante?.telefone || '',
+        cnpj: restaurante?.cnpj || ''
+      };
+
+      // 4. Imprimir cada via configurada
+      const results = [];
+      for (const templateId of templates) {
+        logger.log(`🖨️ Imprimindo via: ${templateId}`);
+        const result = await printService.printOrderTicket(pedidoFormatado, {
+          companyInfo,
+          selectedTemplate: templateId // Passar o template para influenciar a geração (se suportado pelo generateTicketContent)
+        });
+        results.push(result);
       }
       
-      return result;
+      const successCount = results.filter(r => r.success).length;
+      if (successCount > 0) {
+        logger.log(`✅ ${successCount}/${templates.length} vias impressas com sucesso`);
+      } else {
+        console.warn('⚠️ Todas as impressões falharam');
+      }
+      
+      return { 
+        success: successCount > 0, 
+        message: `${successCount}/${templates.length} vias impressas`,
+        results 
+      };
     } catch (error) {
       logger.error('❌ Erro na impressão automática:', error);
       return { success: false, message: error.message };

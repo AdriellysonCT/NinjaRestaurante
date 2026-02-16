@@ -13,6 +13,11 @@ import { formatPhoneForWhatsApp } from "../utils/phoneFormatter";
 const AUTO_ACCEPT_DELAY_MS = 500;
 const SEARCH_DEBOUNCE_MS = 300;
 
+// Helper para verificar se o status é considerado "pendente de aceite"
+const isPendingStatus = (status) => {
+  return ['pendente', 'novo', 'disponivel'].includes(status);
+};
+
 const Dashboard = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
@@ -274,8 +279,8 @@ const Dashboard = () => {
               ? Number(pedido.prep_time)
               : totalPrepFromItems,
           isVip: pedido.cliente_vip || pedido.is_vip || false,
-          nome_entregador: pedido.entregas_padronizadas?.nome_entregador || null,
-          id_entregador: pedido.entregas_padronizadas?.id_entregador || null,
+          nome_entregador: (Array.isArray(pedido.entregas_padronizadas) ? pedido.entregas_padronizadas[0]?.nome_entregador : pedido.entregas_padronizadas?.nome_entregador) || null,
+          id_entregador: (Array.isArray(pedido.entregas_padronizadas) ? pedido.entregas_padronizadas[0]?.id_entregador : pedido.entregas_padronizadas?.id_entregador) || null,
           items:
             pedido.itens_pedido?.map((item) => ({
               id: item.id,
@@ -333,7 +338,7 @@ const Dashboard = () => {
           started_at: new Date().toISOString()
         })
         .eq("id", order.id)
-        .eq("status", "disponivel"); // Só atualiza se ainda estiver disponível
+        .in("status", ['pendente', 'novo', 'disponivel']); // Filtro expandido
 
       if (updateError) {
         logger.error(`❌ Erro ao aceitar pedido #${order.numero_pedido}:`, updateError);
@@ -346,13 +351,7 @@ const Dashboard = () => {
       // Impressão automática
       try {
         logger.log('🖨️ Disparando impressão automática...');
-        const { data: restauranteData } = await supabase
-          .from('restaurantes_app')
-          .select('*')
-          .eq('id', restaurantId)
-          .single();
-        
-        printService.autoPrintOnAccept(order, restauranteData).catch(err => {
+        printService.autoPrintOnAccept(order).catch(err => {
           console.warn('Erro na impressão automática:', err);
         });
       } catch (printError) {
@@ -403,8 +402,8 @@ const Dashboard = () => {
           // Aceitar automaticamente novos pedidos se a opção estiver ativada
           if (eventType === 'INSERT' && autoAcceptRef.current) {
             const newOrder = payload.new;
-            if (newOrder?.status === 'disponivel') {
-              logger.log(`  🤖 Novo pedido detectado, aceitação automática ativada`);
+            if (isPendingStatus(newOrder?.status)) {
+              logger.log(`  🤖 Novo pedido detectado (${newOrder.status}), aceitação automática ativada`);
               // Pequeno delay para garantir que o pedido foi salvo completamente
               setTimeout(() => {
                 autoAcceptOrder(newOrder);
@@ -519,7 +518,7 @@ const Dashboard = () => {
       if (!autoAcceptRef.current) return;
       
       const pendingOrders = orders.filter(
-        order => order.status === 'disponivel' && !processedOrdersRef.current.has(order.id)
+        order => isPendingStatus(order.status) && !processedOrdersRef.current.has(order.id)
       );
       
       if (pendingOrders.length > 0) {
@@ -773,15 +772,8 @@ const Dashboard = () => {
           const orderToprint = orders.find(o => o.id === orderId);
           if (orderToprint) {
             logger.log('🖨️ Disparando impressão automática ao aceitar pedido...');
-            // Buscar dados do restaurante
-            const { data: restauranteData } = await supabase
-              .from('restaurantes_app')
-              .select('*')
-              .eq('id', restaurantId)
-              .single();
-            
             // Disparar impressão automática (não bloqueia o fluxo)
-            printService.autoPrintOnAccept(orderToprint, restauranteData).catch(err => {
+            printService.autoPrintOnAccept(orderToprint).catch(err => {
               console.warn('Erro na impressão automática:', err);
             });
           }
@@ -853,7 +845,7 @@ const Dashboard = () => {
     // Se ativou, aceitar pedidos pendentes automaticamente
     logger.log('🔍 Verificando pedidos pendentes para aceitar automaticamente...');
     const pedidosPendentes = orders.filter(
-      order => order.status === 'disponivel' && !processedOrdersRef.current.has(order.id)
+      order => isPendingStatus(order.status) && !processedOrdersRef.current.has(order.id)
     );
     
     if (pedidosPendentes.length === 0) {
@@ -1257,7 +1249,7 @@ const Dashboard = () => {
                   {column.title} ({column.orders.length})
                 </h2>
               </div>
-              <div className="p-3 min-h-[400px] flex-1 bg-secondary/20">
+              <div className="p-3 h-[420px] overflow-y-auto bg-secondary/20 custom-scrollbar pr-2">
                 {column.orders.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <p className="text-gray-400 text-center text-sm">

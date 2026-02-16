@@ -146,12 +146,12 @@ const POS = () => {
         }))
       };
       const savedOrder = await createOrder(orderData);
-      await printService.printOrderTicket({
+      await printService.autoPrintOnAccept({
         ...savedOrder,
         items: cart,
         troco: calculateChange(),
         valor_recebido: parseFloat(cashReceived) || cartTotal
-      });
+      }, null, 'pdv');
       if (comandaAtiva) setComandas(prev => prev.filter(c => c.id !== comandaAtiva.id));
       setOrderDetails({ ...savedOrder, change: calculateChange() });
       setOrderComplete(true);

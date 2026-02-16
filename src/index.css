@@ -67,13 +67,16 @@ body {
     color 0.3s ease;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   background-color: hsl(var(--color-input));
   color: hsl(var(--color-foreground));
   border-color: hsl(var(--color-border));
 }
 
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: hsl(var(--color-muted-foreground));
 }
 
@@ -195,10 +198,29 @@ input::placeholder, textarea::placeholder {
 
 /* Esconder scrollbar mas manter funcionalidade */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE e Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE e Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari e Opera */
+  display: none; /* Chrome, Safari e Opera */
+}
+
+/* Custom Scrollbar for Dashboard Columns */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--color-secondary) / 0.5);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--color-primary) / 0.4);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--color-primary));
 }

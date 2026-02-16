@@ -42,8 +42,8 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
         justifyContent: 'center',
         padding: '16px',
         zIndex: 2147483647,
-        backgroundColor: 'rgba(0, 0, 0, 0.9)',
-        backdropFilter: 'blur(8px)',
+        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        backdropFilter: 'blur(4px)',
         pointerEvents: 'all'
       }}
       onClick={onClose}
@@ -55,16 +55,23 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
           maxHeight: '90vh',
           overflowY: 'auto',
           position: 'relative',
-          backgroundColor: '#111111',
-          color: '#ffffff',
+          backgroundColor: 'hsl(var(--color-card))',
+          color: 'hsl(var(--color-foreground))',
           padding: '24px',
           borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          border: '1px solid hsl(var(--color-border))',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '16px' }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '24px', 
+          borderBottom: '1px solid hsl(var(--color-border))', 
+          paddingBottom: '16px' 
+        }}>
           {title && <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>{title}</h2>}
           <button 
             onClick={onClose}
@@ -74,11 +81,14 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
               border: 'none',
               borderRadius: '50%',
               cursor: 'pointer',
-              color: 'rgba(255, 255, 255, 0.6)',
+              color: 'hsl(var(--color-muted-foreground))',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              transition: 'all 0.2s'
             }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'hsl(var(--color-secondary))'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <XIcon style={{ width: '24px', height: '24px' }} />
           </button>
