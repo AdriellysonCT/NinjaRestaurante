@@ -8,6 +8,7 @@ import { OrderDetailModal } from "../components/OrderDetailModal";
 import { supabase } from "../lib/supabase";
 import { printService } from "../services/printService";
 import { logger } from "../utils/logger";
+import * as orderService from "../services/orderService";
 import { formatPhoneForWhatsApp } from "../utils/phoneFormatter";
 
 const AUTO_ACCEPT_DELAY_MS = 500;
@@ -405,8 +406,9 @@ const Dashboard = () => {
             if (isPendingStatus(newOrder?.status)) {
               logger.log(`  🤖 Novo pedido detectado (${newOrder.status}), aceitação automática ativada`);
               // Pequeno delay para garantir que o pedido foi salvo completamente
-              setTimeout(() => {
-                autoAcceptOrder(newOrder);
+              setTimeout(async () => {
+                const fullOrder = await orderService.fetchOrderById(newOrder.id);
+                autoAcceptOrder(fullOrder || newOrder);
               }, AUTO_ACCEPT_DELAY_MS);
             }
           }

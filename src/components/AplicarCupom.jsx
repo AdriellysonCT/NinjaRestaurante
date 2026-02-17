@@ -17,6 +17,9 @@ export default function AplicarCupom({
   const [loading, setLoading] = useState(false);
   const [cupomAplicado, setCupomAplicado] = useState(null);
   const [erro, setErro] = useState(null);
+  const [faltaValor, setFaltaValor] = useState(null); // Valor que falta para atingir o mínimo
+  const [valorMinimo, setValorMinimo] = useState(null);
+
 
   const handleAplicar = async () => {
     if (!codigo.trim()) {
@@ -37,9 +40,23 @@ export default function AplicarCupom({
       );
 
       if (!resultado || !resultado.valido) {
-        setErro(resultado?.mensagem || 'Cupom inválido');
+        // Se o erro for de valor mínimo, extraímos o valor
+        if (resultado?.mensagem?.includes('Valor mínimo')) {
+            const match = resultado.mensagem.match(/R\$ ([\d,.]+)/);
+            if (match) {
+                const min = parseFloat(match[1].replace(',', '.'));
+                setValorMinimo(min);
+                setFaltaValor(min - valorPedido);
+                setErro('Valor mínimo não atingido');
+            } else {
+                setErro(resultado.mensagem);
+            }
+        } else {
+            setErro(resultado?.mensagem || 'Cupom inválido');
+        }
         return;
       }
+
 
       // Cupom válido!
       const cupomData = {
@@ -123,14 +140,42 @@ export default function AplicarCupom({
           </div>
 
           {erro && (
-            <div className="bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded-md text-sm">
-              ❌ {erro}
+            <div className={`px-3 py-2 rounded-md text-sm border ${erro === 'Valor mínimo não atingido' ? 'bg-orange-500/10 border-orange-500/30 text-orange-600' : 'bg-red-50 border-red-200 text-red-800'}`}>
+              <div className="flex items-center gap-2">
+                <span>{erro === 'Valor mínimo não atingido' ? '🚀' : '❌'}</span>
+                <span className="font-medium">
+                  {erro === 'Valor mínimo não atingido' 
+                    ? `Faltam R$ ${faltaValor.toFixed(2)} para você liberar este desconto!` 
+                    : erro}
+                </span>
+              </div>
+              
+              {erro === 'Valor mínimo não atingido' && (
+                <div className="mt-2 space-y-1">
+                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                    <span>Progresso</span>
+                    <span>{Math.round((valorPedido / valorMinimo) * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
+                    <div 
+                      className="bg-orange-500 h-full rounded-full transition-all duration-500" 
+                      style={{ width: `${Math.min(100, (valorPedido / valorMinimo) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] mt-1 italic">
+                    Adicione mais itens para ganhar o desconto!
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
-          <p className="text-xs text-muted-foreground">
-            Tem um cupom? Digite o código acima para aplicar o desconto.
-          </p>
+          {!erro && (
+            <p className="text-xs text-muted-foreground italic">
+              Tem um cupom? Digite o código aqui.
+            </p>
+          )}
+
         </div>
       ) : (
         <div className="space-y-3">

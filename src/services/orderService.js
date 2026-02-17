@@ -50,7 +50,17 @@ const mapOrder = (order) => {
     paymentMethod: order.metodo_pagamento,
     paymentStatus: order.status_pagamento || (order.pagamento_recebido_pelo_sistema ? 'pago' : 'pendente'),
     troco: parseFloat(order.troco) || 0,
-    paymentType: order.metodo_pagamento || 'Não informado'
+    paymentType: order.metodo_pagamento || 'Não informado',
+    taxa_entrega: parseFloat(order.taxa_entrega) || 0,
+    desconto: parseFloat(order.desconto) || 0,
+    endereco_rua: order.endereco_rua,
+    endereco_numero: order.endereco_numero,
+    endereco_bairro: order.endereco_bairro,
+    endereco_cidade: order.endereco_cidade,
+    endereco_referencia: order.endereco_referencia,
+    endereco_complemento: order.endereco_complemento,
+    nome_entregador: order.nome_entregador,
+    id_entregador: order.id_entregador
   };
 };
 
@@ -90,6 +100,16 @@ export async function fetchOrders() {
         pagamento_recebido_pelo_sistema,
         status_pagamento,
         troco,
+        taxa_entrega,
+        desconto,
+        endereco_rua,
+        endereco_numero,
+        endereco_bairro,
+        endereco_cidade,
+        endereco_referencia,
+        endereco_complemento,
+        nome_entregador,
+        id_entregador,
         itens_pedido!itens_pedido_id_pedido_fkey(
           id,
           quantidade,
@@ -151,6 +171,16 @@ export async function fetchOrderById(id) {
         pagamento_recebido_pelo_sistema,
         status_pagamento,
         troco,
+        taxa_entrega,
+        desconto,
+        endereco_rua,
+        endereco_numero,
+        endereco_bairro,
+        endereco_cidade,
+        endereco_referencia,
+        endereco_complemento,
+        nome_entregador,
+        id_entregador,
         itens_pedido!itens_pedido_id_pedido_fkey(
           id,
           quantidade,

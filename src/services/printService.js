@@ -69,7 +69,7 @@ async function buscarDadosRestaurantePrint() {
     const { data, error } = await supabase
       .from('restaurantes_app')
       .select('*')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (error) {
@@ -758,25 +758,31 @@ export const printService = {
       const pedidoFormatado = {
         id: order.id,
         numero_pedido: order.numero_pedido || order.id,
-        customerName: order.nome_cliente || order.customerName || 'Cliente',
-        customerPhone: order.telefone_cliente || order.customerPhone || '',
-        type: order.tipo_pedido || 'balcao',
+        customerName: order.customerName || order.nome_cliente || 'Cliente',
+        customerPhone: order.customerPhone || order.telefone_cliente || '',
+        type: order.type || order.tipo_pedido || 'balcao',
         total: parseFloat(order.valor_total || order.total || 0),
+        taxa_entrega: parseFloat(order.taxa_entrega || 0),
+        desconto: parseFloat(order.desconto || 0),
         paymentMethod: order.metodo_pagamento || order.paymentMethod || 'Não informado',
         prepTime: order.prep_time || order.prepTime || 0,
+        troco: parseFloat(order.troco || 0),
+        comments: order.comments || order.observacoes || '',
         items: (order.items || order.itens_pedido || []).map(item => ({
           name: item.name || item.itens_cardapio?.nome || 'Item',
           qty: item.qty || item.quantidade || 1,
           price: parseFloat(item.price || item.preco_unitario || 0),
           notes: item.note || item.observacao_item || ''
-        }))
-      };
-
-      const companyInfo = {
-        name: restaurante?.nome_fantasia || '',
-        address: restaurante?.rua ? `${restaurante.rua}, ${restaurante.numero || ''}` : '',
-        phone: restaurante?.telefone || '',
-        cnpj: restaurante?.cnpj || ''
+        })),
+        // Adicionar campos de entrega se for delivery
+        deliveryAddress: order.deliveryAddress || (order.tipo_pedido === 'delivery' ? {
+          street: order.endereco_rua || '',
+          number: order.endereco_numero || '',
+          complement: order.endereco_complemento || '',
+          neighborhood: order.endereco_bairro || '',
+          city: order.endereco_cidade || '',
+          reference: order.endereco_referencia || ''
+        } : null)
       };
 
       // 4. Imprimir cada via configurada
@@ -784,8 +790,7 @@ export const printService = {
       for (const templateId of templates) {
         logger.log(`🖨️ Imprimindo via: ${templateId}`);
         const result = await printService.printOrderTicket(pedidoFormatado, {
-          companyInfo,
-          selectedTemplate: templateId // Passar o template para influenciar a geração (se suportado pelo generateTicketContent)
+          selectedTemplate: templateId
         });
         results.push(result);
       }
@@ -817,91 +822,90 @@ export const printService = {
 };
 
 // Função auxiliar para gerar o conteúdo da comanda (baseado no layout da imagem)
+// Função auxiliar para gerar o conteúdo da comanda (baseado no layout da imagem)
 function generateTicketContent(order, isReprint = false, settings = printSettings, bairroCidade = '') {
   const now = new Date();
   const dateStr = now.toLocaleDateString('pt-BR');
   const timeStr = now.toLocaleTimeString('pt-BR');
   
+  // Identificar template
+  const templateId = settings.selectedTemplate || 'complete';
+  const isKitchen = templateId === 'kitchen';
+  const isDelivery = templateId === 'delivery';
+  
   // Cabeçalho da comanda
   let content = '';
   
-  // 1. CABEÇALHO DO RESTAURANTE
-  content += 'Fome Ninja Restaurante\n'; // Nome do site - centralizado
+  // Nome do site - centralizado
+  content += centerText('Fome Ninja Restaurante') + '\n'; 
    
-  // Informações do restaurante (se disponíveis no settings)
-  if (settings.companyInfo.name) {
-    content += `${settings.companyInfo.name}\n`; // Nome do restaurante
+  // 1. CABEÇALHO DO RESTAURANTE (Ocultar na via da cozinha para economizar papel)
+  if (!isKitchen) {
+    if (settings.companyInfo.name) {
+      content += centerText(settings.companyInfo.name) + '\n'; 
+    }
+    
+    // Montar endereço completo
+    let enderecoCompleto = settings.companyInfo.address || '';
+    if (enderecoCompleto) {
+      content += centerText(enderecoCompleto) + '\n'; 
+    }
+    
+    // Se tiver bairro/cidade, adicionar
+    if (bairroCidade) {
+      content += centerText(bairroCidade) + '\n';
+    }
+    
+    if (settings.companyInfo.phone) {
+      content += centerText(`Tel: ${settings.companyInfo.phone}`) + '\n'; 
+    }
+    
+    content += repeatChar('-', 32) + '\n'; 
   }
-  
-  // Montar endereço completo
-  let enderecoCompleto = '';
-  if (settings.companyInfo.address) {
-    enderecoCompleto = settings.companyInfo.address;
-  }
-  
-  // Se tiver endereço, adicionar
-  if (enderecoCompleto) {
-    content += `${enderecoCompleto}\n`; // Endereço
-  }
-  
-  // Se tiver bairro/cidade, adicionar
-  if (bairroCidade) {
-    content += `${bairroCidade}\n`;
-  }
-  
-  if (settings.companyInfo.phone) {
-    content += `Tel: ${settings.companyInfo.phone}\n`; // Telefone
-  }
-  
-  content += '---------------------------\n'; // Linha tracejada
   
   // 2. INFORMAÇÕES DO PEDIDO
-  content += `Pedido N° #${order.numero_pedido || order.id}\n`;
-  content += `${dateStr} ${timeStr}\n`;
-  content += `Cliente: ${order.customerName}\n`;
+  content += centerText(`PEDIDO #${order.numero_pedido || order.id.substring(0, 8)}`) + '\n';
+  content += lrText('Data/Hora:', `${dateStr} ${timeStr}`) + '\n';
   
-  // Telefone (se disponível)
-  if (order.customerPhone) {
-    content += `Telefone: ${order.customerPhone}\n`;
+  if (order.customerName) {
+    content += lrText('Cliente:', order.customerName) + '\n';
+  }
+  
+  // Telefone (se disponível e não for via cozinha)
+  if (order.customerPhone && !isKitchen) {
+    content += lrText('Telefone:', order.customerPhone) + '\n';
   }
   
   // Tipo de pedido
-  const tipoPedido = order.type === 'comanda' ? 'Mesa/Comanda' : 
-                    order.type === 'delivery' ? 'Entrega' : 
-                    'Balcão';
-  content += `Tipo: ${tipoPedido}\n`;
+  const tipoPedido = order.type === 'comanda' || order.type === 'local' ? '🍽️ Mesa/Local' : 
+                    order.type === 'delivery' ? '🚚 Entrega' : 
+                    order.type === 'retirada' ? '🏪 Retirada' :
+                    '💰 Balcão';
+  content += lrText('Tipo:', tipoPedido) + '\n';
   
-  content += '---------------------------\n'; // Linha tracejada
+  content += repeatChar('-', 32) + '\n';
   
-  // Endereço para entrega (se aplicável)
-  if (order.type === 'delivery' && order.deliveryAddress) {
-    content += 'ENDEREÇO PARA ENTREGA:\n';
+  // Endereço para entrega (se aplicável e se for para cliente ou entregador)
+  if ((order.type === 'delivery') && order.deliveryAddress && !isKitchen) {
+    content += centerText('--- ENDEREÇO DE ENTREGA ---') + '\n';
     content += `${order.deliveryAddress.street}, ${order.deliveryAddress.number}\n`;
     if (order.deliveryAddress.complement) {
-      content += `${order.deliveryAddress.complement}\n`;
+      content += `Compl: ${order.deliveryAddress.complement}\n`;
     }
     content += `${order.deliveryAddress.neighborhood} - ${order.deliveryAddress.city}\n`;
     if (order.deliveryAddress.reference) {
       content += `Ref: ${order.deliveryAddress.reference}\n`;
     }
-    content += `Previsão: ${order.estimatedDeliveryTime || '30-45 min'}\n`;
-    content += '\n';
-  }
-  
-  // Mesa (se for comanda)
-  if (order.type === 'comanda' && order.comandaNumero) {
-    content += `Mesa: ${order.comandaNumero}\n`;
-    content += '\n';
+    content += repeatChar('-', 32) + '\n';
   }
   
   // 3. ITENS DO PEDIDO
-  content += '---------------------------\n'; // Linha tracejada
-  content += 'ITENS DO PEDIDO\n'; // Título centralizado
-  content += '---------------------------\n'; // Linha tracejada
+  content += centerText(isKitchen ? 'VIA DA COZINHA' : 'ITENS DO PEDIDO') + '\n';
+  content += repeatChar('-', 32) + '\n';
   
   // Cabeçalho da tabela de itens
-  content += 'Qtd Nome | Valor Unit.\n'; // Cabeçalho alinhado
-  content += '---------------------------\n'; // Linha tracejada
+  content += isKitchen ? 'Qtd Nome\n' : lrText('Qtd Nome', 'Valor Unit.') + '\n';
+  content += repeatChar('-', 32) + '\n';
   
   // Itens do pedido
   let subtotal = 0;
@@ -910,90 +914,103 @@ function generateTicketContent(order, isReprint = false, settings = printSetting
     subtotal += itemTotal;
     
     // Linha principal do item
-    content += `${item.qty} ${item.name} | R$ ${(item.price || 0).toFixed(2)}\n`;
+    if (isKitchen) {
+        content += `${item.qty} ${item.name}\n`;
+    } else {
+        content += lrText(`${item.qty} ${item.name}`, `R$ ${(item.price || 0).toFixed(2)}`) + '\n';
+    }
     
-    // Observações do item (se houver)
+    // Observações do item (se houver) - Crucial na cozinha!
     if (item.notes) {
-      content += `Obs: ${item.notes}\n`;
+      content += `  > OBS: ${item.notes}\n`;
     }
     
-    // Complementos/adicionais (se houver)
-    if (item.extras && item.extras.length > 0) {
-      item.extras.forEach(extra => {
-        content += `+ ${extra.name} | R$ ${extra.price.toFixed(2)}\n`;
-      });
-    }
-    
-    content += '---------------------------\n'; // Linha tracejada após cada item
+    content += repeatChar('-', 32) + '\n';
   });
   
-  // Subtotal
-  content += `Subtotal | R$ ${subtotal.toFixed(2)}\n`;
-  content += '---------------------------\n'; // Linha tracejada
-  
-  // Total
-  content += `Total | R$ ${order.total.toFixed(2)}\n`;
-  content += '===========================\n'; // Linha dupla tracejada
-  
-  // 4. FORMAS DE PAGAMENTO
-  content += '---------------------------\n'; // Linha tracejada
-  content += 'FORMAS DE PAGAMENTO\n'; // Título centralizado
-  
-  if (order.paymentMethod === 'cash') {
-    content += `dinheiro | R$ ${order.total.toFixed(2)}\n`;
+  // 4. TOTALIZAÇÃO (Ocultar na via da cozinha)
+  if (!isKitchen) {
+    content += lrText('Subtotal', `R$ ${subtotal.toFixed(2)}`) + '\n';
     
-    if (order.cashReceived && order.change) {
-      content += `Recebido | R$ ${order.cashReceived.toFixed(2)}\n`;
-      content += `Troco | R$ ${order.change.toFixed(2)}\n`;
+    // Descontos/Taxas
+    if (order.desconto > 0) {
+      content += lrText('Desconto', `-R$ ${order.desconto.toFixed(2)}`) + '\n';
     }
-  } else if (order.paymentMethod === 'card') {
-    content += `cartão | R$ ${order.total.toFixed(2)}\n`;
-  } else if (order.paymentMethod === 'pix') {
-    content += `pix | R$ ${order.total.toFixed(2)}\n`;
-  } else {
-    content += `${order.paymentMethod || 'Não informado'} | R$ ${order.total.toFixed(2)}\n`;
+    if (order.taxa_entrega > 0) {
+      content += lrText('Taxa Entrega', `R$ ${order.taxa_entrega.toFixed(2)}`) + '\n';
+    }
+
+    content += repeatChar('=', 32) + '\n';
+    content += lrText('TOTAL DO PEDIDO', `R$ ${(order.total || subtotal).toFixed(2)}`) + '\n';
+    content += repeatChar('=', 32) + '\n';
+    
+    // 5. PAGAMENTO
+    content += centerText('PAGAMENTO') + '\n';
+    const metodo = order.paymentMethod?.toLowerCase() || '';
+    const nomeMetodo = metodo === 'cash' || metodo === 'dinheiro' ? 'Dinheiro' :
+                      metodo === 'card' || metodo === 'cartao' ? 'Cartão' :
+                      metodo === 'pix' ? 'PIX' : 
+                      order.paymentMethod || 'Não informado';
+    
+    content += lrText(nomeMetodo, `R$ ${(order.total || subtotal).toFixed(2)}`) + '\n';
+    
+    if ((metodo === 'cash' || metodo === 'dinheiro') && order.troco > 0) {
+      content += lrText('Troco para:', `R$ ${order.troco.toFixed(2)}`) + '\n';
+    }
+    content += repeatChar('-', 32) + '\n';
   }
   
-  content += '---------------------------\n'; // Linha tracejada
-  
-  // 5. TEMPO ESTIMADO
+  // 6. OBSERVAÇÕES GERAIS
+  if (order.comments || order.observacoes) {
+    content += 'OBS GERAIS:\n';
+    content += `${order.comments || order.observacoes}\n`;
+    content += repeatChar('-', 32) + '\n';
+  }
+
+  // 7. TEMPO ESTIMADO
   if (order.prepTime) {
-    content += `Tempo estimado de preparo: ${order.prepTime} min\n`;
-    content += '---------------------------\n'; // Linha tracejada
+    content += centerText(`Tempo Prep: ${order.prepTime} min`) + '\n';
+    content += repeatChar('-', 32) + '\n';
   }
   
-  // 6. REIMPRESSÃO
+  // 8. REIMPRESSÃO
   if (isReprint) {
-    content += '*** REIMPRESSÃO ***\n'; // Centralizado
-    content += '---------------------------\n'; // Linha tracejada
+    content += centerText('*** REIMPRESSÃO ***') + '\n';
+    content += repeatChar('-', 32) + '\n';
   }
   
-  // 7. RODAPÉ DO RESTAURANTE
-  if (settings.companyInfo.name) {
-    content += `${settings.companyInfo.name}\n`; // Nome do restaurante
+  // 9. RODAPÉ (Ocultar na via da cozinha)
+  if (!isKitchen) {
+    content += centerText('Obrigado pela preferência!') + '\n';
+    content += centerText(`${dateStr} - ${timeStr}`) + '\n';
+    content += centerText('www.fomeninja.com.br') + '\n';
   }
-  if (settings.companyInfo.address) {
-    content += `${settings.companyInfo.address}\n`; // Endereço
-  }
-  if (bairroCidade) {
-    content += `${bairroCidade}\n`;
-  }
-  if (settings.companyInfo.phone) {
-    content += `Tel: ${settings.companyInfo.phone}\n`; // Telefone
-  }
-  if (settings.companyInfo.cnpj) {
-    content += `CNPJ: ${settings.companyInfo.cnpj}\n`; // CNPJ
-  }
-  
-  content += 'Obrigado pela preferência!\n';
-  content += '===========================\n'; // Linha dupla tracejada
-  
-  // 8. ÚLTIMA LINHA (OPCIONAL)
-  content += 'Obrigado pela preferência!\n'; // Centralizado
-  content += `${dateStr}, ${timeStr}\n`; // Data e hora centralizados
-  content += 'Fome Ninja Restaurante\n'; // Nome do site centralizado, em negrito
 
   return content;
+}
+
+// Funções auxiliares para formatação de texto (colunas e alinhamento)
+function repeatChar(ch, n) {
+    return new Array(n + 1).join(ch);
+}
+
+function centerText(text, width = 32) {
+    const t = String(text || '');
+    if (t.length >= width) return t.substring(0, width);
+    const left = Math.floor((width - t.length) / 2);
+    const right = width - t.length - left;
+    return repeatChar(' ', left) + t + repeatChar(' ', right);
+}
+
+function lrText(left, right, width = 32) {
+    const l = String(left || '');
+    const r = String(right || '');
+    const spaces = width - (l.length + r.length);
+    if (spaces <= 0) {
+        // Se for muito longo, corta o lado esquerdo
+        return l.substring(0, width - r.length - 1) + ' ' + r;
+    }
+    return l + repeatChar(' ', spaces) + r;
 }
 
 // Função auxiliar para gerar o conteúdo do relatório

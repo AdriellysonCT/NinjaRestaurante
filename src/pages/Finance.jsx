@@ -468,6 +468,11 @@ const Finance = () => {
     if (restaurantId) {
       const loadInitialCounts = async () => {
         try {
+          setTransactionsLoading(true);
+          setAccountsLoading(true);
+          setGoalsLoading(true);
+          setFechamentosLoading(true);
+          
           const [t, a, g, f] = await Promise.all([
              financeService.fetchTransactions({}),
              financeService.fetchAccounts(),
@@ -480,6 +485,11 @@ const Finance = () => {
           setFechamentosCount(Array.isArray(f) ? f.length : 0);
         } catch (err) {
           console.warn('Erro ao carregar contagens iniciais:', err);
+        } finally {
+          setTransactionsLoading(false);
+          setAccountsLoading(false);
+          setGoalsLoading(false);
+          setFechamentosLoading(false);
         }
       };
       loadInitialCounts();
