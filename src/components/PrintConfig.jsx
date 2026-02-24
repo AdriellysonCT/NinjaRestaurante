@@ -2,7 +2,20 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
 const PrintConfig = () => {
-  const [selectedTemplate, setSelectedTemplate] = useState('client');
+  const [selectedTemplate, setSelectedTemplate] = useState(() => {
+    try {
+      const saved = localStorage.getItem('fome-ninja-section-templates');
+      if (saved) {
+        const config = JSON.parse(saved);
+        if (config.dashboard && config.dashboard.length > 0) {
+          return config.dashboard[0];
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return 'client';
+  });
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [selectedPrinter, setSelectedPrinter] = useState(() => {
     const saved = localStorage.getItem('fome-ninja-selected-printer');
@@ -211,7 +224,22 @@ const PrintConfig = () => {
 
       {/* Templates de Impressão */}
       <div className="ninja-card p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Modelos de Comanda</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-foreground">Visualizar Modelos de Comanda</h3>
+          <button
+            onClick={() => {
+              setSectionTemplates(prev => ({
+                ...prev,
+                dashboard: [selectedTemplate]
+              }));
+              setShowSuccessToast(true);
+              setTimeout(() => setShowSuccessToast(false), 3000);
+            }}
+            className="text-sm bg-primary/20 text-primary hover:bg-primary/30 px-3 py-1.5 rounded-lg font-medium transition-colors"
+          >
+            Usar "{templates.find(t => t.id === selectedTemplate)?.name}" no Dashboard
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {templates.map((template) => (
             <div

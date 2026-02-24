@@ -158,11 +158,13 @@ textarea::placeholder {
   .imprimir-comanda-container {
     display: block !important;
     visibility: visible !important;
-    position: static !important;
-    width: 80mm !important;
-    max-width: 80mm !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
     margin: 0 !important;
     padding: 2mm !important;
+    background: #fff !important;
+    z-index: 99999 !important;
   }
 
   /* Texto pré-formatado para comandas */

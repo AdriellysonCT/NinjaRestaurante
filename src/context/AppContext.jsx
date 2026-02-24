@@ -5,6 +5,7 @@ import * as menuService from '../services/menuService';
 import * as settingsService from '../services/settingsService';
 import { useAuth } from './AuthContext';
 import { configurarRealtimePedidos, removerRealtimePedidos } from '../services/dashboardFinanceiroService';
+import { notificationHelper } from '../utils/notificationHelper';
 
 // Criar o contexto
 export const AppContext = createContext();
@@ -593,6 +594,31 @@ export const AppProvider = ({ children }) => {
           const tipoPedido = payload?.new?.tipo_pedido || payload?.new?.tipo_entrega || payload?.new?.tipo || 'entrega';
           console.log('🔔 Novo pedido INSERT - tipo:', tipoPedido);
           tocarSomPorTipo(tipoPedido);
+
+          // --- NOTIFICAÇÃO DESKTOP ---
+          try {
+            const savedNotifSettings = localStorage.getItem('fome-ninja-notification-settings');
+            const notifSettings = savedNotifSettings ? JSON.parse(savedNotifSettings) : { desktopNotifications: true, desktopNotificationMode: 'always' };
+
+            if (notifSettings.desktopNotifications) {
+              const shouldShow = notifSettings.desktopNotificationMode === 'always' || document.visibilityState === 'hidden';
+              
+              if (shouldShow) {
+                const numero = payload?.new?.numero_pedido || '';
+                const cliente = payload?.new?.nome_cliente || 'Cliente';
+                const valor = payload?.new?.valor_total || payload?.new?.total || 0;
+                const tipoFormatado = tipoPedido.charAt(0).toUpperCase() + tipoPedido.slice(1);
+
+                notificationHelper.sendNotification(`🚀 Novo Pedido #${numero} (${tipoFormatado})`, {
+                  body: `Cliente: ${cliente}\nValor: R$ ${parseFloat(valor).toFixed(2).replace('.', ',')}`,
+                  tag: `pedido-${payload.new.id}`, // Notificação única para este pedido
+                });
+              }
+            }
+          } catch (err) {
+            console.error('Erro ao processar notificação desktop:', err);
+          }
+          // ---------------------------
         }
         
         const newOrder = await orderService.fetchOrderById(payload.new.id);

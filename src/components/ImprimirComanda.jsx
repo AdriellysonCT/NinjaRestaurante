@@ -1,212 +1,109 @@
-import React, { useEffect, useMemo } from 'react';
-
-const LINHA = 32;
-
-const repeat = (ch, n) => new Array(Math.max(0, n)).fill(ch).join('');
-const center = (text, width = LINHA) => {
-  const t = String(text ?? '');
-  const pad = Math.max(0, Math.floor((width - t.length) / 2));
-  return repeat(' ', pad) + t;
-};
-const lr = (left, right, width = LINHA) => {
-  const l = String(left ?? '');
-  const r = String(right ?? '');
-  const spaces = Math.max(1, width - (l.length + r.length));
-  return l + repeat(' ', spaces) + r;
-};
-
-const formatarData = (dateStr) => {
-  try {
-    const d = new Date(dateStr);
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mi = String(d.getMinutes()).padStart(2, '0');
-    const ss = String(d.getSeconds()).padStart(2, '0');
-    return `${dd}/${mm}/${yyyy} ${hh}:${mi}:${ss}`;
-  } catch {
-    return String(dateStr ?? '');
-  }
-};
-
-const calcularSubtotal = (itens) => {
-  return (itens || []).reduce((sum, it) => {
-    const qty = Number(it.quantidade ?? it.qty ?? 1);
-    const price = Number(it.preco_unitario ?? it.price ?? 0);
-    return sum + qty * price;
-  }, 0);
-};
+import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { getTemplate } from '../utils/printTemplates';
+import { getTemplatesForSection } from '../utils/printTemplateConfig';
 
 export default function ImprimirComanda({ pedido, restaurante, auto = true, reimpressao = false, onAfterPrint }) {
-  const linhas = useMemo(() => {
-    const nomeSite = 'Fome Ninja Restaurante';
-    const nomeRest = restaurante?.nome_fantasia || 'Restaurante';
-    const end1 = `${restaurante?.rua || ''}, ${restaurante?.numero || ''} ${restaurante?.complemento ? `(${restaurante.complemento})` : ''}`.trim();
-    const end2 = `${restaurante?.bairro || ''}, ${restaurante?.cidade || ''}`.trim();
-    const tel = `Tel: ${restaurante?.telefone || ''}`;
-    const cnpj = `CNPJ: ${restaurante?.cnpj || ''}`;
+  const [printConfig, setPrintConfig] = useState({ paperWidth: 80 });
+  const [templateHtml, setTemplateHtml] = useState('');
 
-    const numeroPedido = `#${pedido?.numero_pedido ?? ''}`;
-    const dataPedido = formatarData(pedido?.criado_em || pedido?.created_at);
-    const cliente = pedido?.nome_cliente || pedido?.customerName || '';
-    const telefone = pedido?.telefone_cliente || '';
-    const tipo = pedido?.tipo_pedido || 'Balcão';
+  useEffect(() => {
+    // Carregar configurações de impressora
+    try {
+      const savedSettings = localStorage.getItem('fome-ninja-print-settings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        setPrintConfig({
+          paperWidth: Number(settings.paperWidth || 80)
+        });
+      }
 
-    const itens = (pedido?.itens_pedido?.length ? pedido.itens_pedido : (pedido?.items || []))
-      .map((it) => ({
-        quantidade: it.quantidade ?? it.qty ?? 1,
-        nome: it?.itens_cardapio?.nome ?? it.name ?? '-',
-        preco_unitario: Number(it.preco_unitario ?? it.price ?? 0)
-      }));
+      // Carregar template configurado para o Dashboard
+      // TODO: Se necessário, passar uma prop "section" para saber se é PDV ou Mesas
+      const templates = getTemplatesForSection('dashboard');
+      const templateId = templates && templates.length > 0 ? templates[0] : 'complete';
+      
+      const generator = getTemplate(templateId);
+      const htmlContent = generator(pedido, restaurante);
+      
+      setTemplateHtml(htmlContent);
 
-    const subtotalCalc = calcularSubtotal(itens);
-    const subtotal = Number(pedido?.subtotal ?? subtotalCalc);
-    const total = Number(pedido?.valor_total ?? pedido?.total ?? subtotal);
-    const pagamento = pedido?.metodo_pagamento || pedido?.paymentMethod || '-';
-    const prepTime = Number(pedido?.prep_time ?? pedido?.prepTime ?? 0);
-
-    const lines = [];
-
-    // Cabeçalho
-    lines.push(center(nomeSite));
-    lines.push(center(nomeRest));
-    if (end1.trim()) lines.push(center(end1));
-    if (end2.trim()) lines.push(center(end2));
-    if (tel.trim()) lines.push(center(tel));
-    lines.push(repeat('-', LINHA));
-
-    // Pedido
-    lines.push(lr(`Pedido N° ${numeroPedido}`, ''));
-    lines.push(lr('Data/Hora:', dataPedido));
-    if (cliente) lines.push(lr('Cliente:', cliente));
-    if (telefone) lines.push(lr('Telefone:', telefone));
-    lines.push(lr('Tipo:', tipo));
-    lines.push(repeat('-', LINHA));
-
-    // Itens
-    lines.push(center('ITENS DO PEDIDO'));
-    lines.push(repeat('-', LINHA));
-    lines.push(lr('Qtd Nome', 'Valor Unit.'));
-    lines.push(repeat('-', LINHA));
-    itens.forEach((it) => {
-      const left = `${it.quantidade} ${it.nome}`;
-      const right = `R$ ${(it.preco_unitario || 0).toFixed(2)}`;
-      lines.push(lr(left, right));
-      lines.push(repeat('-', LINHA));
-    });
-    lines.push(lr('Subtotal', `R$ ${subtotal.toFixed(2)}`));
-    lines.push(repeat('-', LINHA));
-    lines.push(lr('Total', `R$ ${total.toFixed(2)}`));
-    lines.push(repeat('=', LINHA));
-
-    // Pagamento
-    lines.push(center('FORMAS DE PAGAMENTO'));
-    lines.push(lr(pagamento, `R$ ${total.toFixed(2)}`));
-    lines.push(repeat('-', LINHA));
-
-    // Tempo estimado
-    lines.push(lr('Tempo estimado de preparo:', `${prepTime || 0} min`));
-    lines.push(repeat('-', LINHA));
-
-    // Reimpressão
-    if (reimpressao) {
-      lines.push(center('*** REIMPRESSÃO ***'));
-      lines.push(repeat('-', LINHA));
+    } catch (e) {
+      console.error('Erro ao preparar impressão:', e);
+      // Fallback para template completo em caso de erro
+      const generator = getTemplate('complete');
+      setTemplateHtml(generator(pedido, restaurante));
     }
-
-    // Rodapé
-    lines.push(center(nomeRest));
-    if (end1.trim()) lines.push(center(end1));
-    if (end2.trim()) lines.push(center(end2));
-    if (tel.trim()) lines.push(center(tel));
-    if (cnpj.trim()) lines.push(center(cnpj));
-    lines.push(center('Obrigado pela preferência!'));
-    lines.push(repeat('=', LINHA));
-
-    // Última linha
-    lines.push(center('Obrigado pela preferência!'));
-    lines.push(center(dataPedido));
-    lines.push(center(nomeSite));
-
-    return lines.join('\n');
   }, [pedido, restaurante]);
 
   useEffect(() => {
-    if (!auto) return;
+    if (!auto || !templateHtml) return;
+    
     const t = setTimeout(() => {
       window.print();
       if (onAfterPrint) setTimeout(() => onAfterPrint(), 100);
-    }, 150);
+    }, 500); // Tempo seguro para renderização do HTML
+    
     return () => clearTimeout(t);
-  }, [auto, onAfterPrint]);
+  }, [auto, templateHtml, onAfterPrint]);
 
-  return (
-    <div>
+  // Use Portal to render directly into body
+  return createPortal(
+    <>
       <style>{`
         @media screen { .print-only { display: none; } }
         @media print {
-          /* Configuração para impressoras térmicas 80mm */
+          /* Ocultar tudo exceto nosso container */
+          body > * { display: none !important; }
+          
+          body > .imprimir-comanda-container {
+             display: block !important;
+             position: absolute !important;
+             top: 0 !important;
+             left: 0 !important;
+             margin: 0 !important;
+             background: white !important;
+             z-index: 99999 !important;
+          }
+           
           @page {
-            size: 80mm auto;
+            size: ${printConfig.paperWidth}mm auto;
             margin: 0;
             padding: 0;
           }
           
           html, body {
-            width: 80mm !important;
-            max-width: 80mm !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            width: ${printConfig.paperWidth}mm !important;
             background: #fff !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          
-          body * { 
-            visibility: hidden !important; 
-          }
-          
-          .imprimir-comanda-container, 
-          .imprimir-comanda-container * { 
-            visibility: visible !important; 
-            color: #000 !important;
-            background: transparent !important;
-          }
-          
-          .imprimir-comanda-container { 
-            position: fixed; 
-            top: 0;
-            left: 0;
-            width: 80mm !important;
-            max-width: 80mm !important;
-            padding: 2mm !important; 
-            margin: 0 !important; 
+            height: auto !important;
+            overflow: visible !important;
           }
           
           .print-only { 
             display: block !important; 
           }
+
+          /* Reset básico para o conteúdo do template */
+          .imprimir-comanda-container {
+            width: ${printConfig.paperWidth}mm !important;
+            max-width: ${printConfig.paperWidth}mm !important;
+            padding: 2mm !important; 
+            font-family: 'Courier New', monospace;
+          }
           
-          pre { 
-            font-family: 'Courier New', 'Lucida Console', Monaco, monospace !important; 
-            font-size: 11px !important; 
-            line-height: 1.3 !important; 
-            margin: 0 !important;
-            padding: 0 !important;
-            white-space: pre-wrap !important;
-            word-wrap: break-word !important;
+          .imprimir-comanda-container * {
+             visibility: visible !important;
           }
         }
       `}</style>
-      <div className="imprimir-comanda-container print-only">
-        <pre>{linhas}</pre>
-      </div>
-    </div>
+      <div 
+        className="imprimir-comanda-container print-only"
+        dangerouslySetInnerHTML={{ __html: templateHtml }}
+      />
+    </>,
+    document.body
   );
 }
-
-export { formatarData, calcularSubtotal };
 
 
 

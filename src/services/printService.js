@@ -166,6 +166,30 @@ const sendToPrinter = async (content, settings = {}) => {
   
   logger.log('Enviando para impressora:', printerName);
   logger.log('Largura do papel:', paperWidth + 'mm');
+
+  // --- TENTATIVA VIA AGENTE NINJA (PYTHON) ---
+  try {
+    const response = await fetch('http://localhost:5001/print', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: content,
+        printer_name: printerName === 'Impressora Padrão' ? null : printerName
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        logger.log('✅ Impressão realizada via Agente Ninja!');
+        return { success: true, message: `Impresso via Agente Ninja na ${printerName}` };
+      }
+    }
+    logger.log('⚠️ Agente Ninja respondeu com erro, tentando via navegador...');
+  } catch (err) {
+    logger.log('ℹ️ Agente Ninja não detectado ou Offline, usando impressão do navegador (fallback).');
+  }
+  // ------------------------------------------
   
   // Criar iframe oculto para impressão (melhor compatibilidade que window.open)
   const printFrame = document.createElement('iframe');

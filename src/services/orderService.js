@@ -4,7 +4,7 @@ const mapOrder = (order) => {
   const items = (order.itens_pedido || []).map(item => ({
     name: item.itens_cardapio?.nome || 'Item desconhecido',
     qty: item.quantidade || 0,
-    price: parseFloat(item.itens_cardapio?.preco) || 0,
+    price: parseFloat(item.preco_unitario) || parseFloat(item.itens_cardapio?.preco) || 0,
     note: item.observacao_item || '',
     prepTime: item.itens_cardapio?.tempo_preparo || 0
   }));

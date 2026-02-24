@@ -13,8 +13,12 @@ import * as horariosService from '../services/horariosService';
 import { useToast } from '../hooks/useToast';
 import { ToastContainer } from '../components/Toast';
 import { logger } from '../utils/logger';
+import { notificationHelper } from '../utils/notificationHelper';
 
 const Settings = () => {
+  const [agentStatus, setAgentStatus] = useState('offline'); // 'online' | 'offline' | 'checking'
+  const [agentPrinter, setAgentPrinter] = useState('');
+  
   // Hook de toast para notificações
   const { toasts, removeToast, success, error, info } = useToast();
   
@@ -74,6 +78,8 @@ const Settings = () => {
       pushNotifications: true,
       orderStatusUpdates: true,
       marketingEmails: false,
+      desktopNotifications: true,
+      desktopNotificationMode: 'always', // 'always' | 'minimized'
     };
   });
   
@@ -89,6 +95,29 @@ const Settings = () => {
   });
   
   const [activeTab, setActiveTab] = useState('general');
+
+  // Verificar status do Agente Ninja
+  useEffect(() => {
+    const checkAgent = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/status');
+        if (response.ok) {
+          const data = await response.json();
+          setAgentStatus('online');
+          setAgentPrinter(data.printer);
+        } else {
+          setAgentStatus('offline');
+        }
+      } catch (err) {
+        setAgentStatus('offline');
+      }
+    };
+
+    checkAgent();
+    const interval = setInterval(checkAgent, 5000); // Checar a cada 5s
+    return () => clearInterval(interval);
+  }, []);
+
   const { theme } = React.useContext(ThemeContext);
   const { restaurante, restauranteId, atualizarDadosRestaurante, loading: authLoading } = useAuth();
   const { orders } = useAppContext();
@@ -961,15 +990,83 @@ const Settings = () => {
         {activeTab === 'notificação' && (
           <div className="ninja-card p-6">
             <h3 className="text-lg font-semibold text-foreground mb-4">Notificações</h3>
-            <div className="space-y-4">
+            <div className="space-y-6">
                 <div className="flex items-center justify-between py-2 border-b border-border">
-                    <span className="font-medium">Som de Novo Pedido</span>
+                    <div>
+                        <span className="font-medium block">Som de Novo Pedido</span>
+                        <span className="text-xs text-muted-foreground">Tocar um alerta sonoro quando chegar um novo pedido</span>
+                    </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" checked={notificationSettings.newOrderSound} onChange={(e) => handleNotificationSettingChange('newOrderSound', e.target.checked)} className="sr-only peer" />
                         <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
                     </label>
                 </div>
-                {/* Outras configurações de notificação */}
+
+                <div className="flex items-center justify-between py-2 border-b border-border">
+                    <div>
+                        <span className="font-medium block">Notificações na Área de Trabalho (Card)</span>
+                        <span className="text-xs text-muted-foreground">Mostrar o aviso no canto da tela (Windows/Mac)</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked={notificationSettings.desktopNotifications} onChange={(e) => handleNotificationSettingChange('desktopNotifications', e.target.checked)} className="sr-only peer" />
+                        <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+
+                {notificationSettings.desktopNotifications && (
+                    <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="space-y-4 pl-4 border-l-2 border-primary/20"
+                    >
+                        <div>
+                            <label className="text-sm font-medium mb-2 block">Quando avisar?</label>
+                            <div className="flex gap-4">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="notifMode" 
+                                        checked={notificationSettings.desktopNotificationMode === 'always'} 
+                                        onChange={() => handleNotificationSettingChange('desktopNotificationMode', 'always')}
+                                        className="text-primary focus:ring-primary"
+                                    />
+                                    <span className="text-sm">Sempre (Aba aberta ou fechada)</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="notifMode" 
+                                        checked={notificationSettings.desktopNotificationMode === 'minimized'} 
+                                        onChange={() => handleNotificationSettingChange('desktopNotificationMode', 'minimized')}
+                                        className="text-primary focus:ring-primary"
+                                    />
+                                    <span className="text-sm">Apenas se a aba estiver em segundo plano</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="pt-2">
+                            <button 
+                                onClick={async () => {
+                                    const permission = await notificationHelper.requestPermission();
+                                    if (permission === 'granted') {
+                                        success('Permissão concedida! Enviando teste...', 3000);
+                                        notificationHelper.sendNotification('Teste de Entrega 🚀', {
+                                            body: 'Se você está vendo isso, as notificações estão funcionando!',
+                                        });
+                                    } else if (permission === 'denied') {
+                                        error('Permissão negada pelo navegador. Você precisa ativar nas configurações do site.', 5000);
+                                    } else {
+                                        info('Permissão necessária para mostrar notificações.', 3000);
+                                    }
+                                }}
+                                className="bg-secondary text-secondary-foreground text-xs py-2 px-4 rounded-md hover:bg-secondary/80 transition-colors flex items-center gap-2"
+                            >
+                                🔔 Ativar e Testar Notificação
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
             </div>
           </div>
         )}
@@ -993,6 +1090,28 @@ const Settings = () => {
         
         {activeTab === 'ferramentas' && (
           <div className="space-y-6">
+            {/* Status do Agente Ninja */}
+            <div className={`ninja-card p-4 border-l-4 ${agentStatus === 'online' ? 'border-green-500 bg-green-500/5' : 'border-gray-500 bg-gray-500/5'}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full animate-pulse ${agentStatus === 'online' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-gray-400'}`}></div>
+                  <div>
+                    <h3 className="font-bold text-foreground">Agente Ninja de Impressão</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {agentStatus === 'online' 
+                        ? `Conectado via localhost:5001 • Impressora: ${agentPrinter}` 
+                        : 'Desconectado. Abra o "INICIAR_PAINEL_NINJA.bat" para impressão automática silenciosa.'}
+                    </p>
+                  </div>
+                </div>
+                {agentStatus === 'online' ? (
+                  <span className="text-[10px] bg-green-500/20 text-green-500 px-2 py-1 rounded uppercase font-bold">Ativo</span>
+                ) : (
+                  <a href="#" onClick={(e) => { e.preventDefault(); info('Execute o arquivo na pasta ninja-print-agent para iniciar.', 5000); }} className="text-[10px] bg-gray-500/20 text-muted-foreground px-2 py-1 rounded uppercase font-bold hover:bg-gray-500/30 transition-colors">Como ativar?</a>
+                )}
+              </div>
+            </div>
+
             <div className="ninja-card p-6">
               <h3 className="text-lg font-semibold text-foreground mb-4">Ferramentas</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
