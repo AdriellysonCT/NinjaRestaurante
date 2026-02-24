@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from './lib/supabase.js';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -60,26 +60,7 @@ const ProtectedRoute = ({ children }) => {
 const MainLayout = () => {
   const { user, restauranteId } = useAuth();
   const { theme, toggleTheme } = useTheme();
-
-  // ✅ Gerenciar status online do restaurante
-  useEffect(() => {
-    if (!user?.id || !restauranteId) return;
-
-    const handleBeforeUnload = () => {
-      // Marcar como offline quando fechar o painel
-      const url = `${supabase.supabaseUrl}/rest/v1/restaurantes_app?id=eq.${restauranteId}`;
-      const data = JSON.stringify({ ativo: false });
-      
-      navigator.sendBeacon(url, data);
-      console.log('🔴 Restaurante marcado como OFFLINE (painel fechado)');
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [user?.id, restauranteId]);
+  const location = useLocation();
 
   return (
     <div className="flex min-h-screen w-full">

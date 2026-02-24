@@ -18,8 +18,21 @@ CORS(app)
 # Configurações do Agente
 PORT = 5001
 DASHBOARD_URL = "https://ninja-restaurante.vercel.app"
-# Caminho para o logo (ajustado para o ambiente local)
-ICON_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "public", "logo-fome-ninja.png")
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+# Caminho para o logo (ajustado para funcionar no EXE e no script)
+ICON_PATH = resource_path("logo-fome-ninja.png")
+if not os.path.exists(ICON_PATH):
+    # Fallback para desenvolvimento caso o de cima falhe fora do EXE
+    ICON_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "public", "logo-fome-ninja.png")
 
 def get_default_printer():
     try:

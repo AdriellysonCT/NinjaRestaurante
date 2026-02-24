@@ -15,7 +15,7 @@ export const useAppContext = () => useContext(AppContext);
 
 // Provedor do contexto
 export const AppProvider = ({ children }) => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, restauranteId: authRestauranteId } = useAuth();
   // Estados
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -339,73 +339,27 @@ export const AppProvider = ({ children }) => {
     };
   }, []);
 
-  // Desbloquear áudio no primeiro gesto do usuário e tocar imediatamente se já houver "Novas Missões"
-  useEffect(() => {
-    const events = ['click', 'pointerdown', 'touchstart', 'keydown', 'scroll', 'mousemove'];
-
-    const onFirstInteraction = async () => {
-      console.log('🔓 Primeiro gesto detectado - desbloqueando áudio...');
-      try {
-        // Desbloquear o áudio
-        setSoundUnlocked(true);
-        
-        // Tentar tocar um som silencioso para desbloquear
-        if (soundEntregaRef.current) {
-          soundEntregaRef.current.volume = 0.01;
-          await soundEntregaRef.current.play().catch(() => {});
-          soundEntregaRef.current.pause();
-          soundEntregaRef.current.currentTime = 0;
-          soundEntregaRef.current.volume = 1;
-        }
-        
-        console.log('✅ Áudio desbloqueado!');
-        
-        // Se já houver pedidos não lidos, tocar o som
-        const statusNovosPedidos = ['pendente', 'disponivel', 'novo'];
-        const newMissions = (ordersRef.current || []).filter(o => 
-          statusNovosPedidos.includes(o.status) && !o.started_at
-        );
-        if (newMissions.length > 0 && soundPreference) {
-          console.log('🔔 Pedidos pendentes encontrados, tocando som...');
-          const tipoPedido = newMissions[0]?.tipo_pedido || newMissions[0]?.tipo_entrega || 'entrega';
-          console.log('🔔 Tipo do pedido:', tipoPedido);
-          // Pequeno delay para garantir que o áudio está desbloqueado
-          setTimeout(() => {
-            tocarSomPorTipo(tipoPedido);
-          }, 100);
-        }
-      } catch (err) {
-        console.error('❌ Erro ao desbloquear áudio:', err);
-      } finally {
-        events.forEach(evt => window.removeEventListener(evt, onFirstInteraction, true));
-      }
-    };
-
-    events.forEach(evt => window.addEventListener(evt, onFirstInteraction, true));
-    return () => {
-      events.forEach(evt => window.removeEventListener(evt, onFirstInteraction, true));
-    };
-  }, [soundPreference]);
-
   // Inicializar dados
   useEffect(() => {
     const initializeData = async () => {
-      if (isInitialized || !user || authLoading) return;
+      // Se já inicializou ou está carregando auth, não faz nada
+      if (isInitialized || authLoading) return;
+      
+      // Se não tem usuário, para o loading global
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
       
       try {
         setIsLoading(true);
+        console.log('🔄 AppContext: Iniciando carregamento de dados...');
         
-        try {
-          const { data: restaurante, error: restauranteError } = await supabase
-            .from('restaurantes_app')
-            .select('id')
-            .eq('user_id', user.id)
-            .single();
-
-          if (restauranteError) throw restauranteError;
-          setRestaurantId(restaurante.id);
-        } catch (error) {
-          console.error("Não foi possível obter o ID do restaurante para o realtime:", error.message);
+        if (authRestauranteId) {
+          setRestaurantId(authRestauranteId);
+        } else if (user?.id) {
+          // Fallback se não vier do contexto
+          setRestaurantId(user.id);
         }
         
         // Tentar carregar dados do Supabase
@@ -527,7 +481,7 @@ export const AppProvider = ({ children }) => {
     };
     
     initializeData();
-  }, [isOnline, isInitialized, user, authLoading]);
+  }, [user, authLoading, isInitialized, authRestauranteId]); // Dependências limpas
 
   // Desbloquear áudio no primeiro gesto do usuário sem alterar preferência do usuário
   useEffect(() => {

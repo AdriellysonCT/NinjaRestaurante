@@ -169,142 +169,165 @@ export const AuthProvider = ({ children }) => {
   // Função para carregar dados do restaurante
   const carregarDadosRestaurante = async (userId) => {
     try {
-      console.log('Carregando dados do restaurante para o usuário:', userId);
-      const dadosRestaurante = await authService.buscarDadosRestaurante();
+      if (!userId) return;
+      
+      const id = typeof userId === 'string' ? userId : (userId.id || userId);
+      if (!id || typeof id !== 'string') {
+        console.warn('⚠️ AuthContext: ID de usuário inválido para carregar restaurante');
+        return;
+      }
+
+      console.log('🔄 AuthContext: Carregando dados do restaurante p/ ID:', id);
+      const dadosRestaurante = await authService.buscarDadosRestaurante(id);
       
       if (dadosRestaurante) {
-        console.log('Dados do restaurante carregados:', dadosRestaurante);
-        setRestaurante(dadosRestaurante);
+        console.log('✅ AuthContext: Dados do restaurante carregados');
         
-        // Atualizar localStorage com os dados reais
+        // 🔥 Lógica: Sempre começar OFFLINE ao abrir o painel (primeira vez na sessão)
+        // Usamos sessionStorage porque ele limpa quando a aba/browser é fechado,
+        // mas persiste no F5 (refresh). Assim, o refresh não desloga o restaurante,
+        // mas abrir uma nova aba ou reabrir o browser sim.
+        const isFirstLoadOfSession = !sessionStorage.getItem('fome-ninja-initialized');
+        
+        if (isFirstLoadOfSession && dadosRestaurante.ativo) {
+          console.log('🌙 AuthContext: Forçando status OFFLINE no primeiro carregamento da sessão');
+          // Atualizar no banco
+          await supabase
+            .from('restaurantes_app')
+            .update({ ativo: false })
+            .eq('id', dadosRestaurante.id);
+          
+          // Atualizar o objeto local
+          dadosRestaurante.ativo = false;
+          sessionStorage.setItem('fome-ninja-initialized', 'true');
+        } else {
+          sessionStorage.setItem('fome-ninja-initialized', 'true');
+        }
+
+        setRestaurante(prev => {
+          if (!prev) return dadosRestaurante;
+          return { ...prev, ...dadosRestaurante };
+        });
+        
         if (dadosRestaurante.nome_fantasia) {
           localStorage.setItem('fome-ninja-restaurant-name', dadosRestaurante.nome_fantasia);
         }
-        
-        // ✅ SALVAR O ID DO RESTAURANTE NO LOCALSTORAGE
         if (dadosRestaurante.id) {
           localStorage.setItem('restaurante_id', dadosRestaurante.id);
-          console.log('✅ Restaurante ID salvo:', dadosRestaurante.id);
         }
       } else {
-        console.log('Dados do restaurante não encontrados, criando estrutura básica');
-        // Se não houver dados, criar uma estrutura básica com o email do usuário
-        setRestaurante({
-          nome_fantasia: '',
-          tipo_restaurante: '',
-          cnpj: '',
-          telefone: '',
-          email: userId.email,
-          nome_responsavel: '',
-          rua: '',
-          numero: '',
-          bairro: '',
-          cidade: '',
-          complemento: ''
+        console.warn('⚠️ AuthContext: Restaurante não encontrado em restaurantes_app');
+        setRestaurante(prev => prev || {
+          nome_fantasia: 'Restaurante',
+          email: typeof userId === 'object' ? userId.email : null,
+          ativo: false 
         });
       }
     } catch (error) {
-      console.error('Erro ao carregar dados do restaurante:', error);
-      // Em caso de erro, criar estrutura básica
-      setRestaurante({
-        nome_fantasia: '',
-        tipo_restaurante: '',
-        cnpj: '',
-        telefone: '',
-        email: userId.email,
-        nome_responsavel: '',
-        rua: '',
-        numero: '',
-        bairro: '',
-        cidade: '',
-        complemento: ''
-      });
+      console.error('❌ AuthContext: Erro crítico ao carregar restaurante:', error);
     }
   };
 
   // Verificar autenticação ao iniciar
   useEffect(() => {
+    // Safety Net: Garantir que o loading NUNCA trave a aplicação
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 6000);
+
     const checkAuth = async () => {
       try {
         setLoading(true);
+        console.log('🔍 AuthContext: [1/3] Iniciando checkAuth...');
         
-        // Verificar se há uma sessão ativa
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error('Erro ao obter sessão:', error);
-          setUser(null);
-          setRestaurante(null);
-          return;
-        }
+        if (sessionError) throw sessionError;
         
-        if (session && session.user) {
-          console.log('Sessão encontrada:', session.user.id);
+        if (session?.user) {
+          console.log('👤 AuthContext: [2/3] Sessão ativa para:', session.user.id);
           setUser(session.user);
+          // 🚀 LIBERAÇÃO INSTANTÂNEA: Não espera o DB para mostrar a UI
+          setLoading(false);
+          clearTimeout(timeout);
           
-          // Carregar dados reais do restaurante do banco de dados
-          await carregarDadosRestaurante(session.user);
-          
-          // Iniciar monitoramento de sessão
+          carregarDadosRestaurante(session.user);
           startSessionMonitoring();
         } else {
-          console.log('Nenhuma sessão ativa encontrada');
+          console.log('ℹ️ AuthContext: [2/3] Nenhuma sessão ativa');
           setUser(null);
           setRestaurante(null);
-          stopSessionMonitoring();
+          setLoading(false);
+          clearTimeout(timeout);
         }
       } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
-        setError(error.message);
+        console.error('❌ AuthContext: Erro fatal no checkAuth:', error);
         setUser(null);
         setRestaurante(null);
-      } finally {
         setLoading(false);
+        clearTimeout(timeout);
+      } finally {
+        console.log('🏁 AuthContext: [3/3] checkAuth concluído');
       }
     };
     
     checkAuth();
-    
+    return () => clearTimeout(timeout);
+  }, []);
+
+  // Configurar listeners e Realtime
+  useEffect(() => {
     // Configurar listener para mudanças de autenticação
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state change:', event, session?.user?.id);
         
-        if (event === 'SIGNED_IN' && session && session.user) {
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('🔑 AuthContext: Evento SIGNED_IN');
           setUser(session.user);
-          
-          // Definir dados básicos do restaurante sem buscar no banco
-          setRestaurante({
-            nome_fantasia: 'Meu Restaurante',
-            tipo_restaurante: 'Restaurante',
-            cnpj: '',
-            telefone: '',
-            email: session.user.email,
-            nome_responsavel: '',
-            rua: '',
-            numero: '',
-            bairro: '',
-            cidade: '',
-            complemento: ''
-          });
-          
-          // Iniciar monitoramento de sessão
+          // Não usar await aqui para não bloquear o listener
+          carregarDadosRestaurante(session.user);
           startSessionMonitoring();
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          setUser(session.user);
         } else if (event === 'SIGNED_OUT' || !session) {
           console.log('Usuário deslogado, limpando estado');
           setUser(null);
           setRestaurante(null);
           setError(null);
-          
-          // Parar monitoramento de sessão
           stopSessionMonitoring();
           
-          // Limpar localStorage
           localStorage.removeItem('supabase.auth.token');
           localStorage.removeItem('fome-ninja-active-page');
+          localStorage.removeItem('restaurante_id');
         }
       }
     );
+
+    // ✅ Realtime para o status do restaurante
+    let channel;
+    if (user?.id) {
+      console.log('📡 Iniciando Realtime para status do restaurante...', user.id);
+      channel = supabase
+        .channel(`restaurante_status_${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'restaurantes_app',
+            filter: `id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('🔔 Mudança detectada no restaurante (Realtime):', payload.new);
+            setRestaurante(prev => ({
+              ...prev,
+              ...payload.new
+            }));
+          }
+        )
+        .subscribe();
+    }
     
     // Limpar listener ao desmontar
     return () => {
@@ -312,10 +335,14 @@ export const AuthProvider = ({ children }) => {
         authListener.subscription.unsubscribe();
       }
       
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+      
       // Parar monitoramento de sessão ao desmontar
       stopSessionMonitoring();
     };
-  }, []);
+  }, [user?.id]); // Adicionar user?.id como dependência para reinicializar o realtime se necessário
 
   // Função para cadastrar restaurante
   const cadastrar = async (dadosRestaurante, senha) => {
@@ -377,80 +404,6 @@ export const AuthProvider = ({ children }) => {
       
       // Definir o usuário no estado
       setUser(data.user);
-      
-      // ✅ PRIMEIRO: Atualizar status ativo para true
-      try {
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('🔍 INICIANDO ATUALIZAÇÃO DE STATUS ATIVO');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('📋 User ID:', data.user.id);
-        console.log('📋 Email:', data.user.email);
-        
-        console.log('\n🔎 PASSO 1: Buscando restaurante...');
-        const { data: restauranteData, error: selectError } = await supabase
-          .from('restaurantes_app')
-          .select('id, user_id, nome_fantasia, ativo')
-          .eq('user_id', data.user.id)
-          .single();
-        
-        console.log('📊 Resultado da busca:', {
-          restauranteData,
-          selectError
-        });
-        
-        if (selectError) {
-          console.error('❌ ERRO AO BUSCAR RESTAURANTE:', selectError);
-          console.error('❌ Código do erro:', selectError.code);
-          console.error('❌ Mensagem:', selectError.message);
-          console.error('❌ Detalhes:', selectError.details);
-          throw selectError;
-        }
-        
-        if (restauranteData?.id) {
-          console.log('\n✅ RESTAURANTE ENCONTRADO!');
-          console.log('📋 ID do restaurante:', restauranteData.id);
-          console.log('📋 Nome:', restauranteData.nome_fantasia);
-          console.log('📋 Status atual (antes do update):', restauranteData.ativo);
-          
-          console.log('\n🔄 PASSO 2: Atualizando status para TRUE...');
-          const { data: updateData, error: updateError } = await supabase
-            .from('restaurantes_app')
-            .update({ ativo: true })
-            .eq('id', restauranteData.id)
-            .select();
-          
-          console.log('📊 Resultado do UPDATE:', {
-            updateData,
-            updateError
-          });
-          
-          if (updateError) {
-            console.error('❌ ERRO AO ATUALIZAR STATUS:', updateError);
-            console.error('❌ Código do erro:', updateError.code);
-            console.error('❌ Mensagem:', updateError.message);
-            console.error('❌ Detalhes:', updateError.details);
-            console.error('❌ Hint:', updateError.hint);
-            throw updateError;
-          }
-          
-          console.log('\n✅✅✅ SUCESSO! Restaurante marcado como ONLINE');
-          console.log('📋 Dados atualizados:', updateData);
-          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-        } else {
-          console.warn('\n⚠️⚠️⚠️ NENHUM RESTAURANTE ENCONTRADO!');
-          console.warn('⚠️ User ID buscado:', data.user.id);
-          console.warn('⚠️ Resultado da query:', restauranteData);
-          console.warn('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-        }
-      } catch (updateError) {
-        console.error('\n❌❌❌ ERRO CAPTURADO NO CATCH:');
-        console.error('❌ Tipo:', updateError.constructor.name);
-        console.error('❌ Mensagem:', updateError.message);
-        console.error('❌ Stack:', updateError.stack);
-        console.error('❌ Objeto completo:', updateError);
-        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-        // Não impedir login se falhar ao atualizar status
-      }
       
       // DEPOIS: Carregar dados reais do restaurante
       await carregarDadosRestaurante(data.user);

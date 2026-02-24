@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
+import { logger } from '../utils/logger';
 
 // Ícones definidos diretamente - solução definitiva
 const SunIcon = (props) => (
@@ -111,7 +112,7 @@ const pageTitles = {
 };
 
 export const Header = ({ toggleTheme, theme }) => {
-  const { logout, user } = useAuth();
+  const { logout, user, restaurante, atualizarDadosRestaurante } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -119,6 +120,10 @@ export const Header = ({ toggleTheme, theme }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showEndDayConfirm, setShowEndDayConfirm] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  
+  // Status ativo do restaurante
+  const isOnline = restaurante?.ativo || false;
   const profileMenuRef = useRef(null);
   const notificationsRef = useRef(null);
   const { orders } = useAppContext() || { orders: [] };
@@ -224,6 +229,26 @@ export const Header = ({ toggleTheme, theme }) => {
     }
   };
 
+  const handleToggleStatus = async () => {
+    if (isUpdatingStatus || !user) return;
+    
+    try {
+      setIsUpdatingStatus(true);
+      const novoStatus = !isOnline;
+      
+      console.log(`🔄 Alterando status para: ${novoStatus ? 'ABERTO' : 'FECHADO'}`);
+      
+      // Usar a função de atualização do contexto que já lida com o banco
+      await atualizarDadosRestaurante({ ativo: novoStatus });
+      
+      logger.log(`✅ Restaurante agora está ${novoStatus ? 'ONLINE' : 'OFFLINE'}`);
+    } catch (error) {
+      console.error('Erro ao alternar status do restaurante:', error);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   const handleEndDay = async () => {
     try {
       console.log('🌙 Encerrando o dia...');
@@ -291,6 +316,25 @@ export const Header = ({ toggleTheme, theme }) => {
       {title === 'PDV Balcão' && <div />} 
 
       <div className="flex items-center gap-4">
+        {/* Toggle de Status Online/Offline */}
+        <div className="flex items-center">
+          <button
+            onClick={handleToggleStatus}
+            disabled={isUpdatingStatus}
+            className={`flex items-center gap-2 px-2 py-1 rounded-full transition-all duration-300 ${
+              isOnline 
+                ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' 
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            } border ${isOnline ? 'border-green-500/50' : 'border-border'}`}
+            title={isOnline ? 'Clique para fechar o restaurante' : 'Clique para abrir o restaurante'}
+          >
+            <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'}`}></div>
+            <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+              {isUpdatingStatus ? 'Aguarde...' : (isOnline ? 'Aberto' : 'Fechado')}
+            </span>
+          </button>
+        </div>
+
         <button onClick={toggleTheme} className="text-muted-foreground hover:text-foreground p-1 m-0 transition-transform hover:scale-110">
           {theme === 'dark' ? <SunIcon className="w-5 h-5"/> : <MoonIcon className="w-5 h-5"/>}
         </button>

@@ -59,7 +59,7 @@ export async function cadastrarRestaurante(dadosRestaurante, senha) {
       email: dadosRestaurante.email,
       nome_responsavel: dadosRestaurante.nomeResponsavel || dadosRestaurante.nome_responsavel || '',
       chave_pix: dadosRestaurante.chavePix || '',
-      ativo: true
+      ativo: false
     });
     
     const { data: restauranteData, error: restauranteError } = await supabase
@@ -78,7 +78,7 @@ export async function cadastrarRestaurante(dadosRestaurante, senha) {
         bairro: dadosRestaurante.bairro || '',
         cidade: dadosRestaurante.cidade || '',
         complemento: dadosRestaurante.complemento || '',
-        ativo: true,
+        ativo: false,
         imagem_url: dadosRestaurante.imagem_url || null,
         latitude: dadosRestaurante.latitude || null,
         longitude: dadosRestaurante.longitude || null,
@@ -151,21 +151,27 @@ export async function loginRestaurante(email, senha) {
 }
 
 // Função para buscar dados do restaurante logado
-export async function buscarDadosRestaurante() {
+export async function buscarDadosRestaurante(forcedUserId = null) {
   try {
-    // Obter usuário atual
-    const { data: { user } } = await supabase.auth.getUser();
+    let userId = forcedUserId;
     
-    if (!user) throw new Error('Usuário não autenticado');
+    // Se não passou ID, busca o usuário atual do Auth
+    if (!userId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.warn('⚠️ buscarDadosRestaurante: Usuário não autenticado');
+        return null;
+      }
+      userId = user.id;
+    }
 
-    console.log('Buscando dados do restaurante para o usuário:', user.id);
+    console.log('Buscando dados do restaurante para o ID:', userId);
 
     // Buscar dados do restaurante em restaurantes_app
-    // A trigger já deve ter criado o registro automaticamente
     const { data, error } = await supabase
       .from('restaurantes_app')
       .select('*')
-      .eq('id', user.id)
+      .eq('id', userId)
       .maybeSingle();
 
     if (error) {
@@ -200,19 +206,31 @@ export async function atualizarDadosRestaurante(dadosAtualizados) {
     
     if (!user) throw new Error('Usuário não autenticado');
 
+    // Mapear campos do front-end para o banco de dados
+    const updateData = {
+      updated_at: new Date().toISOString()
+    };
+
+    if (dadosAtualizados.nomeFantasia !== undefined) updateData.nome_fantasia = dadosAtualizados.nomeFantasia;
+    if (dadosAtualizados.tipoRestaurante !== undefined) updateData.tipo_restaurante = dadosAtualizados.tipoRestaurante;
+    if (dadosAtualizados.cnpj !== undefined) updateData.cnpj = dadosAtualizados.cnpj;
+    if (dadosAtualizados.telefone !== undefined) updateData.telefone = dadosAtualizados.telefone;
+    if (dadosAtualizados.nomeResponsavel !== undefined) updateData.nome_responsavel = dadosAtualizados.nomeResponsavel;
+    if (dadosAtualizados.imagemUrl !== undefined) updateData.imagem_url = dadosAtualizados.imagemUrl;
+    if (dadosAtualizados.chavePix !== undefined) updateData.chave_pix = dadosAtualizados.chavePix;
+    if (dadosAtualizados.ativo !== undefined) updateData.ativo = dadosAtualizados.ativo;
+    
+    // Suporte para nomes de campos diretos (snake_case)
+    if (dadosAtualizados.nome_fantasia !== undefined) updateData.nome_fantasia = dadosAtualizados.nome_fantasia;
+    if (dadosAtualizados.tipo_restaurante !== undefined) updateData.tipo_restaurante = dadosAtualizados.tipo_restaurante;
+    if (dadosAtualizados.nome_responsavel !== undefined) updateData.nome_responsavel = dadosAtualizados.nome_responsavel;
+    if (dadosAtualizados.imagem_url !== undefined) updateData.imagem_url = dadosAtualizados.imagem_url;
+    if (dadosAtualizados.chave_pix !== undefined) updateData.chave_pix = dadosAtualizados.chave_pix;
+
     // Atualizar dados do restaurante
     const { data, error} = await supabase
       .from('restaurantes_app')
-      .update({
-        nome_fantasia: dadosAtualizados.nomeFantasia,
-        tipo_restaurante: dadosAtualizados.tipoRestaurante,
-        cnpj: dadosAtualizados.cnpj,
-        telefone: dadosAtualizados.telefone,
-        nome_responsavel: dadosAtualizados.nomeResponsavel,
-        imagem_url: dadosAtualizados.imagemUrl || null,
-        chave_pix: dadosAtualizados.chavePix || null,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', user.id)
       .select();
 
