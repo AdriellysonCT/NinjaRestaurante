@@ -150,6 +150,7 @@ def generate_human_message(status_key, customer_name):
     status_contexts = {
         "aceito": "informar que o pedido foi aceito e começou o preparo.",
         "preparando": "avisar que o pedido já está na cozinha sendo preparado.",
+        "pronto": "avisar que o pedido já está pronto e embalado, aguardando o entregador coletar.",
         "saiu_entrega": "avisar que o pedido já saiu com o entregador e está a caminho.",
     }
 

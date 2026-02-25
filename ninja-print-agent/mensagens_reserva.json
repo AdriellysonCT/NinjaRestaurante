@@ -13,6 +13,13 @@
         "Estamos caprichando no seu pedido, {customer_name}! Já já ele fica pronto.",
         "Seu pedido está na fase de preparo, {customer_name}. Quase lá!"
     ],
+    "pronto": [
+        "Tudo pronto, {customer_name}! Seu pedido já está embalado e aguardando o entregador coletar. 📦",
+        "Seu pedido ficou pronto, {customer_name}! Agora só estamos esperando o motoboy chegar para levar até você.",
+        "Finalizamos seu pedido, {customer_name}! Ele está no balcão aguardando a saída para entrega.",
+        "Opa, {customer_name}! Seu pedido já está pronto para a viagem. O entregador já foi avisado!",
+        "Cheirinho de pronto no ar! {customer_name}, seu pedido já está na expedição aguardando coleta."
+    ],
     "saiu_entrega": [
         "Prepare a mesa, {customer_name}! Seu pedido saiu para entrega agora mesmo. 🛵",
         "Ótima notícia, {customer_name}: o entregador acabou de sair com seu pedido quente!",
