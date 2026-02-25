@@ -1,0 +1,23 @@
+{
+    "aceito": [
+        "Boa notícia, {customer_name}! Seu pedido foi aceito e já vai entrar na fila de produção. 🍕",
+        "Tudo certo, {customer_name}! Recebemos seu pedido e a cozinha já foi avisada. 👨‍🍳",
+        "Opa, {customer_name}! Seu pedido já está com a nossa equipe. Em breve começamos o preparo!",
+        "Pedido confirmado, {customer_name}! Agora é com a gente aqui na cozinha. 😉",
+        "Valeu pelo pedido, {customer_name}! Já estamos organizando tudo para começar o seu preparo."
+    ],
+    "preparando": [
+        "Aviso importante, {customer_name}: seu pedido acabou de entrar no fogo! 🔥",
+        "{customer_name}, o cheirinho aqui tá ótimo! Seu pedido já está sendo preparado com capricho.",
+        "Mãos à obra, {customer_name}! Nossa equipe está montando seu pedido agora mesmo. ✨",
+        "Estamos caprichando no seu pedido, {customer_name}! Já já ele fica pronto.",
+        "Seu pedido está na fase de preparo, {customer_name}. Quase lá!"
+    ],
+    "saiu_entrega": [
+        "Prepare a mesa, {customer_name}! Seu pedido saiu para entrega agora mesmo. 🛵",
+        "Ótima notícia, {customer_name}: o entregador acabou de sair com seu pedido quente!",
+        "{customer_name}, seu pedido está a caminho! Fique de olho aí que já já chega.",
+        "O entregador já coletou seu pedido e está indo até você, {customer_name}. Bom apetite!",
+        "Dê um pulo na porta, {customer_name}! Seu pedido foi liberado para entrega. 🎉"
+    ]
+}

@@ -311,14 +311,16 @@ def notify():
         print(f"🤖 Gerando mensagem para {customer_name}...", flush=True)
         msg = generate_human_message(status_key, customer_name)
         if not msg:
-            print("⚠️ IA falhou ou retornou vazio, usando fallback...")
-            # Fallback manual caso a IA falhe total
-            fallbacks = {
-                "aceito": f"Opa {customer_name}! Seu pedido foi aceito aqui e já vai pra cozinha. 🍕",
-                "preparando": f"{customer_name}, seu pedido já tá sendo preparado! 🔥",
-                "saiu_entrega": f"Boa notícia! Seu pedido saiu pra entrega agora. 🏍️"
-            }
-            msg = fallbacks.get(status_key, f"Olá {customer_name}, seu pedido foi atualizado!")
+            print("💡 IA em espera. Buscando mensagem no Banco de Reserva...", flush=True)
+            try:
+                with open('mensagens_reserva.json', 'r', encoding='utf-8') as f:
+                    reservas = json.load(f)
+                
+                opcoes = reservas.get(status_key, [f"Olá {customer_name}, seu pedido foi atualizado!"])
+                msg = random.choice(opcoes).replace("{customer_name}", customer_name)
+            except Exception as e:
+                print(f"⚠️ Erro ao ler JSON de reserva: {e}")
+                msg = f"Olá {customer_name}, seu pedido foi atualizado!"
 
         print(f"📝 Mensagem final: \"{msg}\"", flush=True)
         send_whatsapp_message(phone, msg, customer_name)
