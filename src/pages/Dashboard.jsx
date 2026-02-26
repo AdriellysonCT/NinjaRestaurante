@@ -21,7 +21,7 @@ const isPendingStatus = (status) => {
 };
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, restaurante, atualizarDadosRestaurante } = useAuth();
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -60,7 +60,7 @@ const Dashboard = () => {
   }, [searchTerm]);
 
   // Obter controle de som do contexto
-  const { soundEnabled, enableSound, disableSound } = useAppContext?.() || {};
+  const { soundEnabled, soundPreference, soundUnlocked, enableSound, disableSound } = useAppContext?.() || {};
 
   // Removido: não forçar auto-enable; respeitar preferência + desbloqueio por gesto
 
@@ -436,7 +436,7 @@ const Dashboard = () => {
       logger.log('📡 Desconectando canal realtime');
       supabase.removeChannel(channel);
     };
-  }, [restaurantId, fetchOrders, autoAcceptOrder]);
+  }, [restaurantId, fetchOrders, autoAcceptOrder, restaurante]);
 
 
 
@@ -1230,34 +1230,6 @@ const Dashboard = () => {
             )}
           </button>
 
-          {/* Botão de Pausa */}
-          {restaurante?.ativo && (
-            <button
-              onClick={async () => {
-                if (!user) return;
-                const novoStatusPausa = !restaurante.pausado;
-                await atualizarDadosRestaurante({ pausado: novoStatusPausa });
-                logger.log(`✅ Restaurante agora está ${novoStatusPausa ? 'PAUSADO' : 'RECEBENDO PEDIDOS'}`);
-              }}
-              className={`py-2 px-3 rounded-lg flex items-center gap-2 border text-sm font-semibold transition-all shadow-sm ${
-                restaurante.pausado 
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 ring-2 ring-orange-500/30' 
-                  : 'bg-card hover:bg-secondary text-foreground border-border'
-              }`}
-            >
-              {restaurante.pausado ? (
-                <>
-                  <Icons.PlayIcon className="w-4 h-4 text-white" />
-                  <span>Retomar Vendas</span>
-                </>
-              ) : (
-                <>
-                  <Icons.PauseIcon className="w-4 h-4 text-muted-foreground" />
-                  <span>Pausar Vendas</span>
-                </>
-              )}
-            </button>
-          )}
         </div>
 
         {/* Grid de colunas adaptativas */}

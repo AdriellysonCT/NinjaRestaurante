@@ -939,6 +939,8 @@ export const AppProvider = ({ children }) => {
     menuItems,
     settings,
     soundEnabled,
+    soundPreference,
+    soundUnlocked,
     enableSound,
     disableSound,
     addOrder,
