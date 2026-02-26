@@ -10,6 +10,7 @@ import { printService } from "../services/printService";
 import { logger } from "../utils/logger";
 import * as orderService from "../services/orderService";
 import { formatPhoneForWhatsApp } from "../utils/phoneFormatter";
+import { notificationService } from "../services/notificationService";
 
 const AUTO_ACCEPT_DELAY_MS = 500;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -38,14 +39,15 @@ const Dashboard = () => {
   const [driverUpdatedAt, setDriverUpdatedAt] = useState({}); // { [orderId]: timestamp }
   const [autoAcceptEnabled, setAutoAcceptEnabled] = useState(() => {
     try {
-      return localStorage.getItem('fome-ninja-auto-accept') === 'true';
+      const saved = localStorage.getItem('fome-ninja-auto-accept');
+      return saved === 'true';
     } catch (_) {
       return false;
     }
   });
   const [processingAutoAccept, setProcessingAutoAccept] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const autoAcceptRef = useRef(false); // Ref para evitar problemas de closure
+  const autoAcceptRef = useRef(localStorage.getItem('fome-ninja-auto-accept') === 'true'); 
   const processedOrdersRef = useRef(new Set()); // Evitar processar o mesmo pedido duas vezes
   const [unreadMessages, setUnreadMessages] = useState({}); // { [orderId]: count }
 
@@ -347,17 +349,11 @@ const Dashboard = () => {
         return false;
       }
       
-      logger.log(`✅ Pedido #${order.numero_pedido} aceito automaticamente!`);
-      
       // Impressão automática
-      try {
-        logger.log('🖨️ Disparando impressão automática...');
-        printService.autoPrintOnAccept(order).catch(err => {
-          console.warn('Erro na impressão automática:', err);
-        });
-      } catch (printError) {
-        console.warn('Erro ao tentar impressão automática:', printError);
-      }
+      printService.autoPrintOnAccept(order).catch(err => console.warn(err));
+
+      // 🥷 NinjaTalk AI: Notificação automática
+      notificationService.notifyStatusChange(order, 'aceito');
       
       return true;
     } catch (error) {
@@ -400,8 +396,9 @@ const Dashboard = () => {
             }
           }
           
-          // Aceitar automaticamente novos pedidos se a opção estiver ativada
-          if (eventType === 'INSERT' && autoAcceptRef.current) {
+          // Aceitar automaticamente novos pedidos se a opção estiver ativada E restaurante estiver ONLINE
+          const isRestaurantOnline = restaurante?.ativo || false;
+          if (eventType === 'INSERT' && autoAcceptRef.current && isRestaurantOnline) {
             const newOrder = payload.new;
             if (isPendingStatus(newOrder?.status)) {
               logger.log(`  🤖 Novo pedido detectado (${newOrder.status}), aceitação automática ativada`);
@@ -769,20 +766,11 @@ const Dashboard = () => {
           return newSet;
         });
         
-        // Impressão automática ao aceitar pedido
-        try {
-          const orderToprint = orders.find(o => o.id === orderId);
-          if (orderToprint) {
-            logger.log('🖨️ Disparando impressão automática ao aceitar pedido...');
-            // Disparar impressão automática (não bloqueia o fluxo)
-            printService.autoPrintOnAccept(orderToprint).catch(err => {
-              console.warn('Erro na impressão automática:', err);
-            });
-          }
-        } catch (printError) {
-          console.warn('Erro ao tentar impressão automática:', printError);
-          // Não bloqueia o fluxo principal
-        }
+        // Impressão automática
+        printService.autoPrintOnAccept(orderToprint).catch(err => console.warn(err));
+        
+        // 🥷 NinjaTalk AI: Notificação manual
+        notificationService.notifyStatusChange(orderToprint, 'aceito');
       }
 
       logger.log(`Status do pedido ${orderId} atualizado para ${newStatus}`);
@@ -1202,16 +1190,20 @@ const Dashboard = () => {
 
           <button
             onClick={() => {
-              if (!soundEnabled) {
+              if (!soundPreference) {
                 enableSound && enableSound();
               } else {
                 disableSound && disableSound();
               }
             }}
-            className={`bg-card hover:bg-secondary text-foreground py-2 px-3 rounded-lg flex items-center gap-2 border border-border text-sm shadow-sm transition-all ${soundEnabled ? 'ring-2 ring-success bg-success/10' : ''}`}
+            className={`bg-card hover:bg-secondary text-foreground py-2 px-3 rounded-lg flex items-center gap-2 border border-border text-sm shadow-sm transition-all ${soundPreference ? (soundUnlocked ? 'ring-2 ring-success bg-success/10' : 'ring-2 ring-yellow-500/50 bg-yellow-500/10') : ''}`}
+            title={soundPreference && !soundUnlocked ? 'Clique para ativar o áudio no seu navegador' : ''}
           >
-            <Icons.BellIcon className={`w-4 h-4 ${soundEnabled ? 'text-success' : 'text-muted-foreground'}`} />
-            {soundEnabled ? 'Sons Ativos' : 'Silencioso'}
+            <Icons.BellIcon className={`w-4 h-4 ${soundPreference ? (soundUnlocked ? 'text-success' : 'text-yellow-500') : 'text-muted-foreground'}`} />
+            <span className="flex flex-col items-start leading-none gap-0.5">
+               <span>{soundPreference ? 'Sons ON' : 'Sons OFF'}</span>
+               {soundPreference && !soundUnlocked && <span className="text-[8px] opacity-70">Desbloquear</span>}
+            </span>
           </button>
 
           <button
@@ -1237,6 +1229,35 @@ const Dashboard = () => {
               </>
             )}
           </button>
+
+          {/* Botão de Pausa */}
+          {restaurante?.ativo && (
+            <button
+              onClick={async () => {
+                if (!user) return;
+                const novoStatusPausa = !restaurante.pausado;
+                await atualizarDadosRestaurante({ pausado: novoStatusPausa });
+                logger.log(`✅ Restaurante agora está ${novoStatusPausa ? 'PAUSADO' : 'RECEBENDO PEDIDOS'}`);
+              }}
+              className={`py-2 px-3 rounded-lg flex items-center gap-2 border text-sm font-semibold transition-all shadow-sm ${
+                restaurante.pausado 
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500 ring-2 ring-orange-500/30' 
+                  : 'bg-card hover:bg-secondary text-foreground border-border'
+              }`}
+            >
+              {restaurante.pausado ? (
+                <>
+                  <Icons.PlayIcon className="w-4 h-4 text-white" />
+                  <span>Retomar Vendas</span>
+                </>
+              ) : (
+                <>
+                  <Icons.PauseIcon className="w-4 h-4 text-muted-foreground" />
+                  <span>Pausar Vendas</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Grid de colunas adaptativas */}

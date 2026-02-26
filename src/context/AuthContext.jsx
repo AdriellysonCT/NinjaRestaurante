@@ -183,22 +183,20 @@ export const AuthProvider = ({ children }) => {
       if (dadosRestaurante) {
         console.log('✅ AuthContext: Dados do restaurante carregados');
         
-        // 🔥 Lógica: Sempre começar OFFLINE ao abrir o painel (primeira vez na sessão)
-        // Usamos sessionStorage porque ele limpa quando a aba/browser é fechado,
-        // mas persiste no F5 (refresh). Assim, o refresh não desloga o restaurante,
-        // mas abrir uma nova aba ou reabrir o browser sim.
+        // 🔥 Lógica: Sempre começar OFFLINE/DESPAUSADO ao abrir o painel (primeira vez na sessão)
         const isFirstLoadOfSession = !sessionStorage.getItem('fome-ninja-initialized');
         
-        if (isFirstLoadOfSession && dadosRestaurante.ativo) {
-          console.log('🌙 AuthContext: Forçando status OFFLINE no primeiro carregamento da sessão');
-          // Atualizar no banco
+        if (isFirstLoadOfSession && (dadosRestaurante.ativo || dadosRestaurante.pausado)) {
+          console.log('🌙 AuthContext: Forçando status OFFLINE/DESPAUSADO no primeiro carregamento da sessão');
+          // Atualizar no banco: desativar e despausar
           await supabase
             .from('restaurantes_app')
-            .update({ ativo: false })
+            .update({ ativo: false, pausado: false })
             .eq('id', dadosRestaurante.id);
           
           // Atualizar o objeto local
           dadosRestaurante.ativo = false;
+          dadosRestaurante.pausado = false;
           sessionStorage.setItem('fome-ninja-initialized', 'true');
         } else {
           sessionStorage.setItem('fome-ninja-initialized', 'true');
@@ -443,10 +441,10 @@ export const AuthProvider = ({ children }) => {
           if (restauranteData?.id) {
             await supabase
               .from('restaurantes_app')
-              .update({ ativo: false })
+              .update({ ativo: false, pausado: false })
               .eq('id', restauranteData.id);
             
-            console.log('✅ Restaurante marcado como OFFLINE (ativo = false)');
+            console.log('✅ Restaurante marcado como OFFLINE e DESPAUSADO');
           }
         } catch (updateError) {
           console.error('⚠️ Erro ao atualizar status ativo:', updateError);

@@ -34,16 +34,10 @@ export const AppProvider = ({ children }) => {
   // Som LIGADO por padrão - restaurante pode desligar se quiser
   const [soundPreference, setSoundPreference] = useState(() => {
     try { 
-      // Forçar som ligado por padrão - limpar configuração antiga
       const saved = localStorage.getItem('fome-ninja-sound-pref');
-      if (saved === null || saved === 'false') {
-        // Se nunca foi configurado OU estava desligado, ligar por padrão
-        localStorage.setItem('fome-ninja-sound-pref', 'true');
-        return true;
-      }
-      return saved === 'true';
+      return saved === null ? true : saved === 'true';
     } catch (_) { 
-      return true; // Ligado por padrão em caso de erro
+      return true; 
     }
   });
   const [soundUnlocked, setSoundUnlocked] = useState(false);

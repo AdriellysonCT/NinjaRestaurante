@@ -59,6 +59,19 @@ const PowerOffIcon = (props) => (
   </svg>
 );
 
+const PauseIcon = (props) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="6" y="4" width="4" height="16" />
+    <rect x="14" y="4" width="4" height="16" />
+  </svg>
+);
+
+const PlayIcon = (props) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="5 3 19 12 5 21 5 3" />
+  </svg>
+);
+
 const XIcon = (props) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M18 6 6 18" />
@@ -121,9 +134,11 @@ export const Header = ({ toggleTheme, theme }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showEndDayConfirm, setShowEndDayConfirm] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isUpdatingPause, setIsUpdatingPause] = useState(false);
   
-  // Status ativo do restaurante
+  // Status ativo e pausado do restaurante
   const isOnline = restaurante?.ativo || false;
+  const isPaused = restaurante?.pausado || false;
   const profileMenuRef = useRef(null);
   const notificationsRef = useRef(null);
   const { orders } = useAppContext() || { orders: [] };
@@ -249,6 +264,25 @@ export const Header = ({ toggleTheme, theme }) => {
     }
   };
 
+  const handleTogglePause = async () => {
+    if (isUpdatingPause || !user) return;
+    
+    try {
+      setIsUpdatingPause(true);
+      const novoStatusPausa = !isPaused;
+      
+      console.log(`🔄 Alterando status de PAUSA para: ${novoStatusPausa ? 'PAUSADO' : 'ATIVO'}`);
+      
+      await atualizarDadosRestaurante({ pausado: novoStatusPausa });
+      
+      logger.log(`✅ Restaurante agora está ${novoStatusPausa ? 'PAUSADO' : 'RECEBENDO PEDIDOS'}`);
+    } catch (error) {
+      console.error('Erro ao alternar pausa do restaurante:', error);
+    } finally {
+      setIsUpdatingPause(false);
+    }
+  };
+
   const handleEndDay = async () => {
     try {
       console.log('🌙 Encerrando o dia...');
@@ -334,6 +368,31 @@ export const Header = ({ toggleTheme, theme }) => {
             </span>
           </button>
         </div>
+
+        {/* Toggle de Pausa das Vendas */}
+        {isOnline && (
+          <div className="flex items-center">
+            <button
+              onClick={handleTogglePause}
+              disabled={isUpdatingPause}
+              className={`flex items-center gap-2 px-2 py-1 rounded-full transition-all duration-300 ${
+                isPaused 
+                  ? 'bg-orange-500/10 text-orange-500 border-orange-500/50 hover:bg-orange-500/20' 
+                  : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/50 hover:bg-yellow-500/20'
+              } border`}
+              title={isPaused ? 'Clique para normalizar vendas' : 'Clique para pausar vendas temporariamente'}
+            >
+              {isUpdatingPause ? (
+                <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                isPaused ? <PlayIcon className="w-3 h-3" /> : <PauseIcon className="w-3 h-3" />
+              )}
+              <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                {isUpdatingPause ? '...' : (isPaused ? 'Retomar Vendas' : 'Pausar Vendas')}
+              </span>
+            </button>
+          </div>
+        )}
 
         <button onClick={toggleTheme} className="text-muted-foreground hover:text-foreground p-1 m-0 transition-transform hover:scale-110">
           {theme === 'dark' ? <SunIcon className="w-5 h-5"/> : <MoonIcon className="w-5 h-5"/>}

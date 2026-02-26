@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { printService } from '../services/printService';
+import { notificationService } from '../services/notificationService';
 
 // Fluxo de status baseado no tipo de pedido
 const getStatusFlow = (tipo_pedido) => {
@@ -33,8 +34,6 @@ const StatusManager = ({ order, onUpdateStatus, restaurante }) => {
   useEffect(() => {
     setCurrentStatus(order.status);
   }, [order.status]);
-
-  // Removido: cópia manual para entregas agora é feita pela trigger no banco
 
   const handleUpdateStatus = async () => {
     const statusFlow = getStatusFlow(order.tipo_pedido);
@@ -73,11 +72,12 @@ const StatusManager = ({ order, onUpdateStatus, restaurante }) => {
       onUpdateStatus(order.id, nextStatus);
     }
     
-    // Impressão automática ao aceitar pedido
+    // 🥷 Lógica Ninja de Notificações e Impressão
+    
+    // 1. Impressão automática apenas ao aceitar
     if (nextStatus === 'aceito') {
       try {
-        console.log('🖨️ Disparando impressão automática ao aceitar pedido...');
-        // Buscar dados do restaurante se não foram passados
+        console.log('🖨️ Disparando impressão automática...');
         let restauranteData = restaurante;
         if (!restauranteData) {
           const { data: { user } } = await supabase.auth.getUser();
@@ -90,15 +90,42 @@ const StatusManager = ({ order, onUpdateStatus, restaurante }) => {
             restauranteData = restData;
           }
         }
-        
-        // Disparar impressão automática (não bloqueia o fluxo)
         printService.autoPrintOnAccept(order, restauranteData).catch(err => {
           console.warn('Erro na impressão automática:', err);
         });
-      } catch (printError) {
-        console.warn('Erro ao tentar impressão automática:', printError);
-        // Não bloqueia o fluxo principal
+      } catch (err) {
+        console.warn('Erro ao tentar impressão automática:', err);
       }
+    }
+
+    // 2. Notificação via WhatsApp (NinjaTalk AI)
+    try {
+      const isLocalOrder = order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local';
+      
+      // Mapeamento de status para o agente entender
+      const statusMap = {
+        'aceito': 'aceito',
+        'pronto_para_entrega': 'pronto',
+        'coletado': (isLocalOrder ? null : 'saiu_entrega') 
+      };
+
+      const mappedStatus = statusMap[nextStatus];
+
+      if (mappedStatus) {
+        // Se todos os itens forem tempo_preparo = 0 (bebidas, etc), não envia "preparando"
+        if (mappedStatus === 'aceito') {
+          const hasItemsToPrepare = order.items?.some(item => (Number(item.prepTime) || 0) > 0);
+          if (!hasItemsToPrepare && order.items?.length > 0) {
+              console.log('ℹ️ NinjaTalk: Ignorando "preparando" para itens sem tempo de preparo.');
+              return; 
+          }
+        }
+
+        console.log(`🤖 Disparando NinjaTalk para status: ${mappedStatus}...`);
+        notificationService.notifyStatusChange(order, mappedStatus);
+      }
+    } catch (err) {
+      console.warn('Erro ao disparar NinjaTalk:', err);
     }
     
     setIsLoading(false);
