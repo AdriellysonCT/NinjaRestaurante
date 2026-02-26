@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('../public/logo-fome-ninja.png', '.')]
+datas = [('../public/logo-fome-ninja.png', '.'), ('mensagens_reserva.json', '.')]
 binaries = []
 hiddenimports = []
 tmp_ret = collect_all('pystray')

@@ -1,11 +1,14 @@
+# Configuração Fixa do Painel Oficial
+DASHBOARD_URL = "https://ninja-restaurante.vercel.app"
+PORT = 5001
+
 import os
 import sys
 
-# 🛡️ BLINDAGEM MÁXIMA PARA WINDOWS (Executar antes de TUDO)
+# 🛡️ BLINDAGEM MÁXIMA PARA WINDOWS
 os.environ["PWNOTTY"] = "1"
 os.environ["PW_NOTTY"] = "1" 
 os.environ["UV_THREADPOOL_SIZE"] = "64"
-os.environ["NODE_OPTIONS"] = "--no-warnings"
 
 import json
 import webbrowser
@@ -15,6 +18,7 @@ import random
 import urllib.parse
 import io
 import asyncio
+import subprocess
 from concurrent.futures import ThreadPoolExecutor
 
 try:
@@ -27,36 +31,16 @@ try:
     import pystray
     from pystray import MenuItem as item
     import pyautogui
-    from dotenv import load_dotenv
-    from google import genai
     from playwright.async_api import async_playwright
 except ImportError as e:
     print(f"❌ Erro crítico: Dependência {e} não encontrada.")
     sys.exit(1)
 
-# Carrega variáveis de ambiente
-load_dotenv()
-
-print(f"🐍 Python Executable: {sys.executable}", flush=True)
-print(f"📂 WorkDir: {os.getcwd()}", flush=True)
-
 app = Flask(__name__)
 CORS(app)
 
-# Força saída UTF-8 no Windows para evitar erro de emojis
 if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-
-# Configurações do Agente
-PORT = int(os.getenv("PORT", 5001))
-DASHBOARD_URL = os.getenv("DASHBOARD_URL", "https://ninja-restaurante.vercel.app")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-
-# Configura o Gemini (Novo SDK google.genai)
-from google import genai
-client = None
-MODEL_NAME = 'gemini-2.0-flash'
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -67,8 +51,23 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 ICON_PATH = resource_path("logo-fome-ninja.png")
-if not os.path.exists(ICON_PATH):
-    ICON_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "public", "logo-fome-ninja.png")
+
+def ensure_playwright_installed():
+    """Garante que os drivers do browser estao instalados"""
+    try:
+        print("🔍 Verificando motores ninja...", flush=True)
+        subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], 
+                       capture_output=True, check=True)
+        print("✅ Motores ninja prontos!", flush=True)
+    except Exception:
+        print(f"⚙️ Instalando componentes necessarios (isso eh feito apenas uma vez)...", flush=True)
+        try:
+            subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
+            print("✅ Instalacao concluida com sucesso!", flush=True)
+        except Exception as err:
+            print(f"❌ Erro ao instalar componentes: {err}")
+
+ensure_playwright_installed()
 
 def get_default_printer():
     try:
@@ -94,75 +93,31 @@ def print_raw_text(printer_name, text):
         print(f"Erro na impressão RAW: {e}")
         return False
 
-# --- Lógica NinjaTalk AI ---
+# --- Lógica de Mensagens Ninja (100% Local) ---
 
-SYSTEM_INSTRUCTION = """
-Você é o atendente virtual do restaurante 'Fome Ninja'. 
-Sua missão é avisar o cliente sobre o status do pedido dele.
-REGRAS CRÍTICAS:
-1. NUNCA se repita. Use variações criativas para cada mensagem.
-2. Seja extremamente humano e amigável, como um atendente real no WhatsApp.
-3. Use no máximo 1 ou 2 emojis (opcional).
-4. NUNCA invente informações. 
-5. Seja curto e direto (máximo 2 frases).
-6. Use o nome do cliente.
-7. Use um tom de voz informal e prestativo: 'Tô passando pra avisar...', 'Olha só, seu pedido...', 'Boa notícia!'.
-"""
-
-def test_gemini_connection():
-    global client, MODEL_NAME
-    if not GEMINI_API_KEY:
-        print("⚠️ Alerta: GEMINI_API_KEY nao encontrada no .env")
-        return False
-    
-    print("🤖 Inicializando IA (Novo SDK google.genai)...", flush=True)
+def generate_matrix_message(status_key, customer_name):
+    """Gera uma mensagem humana usando a matriz de mensagens embutida no EXE"""
     try:
-        temp_client = genai.Client(api_key=GEMINI_API_KEY)
+        path = resource_path('mensagens_reserva.json')
+        if not os.path.exists(path):
+            return f"Olá {customer_name}, seu pedido foi atualizado!"
+            
+        with open(path, 'r', encoding='utf-8') as f:
+            matriz = json.load(f)
         
-        # Modelos para testar
-        names_to_try = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-lite']
+        saudacoes = matriz.get('saudacoes', ["Olá, {customer_name}!"])
+        corpos = matriz.get('corpos', {}).get(status_key, ["Seu pedido foi atualizado."])
+        fechamentos = matriz.get('fechamentos', ["😉"])
         
-        for name in names_to_try:
-            try:
-                response = temp_client.models.generate_content(
-                    model=name, 
-                    contents="Responda OK",
-                    config={'max_output_tokens': 5}
-                )
-                if response and response.text:
-                    client = temp_client
-                    MODEL_NAME = name
-                    print(f"✅ IA Conectada ({MODEL_NAME})", flush=True)
-                    return True
-            except Exception as e:
-                pass # Silencioso no loop
-                
-        print("💡 Nota: IA em modo de espera (Cota atingida). Usando mensagens padrão.", flush=True)
-        return False
+        saudacao = random.choice(saudacoes)
+        corpo = random.choice(corpos)
+        fechamento = random.choice(fechamentos)
+        
+        mensagem = f"{saudacao} {corpo} {fechamento}"
+        return mensagem.replace("{customer_name}", customer_name)
     except Exception as e:
-        print(f"❌ Erro critico no Gemini: {e}")
-        return False
-
-def generate_human_message(status_key, customer_name):
-    if not client or not GEMINI_API_KEY:
-        return None
-    
-    status_contexts = {
-        "aceito": "informar que o pedido foi aceito e começou o preparo.",
-        "preparando": "avisar que o pedido já está na cozinha sendo preparado.",
-        "pronto": "avisar que o pedido já está pronto e embalado, aguardando o entregador coletar.",
-        "saiu_entrega": "avisar que o pedido já saiu com o entregador e está a caminho.",
-    }
-
-    context = status_contexts.get(status_key, f"atualizar sobre: {status_key}")
-    prompt = f"{SYSTEM_INSTRUCTION}\n\nStatus: {context}. Cliente: {customer_name}. Escreva a mensagem de WhatsApp."
-    
-    try:
-        response = client.models.generate_content(model=MODEL_NAME, contents=prompt)
-        return response.text.strip() if response and response.text else None
-    except Exception as e:
-        print(f"❌ Erro na geracao IA: {e}")
-        return None
+        print(f"⚠️ Erro ao gerar mensagem: {e}")
+        return f"Olá {customer_name}, seu pedido foi atualizado!"
 
 
 # Configuração de Sessão Playwright (Mesmo caminho do teste de sucesso)
@@ -173,6 +128,7 @@ if not os.path.exists(PLAYWRIGHT_DATA_DIR):
 # Filas e Loops para integração Async + Sync
 msg_queue = asyncio.Queue()
 pw_loop = None
+login_mode = False # Se True, abre o browser visivel para o usuario logar no WhatsApp
 
 async def playwright_manager():
     global pw_loop, msg_queue
@@ -188,9 +144,12 @@ async def playwright_manager():
         try:
             print(f"🌐 Iniciando Motor Ninja (Conectando ao WhatsApp)...", flush=True)
             async with async_playwright() as p:
+                # Se estiver em modo login, rodar visivel (headless=False)
+                is_headless = not login_mode
+                
                 context = await p.chromium.launch_persistent_context(
                     PLAYWRIGHT_DATA_DIR,
-                    headless=True, # MODO FANTASMA ATIVADO! 🥷
+                    headless=is_headless,
                     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
                     viewport={'width': 1280, 'height': 720},
                     ignore_https_errors=True,
@@ -278,7 +237,7 @@ def get_status():
     return jsonify({
         "status": "online",
         "printer": get_default_printer(),
-        "model": MODEL_NAME
+        "engine": "Ninja Matrix 1.0 (Local)"
     })
 
 @app.route('/printers', methods=['GET'])
@@ -309,20 +268,11 @@ def notify():
         return jsonify({"success": False, "message": "Telefone inválido"}), 400
 
     def process_task():
-        print(f"🤖 Gerando mensagem para {customer_name}...", flush=True)
-        msg = generate_human_message(status_key, customer_name)
-        if not msg:
-            print("💡 IA em espera. Buscando mensagem no Banco de Reserva...", flush=True)
-            try:
-                with open('mensagens_reserva.json', 'r', encoding='utf-8') as f:
-                    reservas = json.load(f)
-                
-                opcoes = reservas.get(status_key, [f"Olá {customer_name}, seu pedido foi atualizado!"])
-                msg = random.choice(opcoes).replace("{customer_name}", customer_name)
-            except Exception as e:
-                print(f"⚠️ Erro ao ler JSON de reserva: {e}")
-                msg = f"Olá {customer_name}, seu pedido foi atualizado!"
-
+        print(f"🤖 Preparando mensagem p/ {customer_name}...", flush=True)
+        
+        # Uso exclusivo da Matriz Ninja (Local, rápido, sem limites)
+        msg = generate_matrix_message(status_key, customer_name)
+        
         print(f"📝 Mensagem final: \"{msg}\"", flush=True)
         send_whatsapp_message(phone, msg, customer_name)
 
@@ -338,6 +288,15 @@ def on_exit(icon, item):
     icon.stop()
     os._exit(0)
 
+def on_connect_whatsapp(icon, item):
+    global login_mode
+    print("📢 Modo de Conexao WhatsApp ativado! Reiniciando motor ninja...", flush=True)
+    login_mode = True
+    # Aqui poderíamos forçar o restart do thread do playwright se necessário,
+    # mas por simplicidade, avisamos o usuario
+    webbrowser.open("https://web.whatsapp.com")
+    print("⚠️ Por favor, escaneie o QR Code no seu navegador padrao ou aguarde o motor reiniciar.")
+
 def setup_tray():
     try:
         image = Image.open(ICON_PATH)
@@ -346,6 +305,7 @@ def setup_tray():
     
     menu = (
         item('Abrir Painel Ninja', on_open_dashboard),
+        item('Conectar WhatsApp (QR Code)', on_connect_whatsapp),
         item('Ver Status Agente', lambda: webbrowser.open(f"http://localhost:{PORT}/status")),
         item('Sair', on_exit),
     )
@@ -359,11 +319,8 @@ def run_flask():
 
 if __name__ == '__main__':
     print("="*50)
-    print("      🥷 FOME NINJA - AGENTE PROFISSIONAL 🚀")
+    print("      🥷 FOME NINJA - AGENTE 100% LOCAL 🚀")
     print("="*50)
-    
-    # Testa a IA logo de cara
-    test_gemini_connection()
     
     print(f"Impressora Padrao: {get_default_printer()}")
     print("="*50)

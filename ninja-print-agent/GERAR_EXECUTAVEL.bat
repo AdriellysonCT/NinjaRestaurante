@@ -14,6 +14,7 @@ echo.
 py -m PyInstaller --noconfirm --onefile --windowed ^
     --name "FomeNinjaAgent" ^
     --add-data "../public/logo-fome-ninja.png;." ^
+    --add-data "mensagens_reserva.json;." ^
     --collect-all pystray ^
     --collect-all PIL ^
     agent.py

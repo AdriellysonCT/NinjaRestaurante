@@ -1,30 +1,53 @@
 {
-    "aceito": [
-        "Boa notícia, {customer_name}! Seu pedido foi aceito e já vai entrar na fila de produção. 🍕",
-        "Tudo certo, {customer_name}! Recebemos seu pedido e a cozinha já foi avisada. 👨‍🍳",
-        "Opa, {customer_name}! Seu pedido já está com a nossa equipe. Em breve começamos o preparo!",
-        "Pedido confirmado, {customer_name}! Agora é com a gente aqui na cozinha. 😉",
-        "Valeu pelo pedido, {customer_name}! Já estamos organizando tudo para começar o seu preparo."
+    "saudacoes": [
+        "Olá, {customer_name}!",
+        "Oi, {customer_name}!",
+        "Opa, {customer_name}!",
+        "Tudo bem, {customer_name}?",
+        "{customer_name}, boa notícia!",
+        "{customer_name}, passando para avisar!",
+        "E aí, {customer_name}!"
     ],
-    "preparando": [
-        "Aviso importante, {customer_name}: seu pedido acabou de entrar no fogo! 🔥",
-        "{customer_name}, o cheirinho aqui tá ótimo! Seu pedido já está sendo preparado com capricho.",
-        "Mãos à obra, {customer_name}! Nossa equipe está montando seu pedido agora mesmo. ✨",
-        "Estamos caprichando no seu pedido, {customer_name}! Já já ele fica pronto.",
-        "Seu pedido está na fase de preparo, {customer_name}. Quase lá!"
-    ],
-    "pronto": [
-        "Tudo pronto, {customer_name}! Seu pedido já está embalado e aguardando o entregador coletar. 📦",
-        "Seu pedido ficou pronto, {customer_name}! Agora só estamos esperando o motoboy chegar para levar até você.",
-        "Finalizamos seu pedido, {customer_name}! Ele está no balcão aguardando a saída para entrega.",
-        "Opa, {customer_name}! Seu pedido já está pronto para a viagem. O entregador já foi avisado!",
-        "Cheirinho de pronto no ar! {customer_name}, seu pedido já está na expedição aguardando coleta."
-    ],
-    "saiu_entrega": [
-        "Prepare a mesa, {customer_name}! Seu pedido saiu para entrega agora mesmo. 🛵",
-        "Ótima notícia, {customer_name}: o entregador acabou de sair com seu pedido quente!",
-        "{customer_name}, seu pedido está a caminho! Fique de olho aí que já já chega.",
-        "O entregador já coletou seu pedido e está indo até você, {customer_name}. Bom apetite!",
-        "Dê um pulo na porta, {customer_name}! Seu pedido foi liberado para entrega. 🎉"
+    "corpos": {
+        "aceito": [
+            "Seu pedido foi confirmado aqui na cozinha.",
+            "Já recebemos seu pedido e ele já entrou na fila.",
+            "Tudo certo! Seu pedido foi aceito com sucesso.",
+            "Recebemos seu pedido e daqui a pouco começamos o preparo.",
+            "Pedido confirmado! Nossa equipe já foi avisada."
+        ],
+        "preparando": [
+            "O cheiro tá ótimo e seu pedido já está no fogo.",
+            "Estamos caprichando no preparo do seu pedido agora.",
+            "Mãos à obra! Seu pedido está sendo montado com todo carinho.",
+            "Sua comida já está sendo preparada por nossa equipe.",
+            "Quase no ponto! Seu pedido já está em fase de preparo."
+        ],
+        "pronto": [
+            "Seu pedido já está prontinho e embalado aqui no balcão.",
+            "Tudo pronto! Seu pedido está aguardando a saída para entrega.",
+            "Finalizamos seu pedido! Ele está só esperando o entregador.",
+            "Seu pedido já saiu da cozinha e está na expedição.",
+            "Acabamos de embalar seu pedido com muito capricho."
+        ],
+        "saiu_entrega": [
+            "O entregador acabou de sair com sua encomenda!",
+            "Seu pedido está a caminho! Prepare a mesa.",
+            "O motoboy já coletou seu pedido e está indo até você.",
+            "Boa! Seu pedido foi liberado para entrega agora mesmo.",
+            "Fique de olho! O entregador já está na rua com seu pedido."
+        ]
+    },
+    "fechamentos": [
+        "😉",
+        "🚀",
+        "🛵💨",
+        "🍕✨",
+        "Bom apetite!",
+        "Obrigado pela preferência!",
+        "Até já!",
+        "Qualquer coisa estamos aqui!",
+        "Dê um pulo na porta quando o entregador chegar. 😉",
+        "Fome Ninja agradece! 🥷"
     ]
 }
