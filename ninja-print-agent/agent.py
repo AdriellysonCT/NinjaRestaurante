@@ -7,8 +7,10 @@ import sys
 import time
 
 # 🛡️ BLINDAGEM MÁXIMA PARA WINDOWS
-# Removidas flags que causam conflito com o motor Chromium no Windows
+# Essas flags evitam o erro "Assertion failed: process_title" no Windows
 os.environ["UV_THREADPOOL_SIZE"] = "64"
+os.environ["PWNOTTY"] = "1"
+os.environ["PW_NOTTY"] = "1"
 
 import json
 import webbrowser

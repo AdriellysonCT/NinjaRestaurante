@@ -5,6 +5,10 @@ echo    GERANDO EXECUTAVEL DO AGENTE NINJA
 echo ======================================================
 echo.
 
+:: Blindagem para o processo de build
+set PWNOTTY=1
+set PW_NOTTY=1
+
 set VENV_PYTHON=..\.venv\Scripts\python.exe
 
 if exist "%VENV_PYTHON%" (

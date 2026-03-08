@@ -4,6 +4,8 @@ echo 🥷 Verificando ambiente Ninja...
 
 :: Blindagem para estabilidade no Windows
 set UV_THREADPOOL_SIZE=64
+set PWNOTTY=1
+set PW_NOTTY=1
 set NODE_OPTIONS=--no-warnings
 set VENV_PYTHON=..\.venv\Scripts\python.exe
 
