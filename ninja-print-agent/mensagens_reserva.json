@@ -36,6 +36,9 @@
             "O motoboy já coletou seu pedido e está indo até você.",
             "Boa! Seu pedido foi liberado para entrega agora mesmo.",
             "Fique de olho! O entregador já está na rua com seu pedido."
+        ],
+        "coletado": [
+            "Seu pedido foi coletado pelo entregador! *Código de confirmação: {codigo_entrega}*. Informe este código ao entregador ao receber seu pedido."
         ]
     },
     "fechamentos": [

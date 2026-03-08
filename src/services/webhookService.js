@@ -160,6 +160,15 @@ async function criarPedidoPago(transactionId, amount, paymentMethod, orderData) 
 
     console.log('✅ Pedido criado com sucesso:', pedido.id);
 
+    // 💰 GERAR LANÇAMENTOS NO LEDGER (Oficializando Ledger como Fonte da Verdade)
+    try {
+      await gerarLancamentosLedgerPedido(pedido);
+      console.log('✅ Lançamentos no Ledger gerados para o pedido:', pedido.id);
+    } catch (ledgerError) {
+      console.error('⚠️ Erro ao gerar lançamentos no Ledger:', ledgerError);
+      // Não falhar o fluxo de pagamento se o ledger falhar por algum motivo (embora deva ser raríssimo)
+    }
+
     return { 
       success: true, 
       message: 'Pedido criado com pagamento aprovado', 
@@ -318,6 +327,16 @@ export async function confirmarPagamentoPendente(pedidoId) {
 
     console.log('✅ Pagamento confirmado para pedido:', pedidoId);
 
+    // 💰 GERAR LANÇAMENTOS NO LEDGER (Oficializando Ledger como Fonte da Verdade)
+    try {
+      if (pedido) {
+        await gerarLancamentosLedgerPedido(pedido);
+        console.log('✅ Lançamentos no Ledger gerados para o pedido:', pedidoId);
+      }
+    } catch (ledgerError) {
+      console.error('⚠️ Erro ao gerar lançamentos no Ledger:', ledgerError);
+    }
+
     return { success: true, pedido };
 
   } catch (error) {
@@ -360,10 +379,35 @@ export async function registrarEstorno(pedidoId, motivo) {
   }
 }
 
+/**
+ * Gera os lançamentos financeiros no ledger_lancamentos para um pedido pago de forma atômica via RPC
+ * @param {Object} pedido - Dados do pedido completo
+ */
+async function gerarLancamentosLedgerPedido(pedido) {
+  const { id } = pedido;
+
+  // 👉 Garante ATOMICIDADE: chama função do banco que roda em um bloco BEGIN...COMMIT
+  const { error } = await supabase.rpc('processar_confirmacao_pagamento', {
+    p_pedido_id: id
+  });
+
+  if (error) {
+    // Se falhar por duplicidade (idx_ledger_obrigacao_restaurante_unica), o banco fará o ROLLBACK 
+    // mas o erro será propagado para registrarmos no log.
+    if (error.code === '23505') {
+       console.log('ℹ️ Registro de Ledger já existente para o pedido:', id);
+       return;
+    }
+    throw error;
+  }
+}
+
 export default {
   processarWebhookInfinitePay,
   criarPedidoDinheiro,
   confirmarPagamentoPendente,
-  registrarEstorno
+  registrarEstorno,
+  gerarLancamentosLedgerPedido
 };
+
 

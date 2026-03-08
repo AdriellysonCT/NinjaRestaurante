@@ -766,11 +766,16 @@ const Dashboard = () => {
           return newSet;
         });
         
-        // Impressão automática
-        printService.autoPrintOnAccept(orderToprint).catch(err => console.warn(err));
+        // Encontrar objeto do pedido para impressão e notificação
+        const orderData = orders.find(o => o.id === orderId);
         
-        // 🥷 NinjaTalk AI: Notificação manual
-        notificationService.notifyStatusChange(orderToprint, 'aceito');
+        if (orderData) {
+          // Impressão automática
+          printService.autoPrintOnAccept(orderData).catch(err => console.warn(err));
+          
+          // 🥷 NinjaTalk AI: Notificação manual
+          notificationService.notifyStatusChange(orderData, 'aceito');
+        }
       }
 
       logger.log(`Status do pedido ${orderId} atualizado para ${newStatus}`);

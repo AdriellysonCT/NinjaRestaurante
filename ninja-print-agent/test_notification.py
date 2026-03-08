@@ -10,18 +10,25 @@ def test_ninja_notification():
     # O agente vai formatar automaticamente o 55
     phone_test = "83981691823" 
     customer_name = "Ninja de Teste"
+    # Status possíveis: "aceito", "preparando", "saiu_entrega", "coletado"
+    status_to_test = "coletado" 
+    codigo_entrega = "1234" 
     
-    # Status possíveis: "aceito", "preparando", "saiu_entrega"
-    status_to_test = "saiu_entrega" 
+    import random
+    order_id_rand = str(random.randint(1000, 9999))
     
     payload = {
         "status": status_to_test,
         "customer_name": customer_name,
-        "phone": phone_test
+        "phone": phone_test,
+        "codigo_entrega": codigo_entrega,
+        "order_id": order_id_rand # ID Aleatório para evitar o cache de duplicidade
     }
     
     print(f"🚀 Enviando disparo de teste para {customer_name} ({phone_test})...")
     print(f"📦 Status: {status_to_test}")
+    print(f"🛡️ Código: {codigo_entrega}")
+    print(f"🆔 Order ID: {order_id_rand}")
     
     try:
         response = requests.post(url, json=payload)

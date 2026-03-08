@@ -30,15 +30,22 @@ export async function fetchFinancialSummary(startDate = null, endDate = null, re
       endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
     }
 
-    // Chamar função do banco para calcular resumo
-    const { data, error } = await supabase.rpc('calcular_resumo_financeiro', {
-      p_id_restaurante: restauranteId,
-      p_data_inicio: startDate,
-      p_data_fim: endDate
-    });
+    // Buscar dados consolidado da VIEW (Oficializando Ledger)
+    const { data, error } = await supabase
+      .from('view_resumo_financeiro_restaurante')
+      .select('*')
+      .eq('restaurante_id', restauranteId)
+      .single();
 
-    if (error) throw error;
-    return data;
+    if (error && error.code !== 'PGRST116') throw error;
+    
+    // Mapear para o formato que o DashboardFinanceiro espera
+    return {
+      total_entradas: data?.total_vendido || 0,
+      total_saidas: data?.total_repassado || 0,
+      saldo_atual: data?.saldo_disponivel || 0,
+      taxa_plataforma: data?.total_taxas || 0
+    };
   } catch (error) {
     console.error('Erro ao buscar resumo financeiro:', error);
     throw error;
@@ -51,13 +58,10 @@ export async function fetchTransactions(filters = {}, restauranteIdParam = null)
     const restauranteId = restauranteIdParam || await getRestauranteIdOrThrow();
 
     let query = supabase
-      .from('transacoes_financeiras')
-      .select(`
-        *,
-        categoria:categorias_financeiras(nome, cor, icone)
-      `)
-      .eq('id_restaurante', restauranteId)
-      .order('data_transacao', { ascending: false });
+      .from('view_extrato_restaurante')
+      .select(`*`)
+      .eq('conta_recebedora_id', restauranteId)
+      .order('criado_em', { ascending: false });
 
     // Aplicar filtros
     if (filters.tipo) {

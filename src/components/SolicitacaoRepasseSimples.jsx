@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from '../lib/supabase.js';
+import * as repasseService from '../services/repasseService.js';
 
 function SolicitacaoRepasseSimples({ restauranteId }) {
   const [dados, setDados] = useState({
@@ -25,41 +26,21 @@ function SolicitacaoRepasseSimples({ restauranteId }) {
 
   async function carregarDados() {
     try {
-      setLoading(false);
+      setLoading(true);
       setError(null);
 
-      // Buscar dados de repasse
-      const { data: repasseData, error: repasseError } = await supabase
-        .from('repasses_restaurantes')
-        .select('*')
-        .eq('id_restaurante', restauranteId)
-        .single();
+      // 1. Buscar dados de repasse via Serviço (que já usa a VIEW do Ledger)
+      const dadosRepasse = await repasseService.fetchDadosRepasse(restauranteId);
 
-      if (repasseError && repasseError.code !== 'PGRST116') {
-        throw repasseError;
-      }
-
-      // Buscar chave PIX
-      const { data: restauranteData } = await supabase
-        .from('restaurantes_app')
-        .select('chave_pix')
-        .eq('id', restauranteId)
-        .single();
-
-      // Buscar histórico
-      const { data: historicoData } = await supabase
-        .from('historico_repasses')
-        .select('*')
-        .eq('id_restaurante', restauranteId)
-        .order('criado_em', { ascending: false })
-        .limit(10);
+      // 2. Buscar histórico via Serviço (que já usa o Ledger)
+      const historicoData = await repasseService.fetchHistoricoRepasses(restauranteId, 10);
 
       setDados({
-        saldoDisponivel: parseFloat(repasseData?.saldo_pendente || 0),
-        saldoPendente: 0,
-        totalVendas: parseFloat(repasseData?.total_vendas_confirmadas || 0),
-        totalRepassado: parseFloat(repasseData?.total_repassado || 0),
-        chavePixCadastrada: restauranteData?.chave_pix || null
+        saldoDisponivel: dadosRepasse.saldoDisponivel,
+        saldoPendente: dadosRepasse.saldoPendente,
+        totalVendas: dadosRepasse.totalVendas,
+        totalRepassado: dadosRepasse.totalRepassado,
+        chavePixCadastrada: dadosRepasse.chavePixCadastrada
       });
 
       setHistorico(historicoData || []);
@@ -92,30 +73,13 @@ function SolicitacaoRepasseSimples({ restauranteId }) {
 
       const valorTotal = dados.saldoDisponivel;
 
-      // Criar solicitação
-      const { error: insertError } = await supabase
-        .from('historico_repasses')
-        .insert({
-          id_restaurante: restauranteId,
-          valor: valorTotal,
-          metodo: 'pix_manual',
-          observacao: observacao.trim() || null,
-          status: 'pendente',
-          criado_em: new Date().toISOString()
-        });
-
-      if (insertError) throw insertError;
-
-      // Atualizar saldo
-      const { error: updateError } = await supabase
-        .from('repasses_restaurantes')
-        .update({
-          saldo_pendente: 0,
-          ultima_atualizacao: new Date().toISOString()
-        })
-        .eq('id_restaurante', restauranteId);
-
-      if (updateError) throw updateError;
+      // Solicitar via serviço (que cria o registro no Ledger)
+      await repasseService.solicitarRepasse({
+        restauranteId,
+        valor: valorTotal,
+        diasPrazo: diasSelecionados,
+        observacao: observacao.trim()
+      });
 
       setSuccess(`Solicitação de ${formatCurrency(valorTotal)} enviada com sucesso! Prazo: até ${diasSelecionados} ${diasSelecionados === 1 ? 'dia útil' : 'dias úteis'}.`);
       setObservacao('');

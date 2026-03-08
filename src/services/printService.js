@@ -1042,7 +1042,7 @@ function generateReportContent(orders, reportType, settings = printSettings) {
   const date = new Date().toLocaleString();
   
   // Cabeçalho
-  let content = '='.repeat(40) + '\n';
+  let content = '='.repeat(32) + '\n';
   
   // Logo (simulação)
   if (settings.showLogo) {
@@ -1054,10 +1054,10 @@ function generateReportContent(orders, reportType, settings = printSettings) {
   content += `${settings.companyInfo.address}\n`;
   content += `Tel: ${settings.companyInfo.phone}\n`;
   
-  content += '='.repeat(40) + '\n';
+  content += '='.repeat(32) + '\n';
   content += `RELATÓRIO DE PEDIDOS - ${reportType.toUpperCase()}\n`;
   content += `Data: ${date}\n`;
-  content += '='.repeat(40) + '\n\n';
+  content += '='.repeat(32) + '\n\n';
 
   // Estatísticas
   let total = 0;
@@ -1095,7 +1095,7 @@ function generateReportContent(orders, reportType, settings = printSettings) {
   
   // Métodos de pagamento
   content += 'MÉTODOS DE PAGAMENTO:\n';
-  content += '-'.repeat(40) + '\n';
+  content += '-'.repeat(32) + '\n';
   Object.entries(paymentMethods).forEach(([method, count]) => {
     content += `${method}: ${count} pedidos\n`;
   });
@@ -1103,15 +1103,15 @@ function generateReportContent(orders, reportType, settings = printSettings) {
   
   // Lista de pedidos
   content += 'PEDIDOS:\n';
-  content += '-'.repeat(40) + '\n';
+  content += '-'.repeat(32) + '\n';
   
   orders.forEach(order => {
     content += `#${order.numero_pedido || order.id} - ${order.customerName} - R$ ${order.total.toFixed(2)} - ${order.status}\n`;
   });
 
-  content += '\n' + '='.repeat(40) + '\n';
+  content += '\n' + '='.repeat(32) + '\n';
   content += 'Fim do relatório\n';
-  content += '='.repeat(40) + '\n';
+  content += '='.repeat(32) + '\n';
 
   return content;
 }
@@ -1121,7 +1121,7 @@ function generateCashReportContent(relatorio, settings = printSettings) {
   const date = new Date().toLocaleString();
   
   // Cabeçalho
-  let content = '='.repeat(40) + '\n';
+  let content = '='.repeat(32) + '\n';
   
   // Logo (simulação)
   if (settings.showLogo) {
@@ -1133,14 +1133,14 @@ function generateCashReportContent(relatorio, settings = printSettings) {
   content += `${settings.companyInfo.address}\n`;
   content += `Tel: ${settings.companyInfo.phone}\n`;
   
-  content += '='.repeat(40) + '\n';
+  content += '='.repeat(32) + '\n';
   content += 'RELATÓRIO DE FECHAMENTO DE CAIXA\n';
   content += `Data: ${date}\n`;
   content += '='.repeat(40) + '\n\n';
 
   // Informações do caixa
   content += 'INFORMAÇÕES DO CAIXA:\n';
-  content += '-'.repeat(40) + '\n';
+  content += '-'.repeat(32) + '\n';
   content += `Abertura: ${new Date(relatorio.caixa.data_abertura).toLocaleString()}\n`;
   if (relatorio.caixa.data_fechamento) {
     content += `Fechamento: ${new Date(relatorio.caixa.data_fechamento).toLocaleString()}\n`;
@@ -1153,14 +1153,14 @@ function generateCashReportContent(relatorio, settings = printSettings) {
 
   // Resumo de vendas
   content += 'RESUMO DE VENDAS:\n';
-  content += '-'.repeat(40) + '\n';
+  content += '-'.repeat(32) + '\n';
   content += `Total de Vendas: ${relatorio.vendas.length}\n`;
   content += `Valor Total: R$ ${relatorio.totalVendas.toFixed(2)}\n`;
   content += '\n';
 
   // Vendas por método de pagamento
   content += 'VENDAS POR MÉTODO DE PAGAMENTO:\n';
-  content += '-'.repeat(40) + '\n';
+  content += '-'.repeat(32) + '\n';
   Object.entries(relatorio.totaisPorMetodo).forEach(([metodo, valor]) => {
     const nomeMetodo = metodo === 'cash' ? 'Dinheiro' : 
                       metodo === 'card' ? 'Cartão' : 
@@ -1172,7 +1172,7 @@ function generateCashReportContent(relatorio, settings = printSettings) {
   // Movimentações
   if (relatorio.movimentacoes.length > 0) {
     content += 'MOVIMENTAÇÕES:\n';
-    content += '-'.repeat(40) + '\n';
+    content += '-'.repeat(32) + '\n';
     
     relatorio.movimentacoes.forEach(mov => {
       const tipo = mov.tipo === 'sangria' ? 'SANGRIA' : 'REFORÇO';
@@ -1188,19 +1188,19 @@ function generateCashReportContent(relatorio, settings = printSettings) {
 
   // Totais de movimentações
   content += 'RESUMO DE MOVIMENTAÇÕES:\n';
-  content += '-'.repeat(40) + '\n';
+  content += '-'.repeat(32) + '\n';
   content += `Total Reforços: R$ ${relatorio.totalReforcos.toFixed(2)}\n`;
   content += `Total Sangrias: R$ ${relatorio.totalSangrias.toFixed(2)}\n`;
   content += '\n';
 
   // Cálculo final
   content += 'CÁLCULO FINAL:\n';
-  content += '-'.repeat(40) + '\n';
+  content += '-'.repeat(32) + '\n';
   content += `Valor Inicial: R$ ${relatorio.caixa.valor_abertura.toFixed(2)}\n`;
   content += `+ Vendas: R$ ${relatorio.totalVendas.toFixed(2)}\n`;
   content += `+ Reforços: R$ ${relatorio.totalReforcos.toFixed(2)}\n`;
   content += `- Sangrias: R$ ${relatorio.totalSangrias.toFixed(2)}\n`;
-  content += '-'.repeat(40) + '\n';
+  content += '-'.repeat(32) + '\n';
   content += `VALOR ESPERADO: R$ ${relatorio.valorEsperado.toFixed(2)}\n`;
   
   if (relatorio.caixa.valor_fechamento) {
@@ -1219,7 +1219,7 @@ function generateCashReportContent(relatorio, settings = printSettings) {
   // Observações
   if (relatorio.caixa.observacoes_abertura || relatorio.caixa.observacoes_fechamento) {
     content += '\n' + 'OBSERVAÇÕES:\n';
-    content += '-'.repeat(40) + '\n';
+    content += '-'.repeat(32) + '\n';
     if (relatorio.caixa.observacoes_abertura) {
       content += `Abertura: ${relatorio.caixa.observacoes_abertura}\n`;
     }
@@ -1228,9 +1228,9 @@ function generateCashReportContent(relatorio, settings = printSettings) {
     }
   }
 
-  content += '\n' + '='.repeat(40) + '\n';
+  content += '\n' + '='.repeat(32) + '\n';
   content += 'Fim do relatório de caixa\n';
-  content += '='.repeat(40) + '\n';
+  content += '='.repeat(32) + '\n';
 
   return content;
 }

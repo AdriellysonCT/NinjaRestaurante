@@ -12,18 +12,7 @@ export async function fetchDadosRepasse(restauranteId) {
       throw new Error('ID do restaurante é obrigatório');
     }
 
-    // Buscar dados da tabela repasses_restaurantes
-    const { data: repasseData, error: repasseError } = await supabase
-      .from('repasses_restaurantes')
-      .select('*')
-      .eq('id_restaurante', restauranteId)
-      .single();
-
-    if (repasseError && repasseError.code !== 'PGRST116') {
-      throw new Error(`Erro ao buscar dados de repasse: ${repasseError.message}`);
-    }
-
-    // Buscar chave PIX do restaurante
+    // Buscar chave PIX do restaurante (necessário para o formulário)
     const { data: restauranteData, error: restauranteError } = await supabase
       .from('restaurantes_app')
       .select('chave_pix')
@@ -34,40 +23,23 @@ export async function fetchDadosRepasse(restauranteId) {
       console.warn('Erro ao buscar chave PIX:', restauranteError);
     }
 
-    // Se não existir registro, criar um novo
-    if (!repasseData) {
-      const { data: novoRepasse, error: criarError } = await supabase
-        .from('repasses_restaurantes')
-        .insert({
-          id_restaurante: restauranteId,
-          total_vendas_confirmadas: 0,
-          total_repassado: 0,
-          saldo_pendente: 0,
-          taxa_plataforma: 0.05 // 5% padrão
-        })
-        .select()
-        .single();
+    // NOVA LÓGICA: Buscar resumo consolidado da VIEW
+    const { data: resumoView, error: viewError } = await supabase
+      .from('view_resumo_financeiro_restaurante')
+      .select('*')
+      .eq('restaurante_id', restauranteId)
+      .single();
 
-      if (criarError) {
-        throw new Error(`Erro ao criar registro de repasse: ${criarError.message}`);
-      }
-
-      return {
-        saldoDisponivel: 0,
-        saldoPendente: 0,
-        totalVendas: 0,
-        totalRepassado: 0,
-        taxaPlataforma: 0.05,
-        chavePixCadastrada: restauranteData?.chave_pix || null
-      };
+    if (viewError && viewError.code !== 'PGRST116') {
+      console.warn('Erro ao buscar resumo da view (talvez não exista registro no ledger ainda):', viewError);
     }
 
     return {
-      saldoDisponivel: parseFloat(repasseData.saldo_pendente) || 0,
-      saldoPendente: 0, // Será calculado dos repasses em processamento
-      totalVendas: parseFloat(repasseData.total_vendas_confirmadas) || 0,
-      totalRepassado: parseFloat(repasseData.total_repassado) || 0,
-      taxaPlataforma: parseFloat(repasseData.taxa_plataforma) || 0.05,
+      saldoDisponivel: parseFloat(resumoView?.saldo_disponivel || 0),
+      saldoPendente: 0,
+      totalVendas: parseFloat(resumoView?.total_vendido || 0),
+      totalRepassado: parseFloat(resumoView?.total_repassado || 0),
+      taxaPlataforma: 0.05, // Valor padrão ou buscar de config do restaurante se houver
       chavePixCadastrada: restauranteData?.chave_pix || null
     };
 
@@ -77,17 +49,19 @@ export async function fetchDadosRepasse(restauranteId) {
   }
 }
 
-// Buscar histórico de repasses
+// Buscar histórico de repasses (Via Ledger)
 export async function fetchHistoricoRepasses(restauranteId, limite = 20) {
   try {
     if (!restauranteId) {
       throw new Error('ID do restaurante é obrigatório');
     }
 
+    // Busca via ledger para garantir o histórico real
     const { data, error } = await supabase
-      .from('historico_repasses')
+      .from('view_extrato_restaurante')
       .select('*')
-      .eq('id_restaurante', restauranteId)
+      .eq('conta_recebedora_id', restauranteId)
+      .eq('tipo_lancamento', 'PAGAMENTO_RESTAURANTE')
       .order('criado_em', { ascending: false })
       .limit(limite);
 
@@ -125,38 +99,25 @@ export async function solicitarRepasse({ restauranteId, valor, diasPrazo, observ
       throw new Error('Saldo insuficiente para esta solicitação');
     }
 
-    // Criar registro no histórico de repasses
-    const { data: novoRepasse, error: insertError } = await supabase
-      .from('historico_repasses')
-      .insert({
-        id_restaurante: restauranteId,
-        valor: valor,
-        metodo: 'pix_manual',
-        observacao: observacao,
-        status: 'pendente', // Será processado pelo admin
-        criado_em: new Date().toISOString()
-      })
-      .select()
-      .single();
+    // 1. Criar registro no Ledger via RPC (Garante isolamento e atomicidade)
+    const { data: lancamentoId, error: ledgerError } = await supabase
+      .rpc('solicitar_repasse_ledger', {
+        p_restaurante_id: restauranteId,
+        p_valor: valor
+      });
 
-    if (insertError) {
-      throw new Error(`Erro ao criar solicitação: ${insertError.message}`);
+    if (ledgerError) {
+      throw new Error(`Erro ao criar solicitação no Ledger: ${ledgerError.message}`);
     }
 
-    // Atualizar saldo pendente na tabela repasses_restaurantes
-    const { error: updateError } = await supabase
-      .from('repasses_restaurantes')
-      .update({
-        saldo_pendente: dadosRepasse.saldoDisponivel - valor,
-        ultima_atualizacao: new Date().toISOString()
-      })
-      .eq('id_restaurante', restauranteId);
+    // 2. (OPCIONAL/LEGACY) Se houver necessidade de logar em historico_repasses legado:
+    // Sugestão: Manter apenas se for necessário para integrações externas legadas. 
+    // Do ponto de vista de segurança, o Ledger é o oficial.
 
-    if (updateError) {
-      console.warn('Erro ao atualizar saldo:', updateError);
-    }
+    // A ATUALIZAÇÃO MANUAL DE SALDO FOI REMOVIDA DAQUI CONFORME SOLICITADO.
+    // O SALDO AGORA É CALCULADO PELA VIEW DINAMICAMENTE.
 
-    return novoRepasse;
+    return lancamento;
 
   } catch (error) {
     console.error('Erro ao solicitar repasse:', error);
