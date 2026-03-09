@@ -428,11 +428,8 @@ const GoalsList = ({ onEdit, onChanged }) => {
 };
 
 const Finance = () => {
-  const { user } = useAuth();
+  const { user, restauranteId, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [restaurantId, setRestaurantId] = useState(null);
-  const [isLoadingRestaurant, setIsLoadingRestaurant] = useState(true);
-  const [restaurantError, setRestaurantError] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -465,7 +462,7 @@ const Finance = () => {
 
   // Carregamento de contagem inicial para dashboard
   useEffect(() => {
-    if (restaurantId) {
+    if (restauranteId) {
       const loadInitialCounts = async () => {
         try {
           setTransactionsLoading(true);
@@ -474,10 +471,10 @@ const Finance = () => {
           setFechamentosLoading(true);
           
           const [t, a, g, f] = await Promise.all([
-             financeService.fetchTransactions({}),
-             financeService.fetchAccounts(),
-             financeService.fetchFinancialGoals(),
-             fechamentoCaixaService.fetchFechamentos(restaurantId)
+             financeService.fetchTransactions({}, restauranteId),
+             financeService.fetchAccounts(null, null, restauranteId),
+             financeService.fetchFinancialGoals(restauranteId),
+             fechamentoCaixaService.fetchFechamentos(restauranteId)
           ]);
           setTransactionsCount(Array.isArray(t) ? t.length : 0);
           setAccountsCount(Array.isArray(a) ? a.length : 0);
@@ -494,7 +491,7 @@ const Finance = () => {
       };
       loadInitialCounts();
     }
-  }, [restaurantId]);
+  }, [restauranteId]);
 
   // Modais
   const [transactionModalOpen, setTransactionModalOpen] = useState(false);
@@ -510,34 +507,7 @@ const Finance = () => {
   const [categoriesSaida, setCategoriesSaida] = useState([]);
   const [suppliersList, setSuppliersList] = useState([]);
 
-  useEffect(() => {
-    const fetchRestaurantId = async () => {
-      try {
-        setIsLoadingRestaurant(true);
-        setRestaurantError(null);
-        if (!user?.id) return;
-
-        const { data, error } = await supabase
-          .from('restaurantes_app')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error) {
-          setRestaurantError(error);
-          return;
-        }
-
-        if (data?.id) setRestaurantId(data.id);
-      } catch (err) {
-        setRestaurantError(err);
-      } finally {
-        setIsLoadingRestaurant(false);
-      }
-    };
-
-    fetchRestaurantId();
-  }, [user]);
+  // O useEffect acima removeu a necessidade da busca manual que existia aqui
 
   // Carregadores por aba (apenas contagens, sem dados mock)
   useEffect(() => {
@@ -545,7 +515,7 @@ const Finance = () => {
       try {
         setTransactionsLoading(true);
         setTransactionsError(null);
-        const data = await financeService.fetchTransactions({});
+        const data = await financeService.fetchTransactions({}, restauranteId);
         setTransactionsCount(Array.isArray(data) ? data.length : 0);
       } catch (err) {
         setTransactionsError(err?.message || 'Dados indisponíveis');
@@ -559,7 +529,7 @@ const Finance = () => {
       try {
         setAccountsLoading(true);
         setAccountsError(null);
-        const data = await financeService.fetchAccounts();
+        const data = await financeService.fetchAccounts(null, null, restauranteId);
         setAccountsCount(Array.isArray(data) ? data.length : 0);
       } catch (err) {
         setAccountsError(err?.message || 'Dados indisponíveis');
@@ -573,7 +543,7 @@ const Finance = () => {
       try {
         setSuppliersLoading(true);
         setSuppliersError(null);
-        const data = await financeService.fetchSuppliers();
+        const data = await financeService.fetchSuppliers(restauranteId);
         setSuppliersCount(Array.isArray(data) ? data.length : 0);
       } catch (err) {
         setSuppliersError(err?.message || 'Dados indisponíveis');
@@ -587,7 +557,7 @@ const Finance = () => {
       try {
         setGoalsLoading(true);
         setGoalsError(null);
-        const data = await financeService.fetchFinancialGoals();
+        const data = await financeService.fetchFinancialGoals(restauranteId);
         setGoalsCount(Array.isArray(data) ? data.length : 0);
       } catch (err) {
         setGoalsError(err?.message || 'Dados indisponíveis');
@@ -597,22 +567,23 @@ const Finance = () => {
       }
     };
 
-    if (!restaurantId) return;
+    if (!restauranteId) return;
 
     if (activeTab === 'transactions') loadTransactions();
     if (activeTab === 'accounts') loadAccounts();
     if (activeTab === 'suppliers') loadSuppliers();
     if (activeTab === 'goals') loadGoals();
-  }, [activeTab, restaurantId]);
+  }, [activeTab, restauranteId]);
 
   // Pré-carregar categorias e fornecedores para modais
   useEffect(() => {
     const preload = async () => {
+      if (!restauranteId) return;
       try {
         const [catsEntrada, catsSaida, sups] = await Promise.all([
-          financeService.fetchFinancialCategories('entrada'),
-          financeService.fetchFinancialCategories('saida'),
-          financeService.fetchSuppliers()
+          financeService.fetchFinancialCategories('entrada', restauranteId),
+          financeService.fetchFinancialCategories('saida', restauranteId),
+          financeService.fetchSuppliers(restauranteId)
         ]);
         setCategoriesEntrada(catsEntrada || []);
         setCategoriesSaida(catsSaida || []);
@@ -620,7 +591,7 @@ const Finance = () => {
       } catch (_e) {}
     };
     preload();
-  }, [restaurantId]);
+  }, [restauranteId]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
@@ -677,8 +648,8 @@ const Finance = () => {
                   <p className="text-2xl font-bold text-primary">{fechamentosLoading ? '...' : fechamentosCount || 0}</p>
                 </div>
               </div>
-              {restaurantId ? (
-                <DashboardFinanceiro restauranteId={restaurantId} />
+              {restauranteId ? (
+                <DashboardFinanceiro restauranteId={restauranteId} />
               ) : (
                 <div className="flex flex-col items-center justify-center py-20">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
@@ -690,8 +661,8 @@ const Finance = () => {
 
         {activeTab === 'repasses' && (
           <div>
-            {restaurantId ? (
-              <SolicitacaoRepasse restauranteId={restaurantId} />
+            {restauranteId ? (
+              <SolicitacaoRepasse restauranteId={restauranteId} />
             ) : (
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
@@ -764,7 +735,7 @@ const Finance = () => {
             ) : accountsCount === 0 ? (
               <p className="text-muted-foreground">Nenhuma conta encontrada.</p>
             ) : (
-              <AccountsList onEdit={(c)=> { setEditingAccount(c); setAccountModalOpen(true); }} onChanged={async ()=> { const data = await financeService.fetchAccounts(); setAccountsCount(Array.isArray(data) ? data.length : 0); }} />
+              <AccountsList onEdit={(c)=> { setEditingAccount(c); setAccountModalOpen(true); }} onChanged={async ()=> { const data = await financeService.fetchAccounts(null, null, restauranteId); setAccountsCount(Array.isArray(data) ? data.length : 0); }} />
             )}
           </div>
         )}
@@ -791,7 +762,7 @@ const Finance = () => {
             ) : suppliersCount === 0 ? (
               <p className="text-muted-foreground">Nenhum fornecedor encontrado.</p>
             ) : (
-              <SuppliersList onEdit={(s)=> { setEditingSupplier(s); setSupplierModalOpen(true); }} onChanged={async ()=> { const data = await financeService.fetchSuppliers(); setSuppliersCount(Array.isArray(data) ? data.length : 0); }} />
+              <SuppliersList onEdit={(s)=> { setEditingSupplier(s); setSupplierModalOpen(true); }} onChanged={async ()=> { const data = await financeService.fetchSuppliers(restauranteId); setSuppliersCount(Array.isArray(data) ? data.length : 0); }} />
             )}
           </div>
         )}
@@ -818,7 +789,7 @@ const Finance = () => {
             ) : goalsCount === 0 ? (
               <p className="text-muted-foreground">Nenhuma meta cadastrada.</p>
             ) : (
-              <GoalsList onEdit={(g)=> { setEditingGoal(g); setGoalModalOpen(true); }} onChanged={async ()=> { const data = await financeService.fetchFinancialGoals(); setGoalsCount(Array.isArray(data) ? data.length : 0); }} />
+              <GoalsList onEdit={(g)=> { setEditingGoal(g); setGoalModalOpen(true); }} onChanged={async ()=> { const data = await financeService.fetchFinancialGoals(restauranteId); setGoalsCount(Array.isArray(data) ? data.length : 0); }} />
             )}
           </div>
         )}
@@ -828,17 +799,17 @@ const Finance = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-foreground">Fechamentos de Caixa</h2>
               <FecharCaixaButton 
-                restauranteId={restaurantId}
+                restauranteId={restauranteId}
                 onFechamentoCreated={() => {
                   // Recarregar lista de fechamentos
                   setFechamentosCount((prev) => (prev || 0) + 1);
                 }}
               />
             </div>
-            {!restaurantId ? (
+            {!restauranteId ? (
               <p className="text-muted-foreground text-center py-10">Carregando dados do restaurante...</p>
             ) : (
-              <HistoricoFechamentos restauranteId={restaurantId} />
+              <HistoricoFechamentos restauranteId={restauranteId} />
             )}
           </div>
         )}
@@ -907,12 +878,12 @@ const Finance = () => {
         categories={[...categoriesEntrada, ...categoriesSaida]}
         onSave={async (payload) => {
           try {
-            if (editingTransaction) await financeService.updateTransaction(editingTransaction.id, payload);
-            else await financeService.createTransaction(payload);
+            if (editingTransaction) await financeService.updateTransaction(editingTransaction.id, payload, restauranteId);
+            else await financeService.createTransaction(payload, restauranteId);
             setTransactionModalOpen(false);
             triggerSuccess('Transação salva com sucesso!');
             if (activeTab === 'transactions') {
-              const data = await financeService.fetchTransactions({});
+              const data = await financeService.fetchTransactions({}, restauranteId);
               setTransactionsCount(Array.isArray(data) ? data.length : 0);
             }
           } catch (e) {
@@ -929,12 +900,12 @@ const Finance = () => {
         suppliers={suppliersList}
         onSave={async (payload) => {
           try {
-            if (editingAccount) await financeService.updateAccount(editingAccount.id, payload);
-            else await financeService.createAccount(payload);
+            if (editingAccount) await financeService.updateAccount(editingAccount.id, payload, restauranteId);
+            else await financeService.createAccount(payload, restauranteId);
             setAccountModalOpen(false);
             triggerSuccess('Conta salva com sucesso!');
             if (activeTab === 'accounts') {
-              const data = await financeService.fetchAccounts();
+              const data = await financeService.fetchAccounts(null, null, restauranteId);
               setAccountsCount(Array.isArray(data) ? data.length : 0);
             }
           } catch (e) {
@@ -949,12 +920,12 @@ const Finance = () => {
         supplier={editingSupplier}
         onSave={async (payload) => {
           try {
-            if (editingSupplier) await financeService.updateSupplier(editingSupplier.id, payload);
-            else await financeService.createSupplier(payload);
+            if (editingSupplier) await financeService.updateSupplier(editingSupplier.id, payload, restauranteId);
+            else await financeService.createSupplier(payload, restauranteId);
             setSupplierModalOpen(false);
             triggerSuccess('Fornecedor salvo com sucesso!');
             if (activeTab === 'suppliers') {
-              const data = await financeService.fetchSuppliers();
+              const data = await financeService.fetchSuppliers(restauranteId);
               setSuppliersCount(Array.isArray(data) ? data.length : 0);
             }
           } catch (e) {
@@ -969,12 +940,12 @@ const Finance = () => {
         goal={editingGoal}
         onSave={async (payload) => {
           try {
-            if (editingGoal) await financeService.updateFinancialGoal(editingGoal.id, payload);
-            else await financeService.createFinancialGoal(payload);
+            if (editingGoal) await financeService.updateFinancialGoal(editingGoal.id, payload, restauranteId);
+            else await financeService.createFinancialGoal(payload, restauranteId);
             setGoalModalOpen(false);
             triggerSuccess('Meta salva com sucesso!');
             if (activeTab === 'goals') {
-              const data = await financeService.fetchFinancialGoals();
+              const data = await financeService.fetchFinancialGoals(restauranteId);
               setGoalsCount(Array.isArray(data) ? data.length : 0);
             }
           } catch (e) {

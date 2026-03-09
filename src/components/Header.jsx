@@ -118,6 +118,8 @@ const pageTitles = {
   '/mesas': 'Pedidos Mesa',
   '/agendados': 'Agendados',
   '/cardapio': 'Cardápio',
+  '/complementos': 'Complementos',
+  '/cupons': 'Cupons',
   '/financeiro': 'Financeiro',
   '/configuracoes': 'Configurações',
   '/comanda-demo': 'Demo Comanda',

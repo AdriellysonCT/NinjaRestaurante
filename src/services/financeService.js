@@ -1,18 +1,14 @@
 import { supabase } from '../lib/supabase';
 
 // Helper para obter o id do restaurante (tabela restaurantes_app)
+// Tenta primeiro via sessão atual para evitar redundância
 async function getRestauranteIdOrThrow() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user?.id) return session.user.id;
+  
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Usuário não autenticado');
-
-  const { data, error } = await supabase
-    .from('restaurantes_app')
-    .select('id')
-    .eq('user_id', user.id)
-    .single();
-
-  if (error || !data?.id) throw new Error('Restaurante não encontrado');
-  return data.id;
+  if (!user) throw new Error('Sessão expirada. Por favor, faça login novamente.');
+  return user.id;
 }
 
 // Função para buscar resumo financeiro
