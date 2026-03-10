@@ -30,7 +30,10 @@ export const notificationService = {
         body: JSON.stringify({
           status: status,
           customer_name: order.customerName,
-          phone: phone
+          phone: phone,
+          order_id: order.id,
+          numero_pedido: order.numero_pedido,
+          codigo_entrega: order.codigo_entrega // Fundamental para a mensagem de "Coletado"
         }),
       });
 

@@ -12,6 +12,14 @@ os.environ["UV_THREADPOOL_SIZE"] = "64"
 os.environ["PWNOTTY"] = "1"
 os.environ["PW_NOTTY"] = "1"
 
+# 🌐 SOLUÇÃO PARA PLAYWRIGHT NO EXE
+# Força o Playwright a buscar os navegadores na pasta padrão do sistema (AppData/Local)
+# em vez de procurar dentro da pasta temporária do PyInstaller (_MEI).
+if getattr(sys, 'frozen', False):
+    local_app_data = os.environ.get('LOCALAPPDATA')
+    if local_app_data:
+        os.environ['PLAYWRIGHT_BROWSERS_PATH'] = os.path.join(local_app_data, 'ms-playwright')
+
 import json
 import webbrowser
 import threading
@@ -28,6 +36,9 @@ try:
     import win32print
     import win32ui
     import win32con
+    import win32event
+    import winerror
+    import win32api
     from PIL import Image
     import pystray
     from pystray import MenuItem as item
@@ -38,6 +49,42 @@ except ImportError as e:
     print(f"❌ Erro crítico: Dependência não encontrada: {e}")
     print("💡 Dica: Verifique se todas as bibliotecas foram instaladas com 'pip install -r requirements.txt' ou manualmente.")
     sys.exit(1)
+
+# --- TRAVA DE INSTÂNCIA ÚNICA (SINGLETON) ---
+def show_windows_notification(title, message):
+    """Dispara uma notificacao real do Windows (Toast) via PowerShell"""
+    try:
+        # Comando PowerShell para mostrar um balao de notificacao no sistema
+        powershell_cmd = f'[reflection.assembly]::loadwithpartialname("System.Windows.Forms"); [reflection.assembly]::loadwithpartialname("System.Drawing"); $notification = new-object system.windows.forms.notifyicon; $notification.icon = [system.drawing.systemicons]::Information; $notification.visible = $true; $notification.showballoontip(5000, "{title}", "{message}", [system.windows.forms.tooltipicon]::Info)'
+        subprocess.Popen(["powershell", "-Command", powershell_cmd], 
+                         creationflags=subprocess.CREATE_NO_WINDOW,
+                         stdout=subprocess.DEVNULL, 
+                         stderr=subprocess.DEVNULL)
+    except:
+        pass
+
+def check_single_instance():
+    """Garante que apenas UMA instancia do agente rode por vez"""
+    mutex_name = "Global\\FomeNinjaAgent_Mutex_1337"
+    mutex = win32event.CreateMutex(None, False, mutex_name)
+    last_error = win32api.GetLastError()
+    
+    if last_error == winerror.ERROR_ALREADY_EXISTS:
+        # Dispara a notificacao no canto da tela
+        show_windows_notification("NinjaTalk Ativo", "O Agente Ninja já está rodando em segundo plano! Procure o ícone da laranja perto do relógio.")
+        
+        # Fallback MessageBox caso o usuario nao veja a notificacao
+        try:
+            win32api.MessageBox(0, "O Agente Ninja já está aberto e pronto para as missões!", "Aviso Ninja", win32con.MB_ICONINFORMATION)
+        except:
+            pass
+        return False
+    return mutex
+
+# Guardar referencia global para o mutex nao ser coletado pelo GC
+app_mutex = check_single_instance()
+if not app_mutex:
+    os._exit(0)
 
 app = Flask(__name__)
 CORS(app)
@@ -50,7 +97,17 @@ print("✨ Agente Ninja (Modo Local JSON) configurado!", flush=True)
 sent_notifications = set() # Store (order_id, status)
 
 if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    # 🛡️ Proteção contra erro NoneType em modo --windowed (sem console)
+    if sys.stdout is not None:
+        try:
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+        except AttributeError:
+            # Já pode estar embrulhado ou em um estado que não permite buffer
+            pass
+    else:
+        # Se stdout for None, redirecionamos para o limbo ou um arquivo para evitar crashes no print()
+        sys.stdout = open(os.path.join(os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else ".", "agent_log.txt"), "a", encoding="utf-8")
+        sys.stderr = sys.stdout
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -81,8 +138,8 @@ def ensure_playwright_installed():
         except Exception as err:
             print(f"❌ Erro ao instalar componentes: {err}. Certifique-se que o Python está no PATH.")
 
-if not getattr(sys, 'frozen', False):
-    ensure_playwright_installed()
+# Sempre verificar os motores, mesmo no EXE, para garantir que o Chromium está lá
+ensure_playwright_installed()
 
 def get_default_printer():
     try:

@@ -753,28 +753,46 @@ const Dashboard = () => {
         )
       );
 
-      // Parar som de notificação se aceitar um pedido e limpar da lista de tocados
+      // 🥷 Lógica Ninja de Notificações e Impressão
+      const orderData = orders.find(o => o.id === orderId);
+
       if (newStatus === "aceito") {
         if (notificationSoundRef.current) {
           notificationSoundRef.current.pause();
           notificationSoundRef.current.currentTime = 0;
         }
-        // Remover da lista de notificações tocadas
         setPlayedNotifications((prev) => {
           const newSet = new Set(prev);
           newSet.delete(orderId);
           return newSet;
         });
         
-        // Encontrar objeto do pedido para impressão e notificação
-        const orderData = orders.find(o => o.id === orderId);
-        
         if (orderData) {
-          // Impressão automática
           printService.autoPrintOnAccept(orderData).catch(err => console.warn(err));
+        }
+      }
+
+      // 📲 Disparar Notificação NinjaTalk para TODOS os status relevantes
+      if (orderData) {
+        const isLocalOrder = orderData.tipo_pedido === 'retirada' || orderData.tipo_pedido === 'local';
+        
+        // Mapeia o status do banco para a chave de mensagem do Agente
+        const statusMap = {
+          'aceito': 'aceito',
+          'pronto_para_entrega': 'pronto',
+          'coletado': (isLocalOrder ? null : 'coletado') 
+        };
+
+        const mappedStatus = statusMap[newStatus];
+
+        if (mappedStatus) {
+          logger.log(`🤖 NinjaTalk: Disparando notificação de "${mappedStatus}" para ${orderData.customerName}`);
           
-          // 🥷 NinjaTalk AI: Notificação manual
-          notificationService.notifyStatusChange(orderData, 'aceito');
+          // Se for coletado, envia o código de entrega junto
+          notificationService.notifyStatusChange({
+            ...orderData,
+            codigo_entrega: orderData.codigo_entrega || orderData.delivery_code // Garante que o código de segurança vá junto
+          }, mappedStatus);
         }
       }
 

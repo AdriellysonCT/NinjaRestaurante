@@ -10,35 +10,26 @@
     ],
     "corpos": {
         "aceito": [
-            "Seu pedido foi confirmado aqui na cozinha.",
-            "Já recebemos seu pedido e ele já entrou na fila.",
-            "Tudo certo! Seu pedido foi aceito com sucesso.",
-            "Recebemos seu pedido e daqui a pouco começamos o preparo.",
-            "Pedido confirmado! Nossa equipe já foi avisada."
-        ],
-        "preparando": [
-            "O cheiro tá ótimo e seu pedido já está no fogo.",
-            "Estamos caprichando no preparo do seu pedido agora.",
-            "Mãos à obra! Seu pedido está sendo montado com todo carinho.",
-            "Sua comida já está sendo preparada por nossa equipe.",
-            "Quase no ponto! Seu pedido já está em fase de preparo."
+            "Seu pedido já caiu aqui na cozinha e nossos ninjas já começaram o preparo! 🥷✨",
+            "Recebemos seu pedido! Ele já tá no fogo e sendo preparado com todo carinho. 🔥",
+            "Tudo certo por aqui! Já tamo mãos à obra pra preparar sua refeição o mais rápido possível.",
+            "Boa notícia: Seu pedido já foi aceito e o cheiro aqui na cozinha tá fenomenal! 😋",
+            "Pedido aprovado! Agora é com a nossa equipe, que já iniciou o preparo pra você.",
+            "Já confirmamos tudo! Seu pedido acaba de entrar na linha de preparo e logo tá pronto."
         ],
         "pronto": [
-            "Seu pedido já está prontinho e embalado aqui no balcão.",
-            "Tudo pronto! Seu pedido está aguardando a saída para entrega.",
-            "Finalizamos seu pedido! Ele está só esperando o entregador.",
-            "Seu pedido já saiu da cozinha e está na expedição.",
-            "Acabamos de embalar seu pedido com muito capricho."
-        ],
-        "saiu_entrega": [
-            "O entregador acabou de sair com sua encomenda!",
-            "Seu pedido está a caminho! Prepare a mesa.",
-            "O motoboy já coletou seu pedido e está indo até você.",
-            "Boa! Seu pedido foi liberado para entrega agora mesmo.",
-            "Fique de olho! O entregador já está na rua com seu pedido."
+            "Tá saindo o capricho! Seu pedido já tá prontinho e embalado aqui no balcão. 🍟",
+            "Tudo pronto! Seu pedido tá só aguardando o entregador pra seguir viagem.",
+            "Finalizamos seu pedido! Ele tá aqui na expedição, prontinho pra sair. ✅",
+            "Pedido na mão! Já tá tudo embalado com muito carinho e pronto pra entrega.",
+            "Acabamos de finalizar! O seu pedido já tá no balcão só esperando o bíp do entregador."
         ],
         "coletado": [
-            "Seu pedido foi coletado pelo entregador! *Código de confirmação: {codigo_entrega}*. Informe este código ao entregador ao receber seu pedido."
+            "Boa! O entregador já pegou seu pedido e tá voando aí pra você! 🛵 *Código de segurança: {codigo_entrega}*.",
+            "Tá a caminho! 🚀 Seu pedido já tá com o entregador. *Anota aí o código: {codigo_entrega}*.",
+            "Opa, seu pedido já tá na rua! 🛵💨 O motoboy já coletou e tá chegando. *Código de entrega: {codigo_entrega}*.",
+            "Tudo pronto! O bíp do entregador já foi e ele tá a caminho da sua casa. 🏠 *Seu código é: {codigo_entrega}*.",
+            "Fique de olho! Seu pedido foi liberado agora mesmo. 🥷 *Avisa o código {codigo_entrega} pro entregador na hora que ele chegar.*"
         ]
     },
     "fechamentos": [
@@ -51,6 +42,10 @@
         "Até já!",
         "Qualquer coisa estamos aqui!",
         "Dê um pulo na porta quando o entregador chegar. 😉",
-        "Fome Ninja agradece! 🥷"
+        "Fome Ninja agradece! 🥷",
+        "Até já na sua porta! 🏠",
+        "Já estamos ansiosos para você provar! 😍",
+        "Prepare a mesa, a felicidade está chegando! ✨",
+        "Qualquer dúvida, é só chamar por aqui. 👍"
     ]
 }
