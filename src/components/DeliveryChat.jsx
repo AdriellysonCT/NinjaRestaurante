@@ -20,19 +20,44 @@ export default function DeliveryChat({ order }) {
         fetchMessages();
 
         // Inscrever no canal para receber mensagens em tempo real
+        // Nota: A tabela 'mensagens_entrega' DEVE estar na publicação 'supabase_realtime'
         const channel = supabase
-        .channel(`chat_${order.id}`)
+        .channel(`chat_delivery_${order.id}`) // Canal único por pedido
         .on('postgres_changes', 
-            { event: 'INSERT', schema: 'public', table: 'mensagens_entrega', filter: `pedido_id=eq.${order.id}` },
+            { 
+              event: 'INSERT', 
+              schema: 'public', 
+              table: 'mensagens_entrega', 
+              filter: `pedido_id=eq.${order.id}` 
+            },
             (payload) => {
-               // Adicionar nova mensagem à lista
-               setMessages(prev => [...prev, payload.new]);
+               const newMessage = payload.new;
+               console.log('💬 [Realtime] Nova mensagem recebida:', newMessage);
+               
+               setMessages(prev => {
+                 // Verificação robusta contra duplicidade (ID ou timestamp+conteúdo)
+                 const exists = prev.some(msg => 
+                    msg.id === newMessage.id || 
+                    (msg.timestamp === newMessage.timestamp && msg.conteudo === newMessage.conteudo)
+                 );
+                 if (exists) return prev;
+                 
+                 const updated = [...prev, newMessage];
+                 // Ordenar por data de criação para garantir ordem cronológica
+                 return updated.sort((a, b) => 
+                    new Date(a.criado_em || a.timestamp).getTime() - 
+                    new Date(b.criado_em || b.timestamp).getTime()
+                 );
+               });
             }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log(`📡 [Realtime] Status da conexão chat: ${status}`);
+        });
 
         return () => {
-        supabase.removeChannel(channel);
+          console.log(`🔕 [Realtime] Removendo canal chat: ${order.id}`);
+          supabase.removeChannel(channel);
         };
     }
   }, [order?.id]);
@@ -70,7 +95,7 @@ export default function DeliveryChat({ order }) {
     setNewMessage(''); // Limpeza otimista
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('mensagens_entrega')
         .insert({
           pedido_id: order.id,
@@ -78,12 +103,19 @@ export default function DeliveryChat({ order }) {
           tipo_remetente: 'restaurante',
           conteudo: content,
           lida: false
-        });
+        })
+        .select();
 
       if (error) throw error;
       
-      // Fallback: se o realtime demorar, buscamos as mensagens novamente ou adicionamos manualmente
-      fetchMessages();
+      // Se tivermos os dados retornados, adicionamos para UI instantânea
+      if (data && data[0]) {
+        setMessages(prev => {
+          const exists = prev.some(msg => msg.id === data[0].id);
+          if (exists) return prev;
+          return [...prev, data[0]];
+        });
+      }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       alert('Erro ao enviar mensagem. Tente novamente.');
@@ -125,7 +157,7 @@ export default function DeliveryChat({ order }) {
               <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow-md ${
                 msg.tipo_remetente === 'restaurante' 
                   ? 'bg-primary text-white rounded-tr-none' 
-                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-border rounded-tl-none'
+                  : 'bg-muted dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-border rounded-tl-none'
               }`}>
                 <p className="leading-relaxed">{msg.conteudo}</p>
                 <p className={`text-[10px] mt-1 text-right opacity-70`}>
@@ -158,3 +190,4 @@ export default function DeliveryChat({ order }) {
     </div>
   );
 }
+

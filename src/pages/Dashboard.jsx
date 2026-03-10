@@ -489,17 +489,42 @@ const Dashboard = () => {
           filter: `tipo_remetente=eq.entregador`, // Só interessa msg de entregador
         },
         async (payload) => {
-           logger.log('💬 Nova mensagem recebida:', payload.new);
-           const pedidoId = payload.new.pedido_id;
+           const msg = payload.new;
+           logger.log('💬 Nova mensagem recebida do entregador:', msg);
+           const pedidoId = msg.pedido_id;
            
-           // Tocar som discreto
+           // Encontrar o pedido localmente para pegar o número e nome do cliente
+           const order = ordersRef.current.find(o => o.id === pedidoId);
+           const pedidoNum = order?.numero_pedido || '';
+           
+           // 1. Tocar som discreto
            playNotificationSound('chat');
            
-           // Incrementar contador de não lidas para este pedido
+           // 2. Incrementar contador de não lidas
            setUnreadMessages(prev => ({
              ...prev,
              [pedidoId]: (prev[pedidoId] || 0) + 1
            }));
+
+           // 3. 🚀 DISPARAR NOTIFICAÇÃO DESKTOP (Estilo Windows)
+           try {
+             const savedNotifSettings = localStorage.getItem('fome-ninja-notification-settings');
+             const notifSettings = savedNotifSettings ? JSON.parse(savedNotifSettings) : { desktopNotifications: true, desktopNotificationMode: 'always' };
+
+             if (notifSettings.desktopNotifications) {
+               const shouldShow = notifSettings.desktopNotificationMode === 'always' || document.visibilityState === 'hidden';
+               
+               if (shouldShow) {
+                 notificationHelper.sendNotification(`💬 Mensagem - Pedido #${pedidoNum}`, {
+                   body: msg.conteudo || 'Nova mensagem do entregador',
+                   tag: `chat-${pedidoId}`, // Agrupa notificações do mesmo pedido
+                   icon: '/icons/chat-icon.png', // Opcional: ícone customizado
+                 });
+               }
+             }
+           } catch (err) {
+             console.error('Erro ao disparar notificação de chat:', err);
+           }
         }
       )
       .subscribe();
