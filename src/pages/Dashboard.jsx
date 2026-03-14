@@ -72,6 +72,7 @@ const Dashboard = () => {
     aceito: "Aceitos",
     coletado: "Coletados",
     concluido: "Concluídos",
+    falha_entrega: "Falha na Entrega",
     cancelado: "Cancelados",
   };
 
@@ -143,6 +144,9 @@ const Dashboard = () => {
       case 'concluido':
         logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: concluido`);
         return 'concluido';
+      case 'falha_entrega':
+        logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: falha_entrega`);
+        return 'falha_entrega';
       case 'cancelado':
         logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: cancelado`);
         return 'cancelado';
@@ -217,7 +221,10 @@ const Dashboard = () => {
           entregas_padronizadas (
             nome_entregador,
             id_entregador,
-            status
+            status,
+            motivo_falha_entrega,
+            fim_tentativa_entrega,
+            tempo_espera_segundos
           )
         `)
         .eq("id_restaurante", restaurantId)
@@ -284,6 +291,9 @@ const Dashboard = () => {
           isVip: pedido.cliente_vip || pedido.is_vip || false,
           nome_entregador: (Array.isArray(pedido.entregas_padronizadas) ? pedido.entregas_padronizadas[0]?.nome_entregador : pedido.entregas_padronizadas?.nome_entregador) || null,
           id_entregador: (Array.isArray(pedido.entregas_padronizadas) ? pedido.entregas_padronizadas[0]?.id_entregador : pedido.entregas_padronizadas?.id_entregador) || null,
+          motivo_falha: (Array.isArray(pedido.entregas_padronizadas) ? pedido.entregas_padronizadas[0]?.motivo_falha_entrega : pedido.entregas_padronizadas?.motivo_falha_entrega) || null,
+          horario_falha: (Array.isArray(pedido.entregas_padronizadas) ? pedido.entregas_padronizadas[0]?.fim_tentativa_entrega : pedido.entregas_padronizadas?.fim_tentativa_entrega) || null,
+          tempo_espera: (Array.isArray(pedido.entregas_padronizadas) ? pedido.entregas_padronizadas[0]?.tempo_espera_segundos : pedido.entregas_padronizadas?.tempo_espera_segundos) || 0,
           items:
             pedido.itens_pedido?.map((item) => ({
               id: item.id,
@@ -639,7 +649,7 @@ const Dashboard = () => {
     // Lógica para esconder pedidos concluídos/cancelados de dias anteriores
     // Isso evita que o dashboard fique poluído com histórico antigo
     const stage = getVisualStage(order);
-    if (stage === 'concluido' || stage === 'cancelado') {
+    if (stage === 'concluido' || stage === 'cancelado' || stage === 'falha_entrega') {
       if (!order.created_at) return true; // Se não tiver data, mostra por segurança
       
       const orderDate = new Date(order.created_at);
@@ -663,6 +673,7 @@ const Dashboard = () => {
     'pronto',
     'aceito',
     'coletado',
+    'falha_entrega',
     'concluido',
     'cancelado'
   ];
@@ -972,6 +983,11 @@ const Dashboard = () => {
         text: "Cancelado",
         nextStatus: null,
         className: "bg-destructive/20 text-destructive border border-destructive/30 cursor-default",
+      },
+      falha_entrega: {
+        text: "Tratar Falha",
+        nextStatus: "concluido", // Ao tratar, assume-se concluído (como retorno ao restaurante) ou cancelado? O user disse "Trate"
+        className: "bg-destructive hover:bg-destructive/90 text-white shadow-sm",
       },
     };
 
@@ -1395,6 +1411,31 @@ const Dashboard = () => {
                               <span className="text-yellow-400 text-xs font-semibold">
                                 Troco: R$ {order.troco.toFixed(2)}
                               </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {order.status === 'falha_entrega' && (
+                          <div className="mt-2 p-2 bg-destructive/10 border border-destructive/30 rounded text-[11px] space-y-1">
+                            <div className="flex items-center gap-1.5 text-destructive font-bold uppercase">
+                              <Icons.AlertCircleIcon className="w-3.5 h-3.5" />
+                              Falha na Entrega
+                            </div>
+                            <p className="text-foreground font-semibold">
+                              Motivo: <span className="text-destructive font-bold">{
+                                order.motivo_falha_entrega === 'cliente_recusou' ? 'Cliente Recusou' :
+                                order.motivo_falha_entrega === 'cliente_nao_encontrado' ? 'Cliente não Encontrado' :
+                                order.motivo_falha_entrega || 'Não informado'
+                              }</span>
+                            </p>
+                            <div className="flex flex-col gap-0.5 text-muted-foreground">
+                              <div className="flex justify-between">
+                                <span>Entregador: <span className="text-foreground font-medium">{order.nome_entregador || 'N/A'}</span></span>
+                                <span>Chegada: {order.chegou_no_local_em ? new Date(order.chegou_no_local_em).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '--:--'}</span>
+                              </div>
+                              <div className="flex justify-between font-bold text-foreground">
+                                <span>Espera: {Math.floor((order.tempo_espera_segundos || 0) / 60)}m {(order.tempo_espera_segundos || 0) % 60}s</span>
+                              </div>
                             </div>
                           </div>
                         )}

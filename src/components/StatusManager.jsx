@@ -21,6 +21,7 @@ const getStatusFlow = (tipo_pedido) => {
       aceito: { next: 'pronto_para_entrega', text: 'Pronto para Entrega', color: 'bg-blue-500 hover:bg-blue-600' },
       pronto_para_entrega: { next: 'coletado', text: 'Coletado', color: 'bg-yellow-500 hover:bg-yellow-600' },
       coletado: { next: 'concluido', text: 'Concluído', color: 'bg-purple-500 hover:bg-purple-600' },
+      falha_entrega: { next: 'concluido', text: 'Tratar Falha', color: 'bg-red-500 hover:bg-red-600' },
       concluido: { next: null, text: 'Finalizado', color: 'bg-gray-400', disabled: true },
     };
   }

@@ -60,7 +60,17 @@ const mapOrder = (order) => {
     endereco_referencia: null,
     endereco_complemento: null,
     nome_entregador: order.nome_entregador,
-    id_entregador: order.id_entregador
+    id_entregador: order.id_entregador,
+    chegou_no_local_em: order.chegou_no_local_em,
+    inicio_tentativa_entrega: order.inicio_tentativa_entrega,
+    fim_tentativa_entrega: order.fim_tentativa_entrega,
+    tempo_espera_segundos: order.tempo_espera_segundos,
+    motivo_falha_entrega: order.motivo_falha_entrega,
+    gps_chegada_lat: order.gps_chegada_lat,
+    gps_chegada_lng: order.gps_chegada_lng,
+    valor_restaurante: order.valor_restaurante,
+    valor_entregador: order.valor_entregador,
+    valor_cliente_reembolso: order.valor_cliente_reembolso
   };
 };
 
@@ -107,6 +117,16 @@ export async function fetchOrders() {
         bairro,
         nome_entregador,
         id_entregador,
+        chegou_no_local_em,
+        inicio_tentativa_entrega,
+        fim_tentativa_entrega,
+        tempo_espera_segundos,
+        motivo_falha_entrega,
+        gps_chegada_lat,
+        gps_chegada_lng,
+        valor_restaurante,
+        valor_entregador,
+        valor_cliente_reembolso,
         itens_pedido!itens_pedido_id_pedido_fkey(
           id,
           quantidade,
@@ -121,7 +141,7 @@ export async function fetchOrders() {
       .neq('tipo_pedido', 'local')
       // Filtrar apenas pedidos com status_pagamento válido (pago ou pendente)
       .in('status_pagamento', ['pago', 'pendente'])
-      .in('status', ['pendente', 'novo', 'disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido'])
+      .in('status', ['pendente', 'novo', 'disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido', 'falha_entrega'])
       .order('criado_em', { ascending: false });
       
     if (error) throw error;
@@ -175,6 +195,16 @@ export async function fetchOrderById(id) {
         bairro,
         nome_entregador,
         id_entregador,
+        chegou_no_local_em,
+        inicio_tentativa_entrega,
+        fim_tentativa_entrega,
+        tempo_espera_segundos,
+        motivo_falha_entrega,
+        gps_chegada_lat,
+        gps_chegada_lng,
+        valor_restaurante,
+        valor_entregador,
+        valor_cliente_reembolso,
         itens_pedido!itens_pedido_id_pedido_fkey(
           id,
           quantidade,
@@ -188,7 +218,7 @@ export async function fetchOrderById(id) {
       .eq('id_restaurante', restaurante.id)
       // Filtrar apenas pedidos com status_pagamento válido (pago ou pendente)
       .in('status_pagamento', ['pago', 'pendente'])
-      .in('status', ['pendente', 'novo', 'disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido'])
+      .in('status', ['pendente', 'novo', 'disponivel', 'aceito', 'pronto_para_entrega', 'coletado', 'concluido', 'falha_entrega'])
       .single();
       
     if (error) throw error;

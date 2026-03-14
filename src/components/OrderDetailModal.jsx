@@ -204,8 +204,82 @@ export const OrderDetailModal = ({ isOpen, onClose, order, unreadCount }) => {
             )}
           </div>
           
+          {/* Detalhes de Falha na Entrega */}
+          {order.status === 'falha_entrega' && (
+            <div className="border-t border-destructive/30 pt-3 mt-3 bg-destructive/5 p-3 rounded-lg border">
+              <div className="flex items-center gap-2 text-destructive mb-3">
+                <Icons.AlertCircleIcon className="w-5 h-5 font-bold" />
+                <h4 className="font-black text-sm uppercase">Falha na Entrega</h4>
+              </div>
+              
+              <div className="space-y-4">
+                {/* 1. Resumo da Falha */}
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="bg-background/40 p-2 rounded border border-border/50">
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Motivo da Falha</p>
+                    <p className="font-bold text-destructive">
+                      {order.motivo_falha_entrega === 'cliente_recusou' ? 'Cliente Recusou' : 
+                       order.motivo_falha_entrega === 'cliente_nao_encontrado' ? 'Cliente não Encontrado' : 
+                       order.motivo_falha_entrega || 'Não informado'}
+                    </p>
+                  </div>
+                  <div className="bg-background/40 p-2 rounded border border-border/50">
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Tempo de Espera</p>
+                    <p className="font-bold text-foreground">
+                      {order.tempo_espera_segundos 
+                        ? `${Math.floor(order.tempo_espera_segundos / 60)}m ${order.tempo_espera_segundos % 60}s` 
+                        : '0m 0s'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 2. Resultado Financeiro da Falha */}
+                <div className="bg-background p-3 rounded-lg border border-border shadow-sm">
+                  <h5 className="text-[10px] font-black uppercase text-muted-foreground mb-2 flex items-center gap-1">
+                    <Icons.CoinIcon className="w-3 h-3" /> Resultado Financeiro
+                  </h5>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Repasse Restaurante:</span>
+                      <span className="font-bold text-green-500">R$ {(order.valor_restaurante || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Taxa Entregador:</span>
+                      <span className="font-bold">R$ {(order.valor_entregador || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm border-t border-dashed pt-1">
+                      <span className="text-muted-foreground">Reembolso Cliente:</span>
+                      <span className="font-medium text-destructive">R$ {(order.valor_cliente_reembolso || 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Histórico da Tentativa */}
+                <div className="bg-background/40 p-3 rounded-lg border border-border/50 text-xs">
+                  <h5 className="text-[10px] font-black uppercase text-muted-foreground mb-2 flex items-center gap-1">
+                    <Icons.ClipboardListIcon className="w-3 h-3" /> Histórico da Tentativa
+                  </h5>
+                  <div className="space-y-1.5 list-none">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Chegada ao Local:</span>
+                      <span className="font-medium">{order.chegou_no_local_em ? new Date(order.chegou_no_local_em).toLocaleTimeString('pt-BR') : '--:--'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Início da Tentativa:</span>
+                      <span className="font-medium">{order.inicio_tentativa_entrega ? new Date(order.inicio_tentativa_entrega).toLocaleTimeString('pt-BR') : '--:--'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Fim da Tentativa:</span>
+                      <span className="font-medium">{order.fim_tentativa_entrega ? new Date(order.fim_tentativa_entrega).toLocaleTimeString('pt-BR') : '--:--'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Entregador Responsável - apenas para pedidos de entrega */}
-          {order.tipo_pedido === 'delivery' && ['aceito', 'coletado', 'concluido'].includes(order.status) && order.nome_entregador && (
+          {order.tipo_pedido === 'delivery' && ['aceito', 'coletado', 'concluido', 'falha_entrega'].includes(order.status) && order.nome_entregador && (
             <div className="border-t border-border pt-3">
               <h4 className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Entregador Responsável</h4>
               <div className="flex items-center justify-between">
