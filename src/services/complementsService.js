@@ -198,7 +198,9 @@ export const createGroup = async (restauranteId, groupData) => {
         descricao: groupData.description || null,
         secao: groupData.section || null,
         tipo_selecao: groupData.selectionType,
-        obrigatorio: groupData.required ?? false
+        obrigatorio: groupData.required ?? false,
+        min_selecao: groupData.minItems || 0,
+        max_selecao: groupData.maxItems || 1
       }])
       .select()
       .single();
@@ -223,7 +225,9 @@ export const updateGroup = async (groupId, groupData) => {
         descricao: groupData.description || null,
         secao: groupData.section || null,
         tipo_selecao: groupData.selectionType,
-        obrigatorio: groupData.required
+        obrigatorio: groupData.required,
+        min_selecao: groupData.minItems || 0,
+        max_selecao: groupData.maxItems || 1
       })
       .eq('id', groupId)
       .select()

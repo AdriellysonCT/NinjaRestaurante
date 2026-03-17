@@ -93,7 +93,7 @@ const GroupCard = ({ group, onEdit, onManage, complementsCount }) => {
               {group.required ? 'Obrigatório' : 'Opcional'}
             </span>
             <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
-              {group.selectionType === 'single' ? 'Seleção Única' : 'Múltipla Seleção'}
+              {group.selectionType === 'single' ? 'Seleção Única' : `Múltipla (Máx: ${group.maxItems})`}
             </span>
           </div>
           <p className="text-sm text-muted-foreground mb-2">{group.description}</p>
@@ -179,9 +179,11 @@ const Complements = () => {
           ...g,
           name: g.nome || g.name,
           description: g.descricao || g.description,
-          section: g.secao || g.section,  // ✅ Normalizar seção
+          section: g.secao || g.section,
           selectionType: g.tipo_selecao || g.selectionType,
-          required: g.obrigatorio !== undefined ? g.obrigatorio : g.required
+          required: g.obrigatorio !== undefined ? g.obrigatorio : g.required,
+          minItems: g.min_selecao || g.min_items || 0,
+          maxItems: g.max_selecao || g.max_items || 10
         }));
         setGroups(normalizedGroups);
       } else {
@@ -359,9 +361,11 @@ const Complements = () => {
       id: Date.now(),
       name: '',
       description: '',
-      section: '',  // ✅ Novo campo
+      section: '',
       selectionType: 'multiple',
-      required: false
+      required: false,
+      minItems: 0,
+      maxItems: 1
     });
     setIsGroupModalOpen(true);
   };
@@ -386,9 +390,11 @@ const Complements = () => {
         const result = await complementsService.updateGroup(currentGroup.id, {
           name: currentGroup.name,
           description: currentGroup.description,
-          section: currentGroup.section,  // ✅ Incluir seção
+          section: currentGroup.section,
           selectionType: currentGroup.selectionType,
-          required: currentGroup.required
+          required: currentGroup.required,
+          minItems: currentGroup.minItems,
+          maxItems: currentGroup.maxItems
         });
         
         if (result.success) {
@@ -398,9 +404,11 @@ const Complements = () => {
             ...result.data,
             name: result.data.nome || result.data.name,
             description: result.data.descricao || result.data.description,
-            section: result.data.secao || result.data.section,  // ✅ Normalizar seção
+            section: result.data.secao || result.data.section,
             selectionType: result.data.tipo_selecao || result.data.selectionType,
-            required: result.data.obrigatorio !== undefined ? result.data.obrigatorio : result.data.required
+            required: result.data.obrigatorio !== undefined ? result.data.obrigatorio : result.data.required,
+            minItems: result.data.min_selecao || result.data.min_items || 0,
+            maxItems: result.data.max_selecao || result.data.max_items || 10
           };
           setGroups(groups.map(g => 
             g.id === currentGroup.id ? normalizedGroup : g
@@ -416,9 +424,11 @@ const Complements = () => {
         const result = await complementsService.createGroup(id, {
           name: currentGroup.name,
           description: currentGroup.description,
-          section: currentGroup.section,  // ✅ Incluir seção
+          section: currentGroup.section,
           selectionType: currentGroup.selectionType,
-          required: currentGroup.required
+          required: currentGroup.required,
+          minItems: currentGroup.minItems,
+          maxItems: currentGroup.maxItems
         });
         
         if (result.success) {
@@ -428,9 +438,11 @@ const Complements = () => {
             ...result.data,
             name: result.data.nome || result.data.name,
             description: result.data.descricao || result.data.description,
-            section: result.data.secao || result.data.section,  // ✅ Normalizar seção
+            section: result.data.secao || result.data.section,
             selectionType: result.data.tipo_selecao || result.data.selectionType,
-            required: result.data.obrigatorio !== undefined ? result.data.obrigatorio : result.data.required
+            required: result.data.obrigatorio !== undefined ? result.data.obrigatorio : result.data.required,
+            minItems: result.data.min_selecao || result.data.min_items || 0,
+            maxItems: result.data.max_selecao || result.data.max_items || 10
           };
           setGroups([...groups, normalizedGroup]);
           toast.success('Grupo criado com sucesso!');
@@ -817,6 +829,33 @@ const Complements = () => {
                 </label>
               </div>
             </div>
+
+            {currentGroup.selectionType === 'multiple' && (
+              <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-muted-foreground">Mínimo</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    className="w-full bg-input border border-border px-4 py-2 rounded-md text-foreground focus:border-primary focus:outline-none"
+                    value={currentGroup.minItems || 0}
+                    onChange={(e) => setCurrentGroup({...currentGroup, minItems: parseInt(e.target.value) || 0})}
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Ex: 0 se for opcional</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-muted-foreground">Máximo</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    className="w-full bg-input border border-border px-4 py-2 rounded-md text-foreground focus:border-primary focus:outline-none"
+                    value={currentGroup.maxItems || 1}
+                    onChange={(e) => setCurrentGroup({...currentGroup, maxItems: parseInt(e.target.value) || 1})}
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Até quanto podem escolher</p>
+                </div>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <input 
                 type="checkbox" 
