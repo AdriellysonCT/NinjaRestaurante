@@ -30,7 +30,7 @@ const ComplementCard = ({ complement, onEdit, onToggle }) => {
       <div className="p-3">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-bold text-card-foreground text-sm">{complement.nome || complement.name}</h3>
-          <p className="font-bold text-primary text-sm">R$ {(complement.preco || complement.price || 0).toFixed(2)}</p>
+          <p className="font-bold text-primary text-sm">R$ {Number(complement.preco || complement.price || 0).toFixed(2)}</p>
         </div>
         {(complement.descricao || complement.description) && (
           <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{complement.descricao || complement.description}</p>
@@ -931,7 +931,7 @@ const Complements = () => {
                     />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-foreground">{complement.name}</p>
-                      <p className="text-xs text-muted-foreground">R$ {complement.price.toFixed(2)}</p>
+                      <p className="text-xs text-muted-foreground">R$ {Number(complement.price || 0).toFixed(2)}</p>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       complement.available 

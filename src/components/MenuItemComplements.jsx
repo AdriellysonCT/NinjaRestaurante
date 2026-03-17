@@ -190,7 +190,7 @@ const MenuItemComplements = ({ menuItem, groups, complements, onSave }) => {
             <h2 className="text-2xl font-bold text-white mb-1">{menuItem.name}</h2>
             <p className="text-sm text-gray-400 mb-2">{menuItem.description}</p>
             <div className="flex items-center gap-4">
-              <span className="text-lg font-bold text-[#ff6f00]">R$ {menuItem.price.toFixed(2)}</span>
+              <span className="text-lg font-bold text-[#ff6f00]">R$ {Number(menuItem.price || 0).toFixed(2)}</span>
               <span className="text-xs px-2 py-1 rounded-full bg-[hsla(0,0%,20%,1)] text-gray-300">
                 {menuItem.category}
               </span>
@@ -357,7 +357,7 @@ const MenuItemComplements = ({ menuItem, groups, complements, onSave }) => {
                     />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-white">{complement.name}</p>
-                      <p className="text-sm font-bold text-[#ff6f00]">+ R$ {complement.price.toFixed(2)}</p>
+                      <p className="text-sm font-bold text-[#ff6f00]">+ R$ {Number(complement.price || 0).toFixed(2)}</p>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       complement.available 

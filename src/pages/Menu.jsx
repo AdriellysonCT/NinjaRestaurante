@@ -150,7 +150,7 @@ const MenuItem = ({ item, onEdit, onToggleAvailability }) => {
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-bold text-card-foreground">{item.name}</h3>
-          <p className="font-bold text-primary">R$ {item.price.toFixed(2)}</p>
+          <p className="font-bold text-primary">R$ {Number(item.price || 0).toFixed(2)}</p>
         </div>
         <p className="text-sm text-muted-foreground mb-3">{item.description}</p>
         <div className="flex justify-between items-center">
