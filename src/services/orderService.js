@@ -338,6 +338,38 @@ export async function updateOrder(id, updates) {
       .select();
       
     if (error) throw error;
+    
+    // Sincronização Sincronizada: Se o pedido for 'local' e estiver sendo concluído, liberar a mesa
+    if (updates.status === 'concluido' || updates.status === 'finalizado') {
+      const { data: orderData } = await supabase
+        .from('pedidos_padronizados')
+        .select('tipo_pedido, mesa_numero, id_restaurante')
+        .eq('id', id)
+        .single();
+        
+      if (orderData && orderData.tipo_pedido === 'local' && orderData.mesa_numero) {
+        // Buscar a mesa pelo número e ID do restaurante
+        const { data: table } = await supabase
+          .from('mesas')
+          .select('id')
+          .eq('id_restaurante', orderData.id_restaurante)
+          .eq('numero', orderData.mesa_numero)
+          .single();
+          
+        if (table) {
+          await supabase
+            .from('mesas')
+            .update({
+              status: 'disponivel',
+              id_pedido: null,
+              started_at: null
+            })
+            .eq('id', table.id);
+          console.log(`Mesa ${orderData.mesa_numero} liberada automaticamente após conclusão do pedido.`);
+        }
+      }
+    }
+
     const fullOrder = await fetchOrderById(id);
     return fullOrder;
   } catch (error) {

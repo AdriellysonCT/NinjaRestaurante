@@ -125,17 +125,38 @@ const TicketIcon = (props) => (
   </svg>
 );
 
+const SparklesIcon = (props) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+    <path d="M5 3v4" />
+    <path d="M19 17v4" />
+    <path d="M3 5h4" />
+    <path d="M17 19h4" />
+  </svg>
+);
+
+const ConciergeBellIcon = (props) => (
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 18h20" />
+    <path d="M12 2v4" />
+    <path d="M8 4h8" />
+    <path d="M6 18a6 6 0 0 1 12 0" />
+  </svg>
+);
+
 export const Sidebar = () => {
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboardIcon, path: '/dashboard' },
     { name: 'Pedidos', icon: ClipboardListIcon, path: '/pedidos' },
     { name: 'PDV Balcão', icon: CashRegisterIcon, path: '/pdv' },
     { name: 'Pedidos Mesa', icon: TableIcon, path: '/mesas' },
+    { name: 'Garçom Ninja', icon: ConciergeBellIcon, path: '/garcom-ninja' },
     { name: 'Agendados', icon: CalendarIcon, path: '/agendados' },
     { name: 'Cardápio', icon: BookOpenIcon, path: '/cardapio' },
     { name: 'Complementos', icon: PlusSquareIcon, path: '/complementos' },
     { name: 'Cupons', icon: TicketIcon, path: '/cupons' },
     { name: 'Financeiro', icon: TrendingUpIcon, path: '/financeiro' },
+    { name: 'Marketing IA', icon: SparklesIcon, path: '/marketing' },
     { name: 'Configurações', icon: SettingsIcon, path: '/configuracoes' },
     
   ];

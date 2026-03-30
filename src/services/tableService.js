@@ -88,25 +88,42 @@ export async function updateTableStatus(tableId, status, updates = {}) {
 }
 
 // Função para criar nova mesa
-export async function createTable(tableData) {
+export async function createTable(tableData, restauranteId = null) {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('Usuário não autenticado');
+    let finalRestauranteId = restauranteId;
 
-    // Buscar o ID do restaurante
-    const { data: restaurante, error: restauranteError } = await supabase
-      .from('restaurantes_app')
+    // Se não passou restauranteId (fluxo admin), busca pelo user logado
+    if (!finalRestauranteId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const { data: restaurante, error: restauranteError } = await supabase
+        .from('restaurantes_app')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (restauranteError) throw new Error('Restaurante não encontrado');
+      finalRestauranteId = restaurante.id;
+    }
+
+    // Verificar se a mesa já existe
+    const { data: existente } = await supabase
+      .from('mesas')
       .select('id')
-      .eq('user_id', user.id)
-      .single();
+      .eq('id_restaurante', finalRestauranteId)
+      .eq('numero', tableData.numero)
+      .maybeSingle();
 
-    if (restauranteError) throw new Error('Restaurante não encontrado');
+    if (existente) throw new Error(`A mesa ${tableData.numero} já existe no sistema.`);
 
+    // Criar a mesa com capacidade padrão se não informada (evita erro NOT NULL)
     const { data, error } = await supabase
       .from('mesas')
       .insert([{
-        ...tableData,
-        id_restaurante: restaurante.id,
+        numero: tableData.numero,
+        capacidade: tableData.capacidade || 4, // Valor padrão para evitar erro de banco
+        id_restaurante: finalRestauranteId,
         status: 'disponivel'
       }])
       .select();

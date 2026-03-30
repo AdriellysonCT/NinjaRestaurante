@@ -26,6 +26,9 @@ import { Scheduled } from './pages/Scheduled';
 import Finance from './pages/Finance';
 import Cupons from './pages/Cupons';
 import { Test } from './pages/Test';
+import Marketing from './pages/Marketing';
+import GarcomNinja from './pages/GarcomNinja';
+import GarcomPWA from './pages/GarcomPWA';
 // Removidos: Demo Comanda e Teste Comanda
 
 // Importar contextos
@@ -88,6 +91,8 @@ const MainLayout = () => {
                 <Route path="/complementos" element={<Complements />} />
                 <Route path="/financeiro" element={<Finance />} />
                 <Route path="/cupons" element={<Cupons />} />
+                <Route path="/marketing" element={<Marketing />} />
+                <Route path="/garcom-ninja" element={<GarcomNinja />} />
                 <Route path="/configuracoes" element={<Settings />} />
                 <Route path="/test" element={<Test />} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -117,6 +122,10 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" replace />} />
       <Route path="/cadastro" element={!isAuthenticated ? <Cadastro /> : <Navigate to="/dashboard" replace />} />
+      
+      {/* Rota Externa Isolada: Garçom PWA */}
+      <Route path="/mobile-garcom" element={<GarcomPWA />} />
+      
       <Route 
         path="/*" 
         element={

@@ -836,7 +836,62 @@ export const printService = {
       return { success: false, message: error.message };
     }
   },
-  
+
+  // --- NOVA FUNÇÃO PARA IMPRIMIR COMANDA DE MESA ---
+  printMesaTicket: async (mesa, items, options = {}) => {
+    try {
+      logger.log(`🖨️ Imprimindo comanda para Mesa ${mesa.numero || mesa.id}`);
+      
+      // 1. Filtrar apenas itens não impressos se a opção estiver ativa
+      const onlyNewItems = options.onlyNew !== false;
+      const itemsToPrint = onlyNewItems 
+        ? items.filter(item => !item.impresso) 
+        : items;
+
+      if (itemsToPrint.length === 0) {
+        return { success: false, message: 'Não há novos itens para imprimir' };
+      }
+
+      // 2. Buscar configurações e dados do restaurante
+      const bairroCidade = await atualizarConfiguracoesRestaurante();
+      const settings = { ...printSettings, ...options };
+      
+      // 3. Formatar "pseudo-pedido" para o template
+      const mesaOrder = {
+        id: mesa.id,
+        numero_pedido: `MESA ${mesa.numero}`,
+        customerName: mesa.cliente || `Mesa ${mesa.numero}`,
+        type: 'local',
+        total: itemsToPrint.reduce((s, i) => s + (i.preco_unitario * i.quantidade), 0),
+        items: itemsToPrint.map(item => ({
+          name: item.itens_cardapio?.nome || 'Item',
+          qty: item.quantidade,
+          price: item.preco_unitario,
+          notes: item.observacao || ''
+        }))
+      };
+
+      // 4. Gerar conteúdo (forçar via cozinha para economizar papel se não especificado)
+      const forceKitchen = options.selectedTemplate === undefined;
+      if (forceKitchen) settings.selectedTemplate = 'kitchen';
+
+      const ticketContent = generateTicketContent(mesaOrder, false, settings, bairroCidade);
+      
+      // 5. Enviar para impressora
+      const printResult = await sendToPrinter(ticketContent, settings);
+      
+      return {
+        success: printResult.success,
+        message: printResult.message,
+        ticketContent,
+        printedIds: itemsToPrint.map(i => i.id)
+      };
+    } catch (error) {
+      logger.error('Erro ao imprimir comanda de mesa:', error);
+      return { success: false, message: error.message };
+    }
+  },
+
   // Forçar atualização da lista de impressoras
   refreshPrinters: async () => {
     cachedPrinters = [];

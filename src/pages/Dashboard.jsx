@@ -228,6 +228,7 @@ const Dashboard = () => {
           )
         `)
         .eq("id_restaurante", restaurantId)
+        .neq("tipo_pedido", "local")
         .order("criado_em", { ascending: false });
 
       if (pedidosError) {
@@ -763,11 +764,8 @@ const Dashboard = () => {
         updates.started_at = new Date().toISOString();
       }
 
-      // Atualizar no banco
-      const { error } = await supabase
-        .from("pedidos_padronizados")
-        .update(updates)
-        .eq("id", orderId);
+      // Atualizar no banco via serviço centralizado (que cuida de sincronização de mesas)
+      const { error } = await orderService.updateOrder(orderId, updates);
 
       if (error) throw error;
 

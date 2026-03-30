@@ -36,7 +36,7 @@ export async function fetchMesaItems(mesaId) {
   try {
     const { data, error } = await supabase
       .from('itens_mesa')
-      .select('id, quantidade, preco_unitario, observacao, id_item_cardapio')
+      .select('id, quantidade, preco_unitario, observacao, id_item_cardapio, impresso')
       .eq('id_mesa', mesaId);
 
     if (error) throw error;
@@ -66,6 +66,29 @@ export async function fetchMesaItems(mesaId) {
     return data || [];
   } catch (error) {
     console.error('Erro ao buscar itens da mesa:', error);
+    throw error;
+  }
+}
+
+// Marcar itens como impressos
+export async function markMesaItemsAsPrinted(mesaId, itemIds = null) {
+  try {
+    let query = supabase
+      .from('itens_mesa')
+      .update({ impresso: true })
+      .eq('id_mesa', mesaId);
+
+    if (itemIds && itemIds.length > 0) {
+      query = query.in('id', itemIds);
+    } else {
+      query = query.eq('impresso', false);
+    }
+
+    const { error } = await query;
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Erro ao marcar itens como impressos:', error);
     throw error;
   }
 }

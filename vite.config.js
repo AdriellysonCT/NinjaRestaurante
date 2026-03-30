@@ -7,6 +7,16 @@ export default defineConfig({
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx']
   },
+  server: {
+    proxy: {
+      '/nano-bridge': {
+        target: 'https://ais-pre-vvqwyuzthph2a5tmg5zz72-68614801731.us-west2.run.app',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/nano-bridge/, '')
+      }
+    }
+  },
   esbuild: {
     loader: 'jsx',
     include: /src\/.*\.jsx?$/,
