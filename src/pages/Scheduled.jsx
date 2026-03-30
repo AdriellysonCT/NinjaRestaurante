@@ -28,59 +28,18 @@ export const Scheduled = () => {
   });
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [messageText, setMessageText] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
-  // Inicializar reservas (simulação)
+  // Inicializar reservas e configurações
   useEffect(() => {
-    // Em um ambiente real, isso viria do backend
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const initialReservations = [
-      {
-        id: 1,
-        name: 'João Silva',
-        phone: '(11) 98765-4321',
-        email: 'joao@email.com',
-        date: today.toISOString().split('T')[0],
-        time: '19:00',
-        people: 4,
-        table: '5',
-        notes: 'Aniversário de casamento',
-        status: 'confirmed',
-        createdAt: new Date(today.getTime() - 86400000).toISOString()
-      },
-      {
-        id: 2,
-        name: 'Maria Oliveira',
-        phone: '(11) 91234-5678',
-        email: 'maria@email.com',
-        date: today.toISOString().split('T')[0],
-        time: '20:30',
-        people: 2,
-        table: '3',
-        notes: 'Prefere mesa perto da janela',
-        status: 'confirmed',
-        createdAt: new Date(today.getTime() - 172800000).toISOString()
-      },
-      {
-        id: 3,
-        name: 'Carlos Mendes',
-        phone: '(11) 99876-5432',
-        email: 'carlos@email.com',
-        date: tomorrow.toISOString().split('T')[0],
-        time: '12:30',
-        people: 6,
-        table: '8',
-        notes: 'Grupo de trabalho',
-        status: 'pending',
-        createdAt: new Date(today.getTime() - 43200000).toISOString()
-      }
-    ];
+    // Em um ambiente real, as reservas viriam do backend
+    // Por enquanto, começamos com um array vazio
+    const initialReservations = [];
     
     setReservations(initialReservations);
     
     // Inicializar capacidade por horário (simulação)
+    // Em produção, isso seria configurado nas preferências do restaurante
     const initialCapacity = {};
     for (let hour = 11; hour <= 22; hour++) {
       initialCapacity[`${hour}:00`] = 20;
@@ -183,6 +142,13 @@ export const Scheduled = () => {
         setMessageText(`Olá ${reservation.name}, sua reserva para ${reservation.people} pessoas no dia ${formatDate(reservation.date)} às ${reservation.time} foi confirmada. Agradecemos a preferência!`);
       }
     }
+  };
+
+  // Excluir reserva
+  const deleteReservation = (id) => {
+    setReservations(prev => prev.filter(r => r.id !== id));
+    setIsReservationModalOpen(false);
+    setConfirmDelete(false);
   };
 
   // Atualizar status da reserva
@@ -881,6 +847,34 @@ export const Scheduled = () => {
                 </button>
               )}
             </div>
+
+            {/* Botão de excluir — sempre visível */}
+            {!confirmDelete ? (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="w-full mt-2 py-2 text-sm font-semibold rounded-md border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
+              >
+                🗑️ Excluir Reserva
+              </button>
+            ) : (
+              <div className="mt-2 p-3 rounded-md border border-destructive bg-destructive/10 space-y-2">
+                <p className="text-sm text-center font-medium text-destructive">Confirmar exclusão?</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="flex-1 py-2 text-sm font-semibold rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => deleteReservation(selectedReservation.id)}
+                    className="flex-1 py-2 text-sm font-semibold rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Sim, excluir
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </Modal>
