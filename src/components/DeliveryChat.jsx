@@ -20,9 +20,8 @@ export default function DeliveryChat({ order }) {
         fetchMessages();
 
         // Inscrever no canal para receber mensagens em tempo real
-        // Nota: A tabela 'mensagens_entrega' DEVE estar na publicação 'supabase_realtime'
         const channel = supabase
-        .channel(`chat_delivery_${order.id}`) // Canal único por pedido
+        .channel(`chat_delivery_${order.id}`)
         .on('postgres_changes', 
             { 
               event: 'INSERT', 
@@ -32,18 +31,19 @@ export default function DeliveryChat({ order }) {
             },
             (payload) => {
                const newMessage = payload.new;
+               
+               // Filtrar mensagens que NÃO pertencem a este tipo de chat (Isolamento)
+               if (newMessage.tipo_chat && newMessage.tipo_chat !== 'restaurante_entregador') {
+                 return;
+               }
+
                console.log('💬 [Realtime] Nova mensagem recebida:', newMessage);
                
                setMessages(prev => {
-                 // Verificação robusta contra duplicidade (ID ou timestamp+conteúdo)
-                 const exists = prev.some(msg => 
-                    msg.id === newMessage.id || 
-                    (msg.timestamp === newMessage.timestamp && msg.conteudo === newMessage.conteudo)
-                 );
+                 const exists = prev.some(msg => msg.id === newMessage.id);
                  if (exists) return prev;
                  
                  const updated = [...prev, newMessage];
-                 // Ordenar por data de criação para garantir ordem cronológica
                  return updated.sort((a, b) => 
                     new Date(a.criado_em || a.timestamp).getTime() - 
                     new Date(b.criado_em || b.timestamp).getTime()
@@ -51,12 +51,9 @@ export default function DeliveryChat({ order }) {
                });
             }
         )
-        .subscribe((status) => {
-          console.log(`📡 [Realtime] Status da conexão chat: ${status}`);
-        });
+        .subscribe();
 
         return () => {
-          console.log(`🔕 [Realtime] Removendo canal chat: ${order.id}`);
           supabase.removeChannel(channel);
         };
     }
@@ -72,6 +69,7 @@ export default function DeliveryChat({ order }) {
         .from('mensagens_entrega')
         .select('*')
         .eq('pedido_id', order.id)
+        .eq('tipo_chat', 'restaurante_entregador')
         .order('criado_em', { ascending: true });
       
       if (error) throw error;
@@ -92,7 +90,7 @@ export default function DeliveryChat({ order }) {
     if (!newMessage.trim() || !userId) return;
 
     const content = newMessage.trim();
-    setNewMessage(''); // Limpeza otimista
+    setNewMessage('');
 
     try {
       const { data, error } = await supabase
@@ -101,6 +99,7 @@ export default function DeliveryChat({ order }) {
           pedido_id: order.id,
           remetente_id: userId,
           tipo_remetente: 'restaurante',
+          tipo_chat: 'restaurante_entregador',
           conteudo: content,
           lida: false
         })
