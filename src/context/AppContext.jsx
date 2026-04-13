@@ -264,6 +264,14 @@ export const AppProvider = ({ children }) => {
     adicionarSomNaFila(tipoPedido);
   };
 
+  // ✅ CORREÇÃO: Expor função de som globalmente para uso no Dashboard
+  useEffect(() => {
+    window._tocarSomPorTipo = tocarSomPorTipo;
+    return () => {
+      delete window._tocarSomPorTipo;
+    };
+  }, []);
+
   // Manter referência do estado atual de pedidos para uso em handlers de evento
   useEffect(() => {
     ordersRef.current = orders;
@@ -598,90 +606,53 @@ export const AppProvider = ({ children }) => {
     };
   }, [isInitialized, restaurantId]);
 
-  // Efeito para tocar som em loop quando há pedidos não lidos
+  // Efeito para tocar som APENAS UMA VEZ quando chega novo pedido (aceitação automática)
+  // ✅ CORREÇÃO: Som toca apenas 1x, não em loop como antes
   useEffect(() => {
     if (!isInitialized) return;
 
-    const checkUnreadOrders = () => {
-      // Usar refs para valores atualizados
+    const checkNewOrders = () => {
       const prefAtual = soundPreferenceRef.current;
       const unlockedAtual = soundUnlockedRef.current;
       const enabledAtual = prefAtual && unlockedAtual;
-      
+
       // "Novas Missões": status pendente ou disponivel, sem started_at
       const statusNovosPedidos = ['pendente', 'disponivel', 'novo'];
-      const unreadOrders = orders.filter(order => 
+      const newOrders = orders.filter(order =>
         statusNovosPedidos.includes(order.status) && !order.started_at
       );
-      
-      // Log detalhado para debug
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('🔍 VERIFICAÇÃO DE PEDIDOS NÃO LIDOS');
-      console.log('📋 Total de pedidos:', orders.length);
-      
-      // Mostrar status de todos os pedidos para debug
-      if (orders.length > 0) {
-        console.log('📋 Status de todos os pedidos:');
-        orders.slice(0, 5).forEach(o => {
-          console.log(`   - #${o.numero_pedido}: status="${o.status}", started_at=${o.started_at ? 'SIM' : 'NÃO'}`);
-        });
-        if (orders.length > 5) console.log(`   ... e mais ${orders.length - 5} pedidos`);
-      }
-      
-      console.log('📋 Pedidos não lidos (pendente/disponivel/novo + !started_at):', unreadOrders.length);
-      if (unreadOrders.length > 0) {
-        console.log('📋 Primeiro pedido não lido:', {
-          id: unreadOrders[0]?.id,
-          numero: unreadOrders[0]?.numero_pedido,
-          status: unreadOrders[0]?.status,
-          tipo_pedido: unreadOrders[0]?.tipo_pedido,
-          started_at: unreadOrders[0]?.started_at
-        });
-      }
-      console.log('📋 Som habilitado:', enabledAtual, '(pref:', prefAtual, 'unlocked:', unlockedAtual, ')');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      
-      if (unreadOrders.length > 0 && enabledAtual) {
-        console.log('AppContext - Tocando som para pedidos:', unreadOrders.map(o => o.numero_pedido));
-        // Tocar som do primeiro pedido não lido - usar tipo_pedido OU tipo_entrega
-        const tipoPedido = unreadOrders[0]?.tipo_pedido || unreadOrders[0]?.tipo_entrega || 'entrega';
-        console.log('AppContext - Tipo do pedido detectado:', tipoPedido);
-        tocarSomPorTipo(tipoPedido);
+
+      if (newOrders.length > 0 && enabledAtual) {
+        // ✅ CORREÇÃO: Tocar som APENAS UMA VEZ por pedido novo
+        // Usar um Set para rastrear quais pedidos já tiveram som tocado
+        const notifiedOrdersRef = window._notifiedOrders = window._notifiedOrders || new Set();
         
-        // Configurar intervalo para tocar a cada 5 segundos
-        if (!notificationIntervalRef.current) {
-          notificationIntervalRef.current = setInterval(() => {
-            // Usar refs dentro do interval para valores atualizados
-            const prefLoop = soundPreferenceRef.current;
-            const unlockedLoop = soundUnlockedRef.current;
-            if (!prefLoop || !unlockedLoop) return;
+        newOrders.forEach(order => {
+          if (!notifiedOrdersRef.has(order.id)) {
+            console.log(`🔔 [SOM ÚNICO] Tocando para pedido #${order.numero_pedido}`);
+            notifiedOrdersRef.add(order.id);
             
-            const statusNovosPedidos = ['pendente', 'disponivel', 'novo'];
-            const newMissions = ordersRef.current.filter(o => 
-              statusNovosPedidos.includes(o.status) && !o.started_at
-            );
-            if (newMissions.length > 0) {
-              console.log('AppContext - Loop: Tocando som novamente');
-              const tipo = newMissions[0]?.tipo_pedido || newMissions[0]?.tipo_entrega || 'entrega';
-              tocarSomPorTipo(tipo);
-            }
-          }, 5000); // 5 segundos
-        }
-      } else {
-        console.log('AppContext - Parando som, pedidos:', unreadOrders.length, 'som:', enabledAtual);
-        // Parar o intervalo se não houver pedidos não lidos
-        if (notificationIntervalRef.current) {
-          clearInterval(notificationIntervalRef.current);
-          notificationIntervalRef.current = null;
+            const tipoPedido = order.tipo_pedido || order.tipo_entrega || 'entrega';
+            tocarSomPorTipo(tipoPedido);
+          }
+        });
+
+        // ✅ CORREÇÃO: NÃO criar intervalo de loop - som toca apenas 1x
+        // Limpar notificações antigas (pedidos que já foram aceitos/cancelados)
+        const currentOrderIds = new Set(orders.map(o => o.id));
+        for (const id of notifiedOrdersRef) {
+          if (!currentOrderIds.has(id)) {
+            notifiedOrdersRef.delete(id);
+          }
         }
       }
     };
 
     // Verificar imediatamente
-    checkUnreadOrders();
-    
-    // Configurar verificação a cada 5 segundos
-    const checkInterval = setInterval(checkUnreadOrders, 5000);
+    checkNewOrders();
+
+    // Verificar a cada 3 segundos (apenas para detectar novos pedidos, não para repetir som)
+    const checkInterval = setInterval(checkNewOrders, 3000);
 
     return () => {
       clearInterval(checkInterval);
@@ -689,7 +660,6 @@ export const AppProvider = ({ children }) => {
         clearInterval(notificationIntervalRef.current);
         notificationIntervalRef.current = null;
       }
-      // Limpar timer da fila de sons
       if (soundQueueTimerRef.current) {
         clearTimeout(soundQueueTimerRef.current);
         soundQueueTimerRef.current = null;

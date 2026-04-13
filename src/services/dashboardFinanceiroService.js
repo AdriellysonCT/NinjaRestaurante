@@ -1,8 +1,10 @@
 import { supabase } from '../lib/supabase.js';
+import { startOfDayUTC, endOfDayUTC, dateInSaoPaulo } from '../utils/timezone.js';
 
 /**
  * Serviço para Dashboard Financeiro baseado em pedidos
  * Integra com a tabela pedidos_padronizados do Supabase
+ * ✅ ATUALIZADO: Usa timezone America/Sao_Paulo para sincronização correta
  */
 
 // Função para buscar resumo financeiro de pedidos
@@ -12,27 +14,31 @@ export async function fetchPedidosFinanceiros(restauranteId, periodo = 'hoje') {
       throw new Error('ID do restaurante é obrigatório');
     }
 
-    // Definir período de consulta
+    // ✅ CORREÇÃO: Usar timezone America/Sao_Paulo para datas
     const agora = new Date();
     let dataInicio, dataFim;
 
     switch (periodo) {
       case 'hoje':
-        dataInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
-        dataFim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59);
+        dataInicio = new Date(startOfDayUTC());
+        dataFim = new Date(endOfDayUTC());
         break;
       case 'semana':
         const inicioSemana = new Date(agora);
-        inicioSemana.setDate(agora.getDate() - agora.getDay());
-        dataInicio = new Date(inicioSemana.getFullYear(), inicioSemana.getMonth(), inicioSemana.getDate());
+        const dayOfWeek = inicioSemana.getDay();
+        inicioSemana.setDate(inicioSemana.getDate() - dayOfWeek);
+        inicioSemana.setHours(0, 0, 0, 0);
+        dataInicio = inicioSemana;
         dataFim = agora;
         break;
       case 'mes':
         dataInicio = new Date(agora.getFullYear(), agora.getMonth(), 1);
+        dataInicio.setHours(0, 0, 0, 0);
         dataFim = agora;
         break;
       case 'ano':
         dataInicio = new Date(agora.getFullYear(), 0, 1);
+        dataInicio.setHours(0, 0, 0, 0);
         dataFim = agora;
         break;
       default:

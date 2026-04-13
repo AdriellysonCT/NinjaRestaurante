@@ -47,5 +47,22 @@
         "Já estamos ansiosos para você provar! 😍",
         "Prepare a mesa, a felicidade está chegando! ✨",
         "Qualquer dúvida, é só chamar por aqui. 👍"
-    ]
+    ],
+    "auto_resposta": {
+        "saudacoes": [
+            "Olá! 👋 Bem-vindo ao *Fome Ninja*! 🥷",
+            "Opa! Saudações do *Fome Ninja*! 🥷✨",
+            "Oi! Que bom ter você aqui no *Fome Ninja*! 🍕",
+            "E aí! Bem-vindo ao seu restaurante favorito! 🥷🔥",
+            "Olá! O *Fome Ninja* agradece o contato! 😋"
+        ],
+        "corpo": "Nosso cardápio completo está disponível aqui:\n👉 *{cardapio_link}*\n\nEscolha seus pratos favoritos e faça seu pedido agora! 🍔🍟🍕",
+        "fechamentos": [
+            "Qualquer dúvida é só chamar! Estamos aqui pra ajudar! 💪",
+            "Bom apetite! Se precisar, estamos a um zap de distância! 😍",
+            "Ficou com fome? Corre no cardápio e pede agora! 🚀",
+            "Nosso time tá pronto pra te atender! Vem com a gente! 🛵💨",
+            "Aproveite! Seu ninja favorito tá te esperando! 🥷✨"
+        ]
+    }
 }

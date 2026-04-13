@@ -1,391 +1,391 @@
-('C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+('c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
  'restaurantes\\meu-fome-ninja\\ninja-print-agent\\build\\FomeNinjaAgent\\PYZ-00.pyz',
  [('PIL',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\__init__.py',
    'PYMODULE'),
   ('PIL.AvifImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\AvifImagePlugin.py',
    'PYMODULE'),
   ('PIL.BdfFontFile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\BdfFontFile.py',
    'PYMODULE'),
   ('PIL.BlpImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\BlpImagePlugin.py',
    'PYMODULE'),
   ('PIL.BmpImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\BmpImagePlugin.py',
    'PYMODULE'),
   ('PIL.BufrStubImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\BufrStubImagePlugin.py',
    'PYMODULE'),
   ('PIL.ContainerIO',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ContainerIO.py',
    'PYMODULE'),
   ('PIL.CurImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\CurImagePlugin.py',
    'PYMODULE'),
   ('PIL.DcxImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\DcxImagePlugin.py',
    'PYMODULE'),
   ('PIL.DdsImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\DdsImagePlugin.py',
    'PYMODULE'),
   ('PIL.EpsImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\EpsImagePlugin.py',
    'PYMODULE'),
   ('PIL.ExifTags',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ExifTags.py',
    'PYMODULE'),
   ('PIL.FitsImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\FitsImagePlugin.py',
    'PYMODULE'),
   ('PIL.FliImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\FliImagePlugin.py',
    'PYMODULE'),
   ('PIL.FontFile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\FontFile.py',
    'PYMODULE'),
   ('PIL.FpxImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\FpxImagePlugin.py',
    'PYMODULE'),
   ('PIL.FtexImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\FtexImagePlugin.py',
    'PYMODULE'),
   ('PIL.GbrImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\GbrImagePlugin.py',
    'PYMODULE'),
   ('PIL.GdImageFile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\GdImageFile.py',
    'PYMODULE'),
   ('PIL.GifImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\GifImagePlugin.py',
    'PYMODULE'),
   ('PIL.GimpGradientFile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\GimpGradientFile.py',
    'PYMODULE'),
   ('PIL.GimpPaletteFile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\GimpPaletteFile.py',
    'PYMODULE'),
   ('PIL.GribStubImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\GribStubImagePlugin.py',
    'PYMODULE'),
   ('PIL.Hdf5StubImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\Hdf5StubImagePlugin.py',
    'PYMODULE'),
   ('PIL.IcnsImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\IcnsImagePlugin.py',
    'PYMODULE'),
   ('PIL.IcoImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\IcoImagePlugin.py',
    'PYMODULE'),
   ('PIL.ImImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImImagePlugin.py',
    'PYMODULE'),
   ('PIL.Image',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\Image.py',
    'PYMODULE'),
   ('PIL.ImageChops',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageChops.py',
    'PYMODULE'),
   ('PIL.ImageCms',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageCms.py',
    'PYMODULE'),
   ('PIL.ImageColor',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageColor.py',
    'PYMODULE'),
   ('PIL.ImageDraw',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageDraw.py',
    'PYMODULE'),
   ('PIL.ImageDraw2',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageDraw2.py',
    'PYMODULE'),
   ('PIL.ImageEnhance',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageEnhance.py',
    'PYMODULE'),
   ('PIL.ImageFile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageFile.py',
    'PYMODULE'),
   ('PIL.ImageFilter',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageFilter.py',
    'PYMODULE'),
   ('PIL.ImageFont',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageFont.py',
    'PYMODULE'),
   ('PIL.ImageGrab',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageGrab.py',
    'PYMODULE'),
   ('PIL.ImageMath',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageMath.py',
    'PYMODULE'),
   ('PIL.ImageMode',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageMode.py',
    'PYMODULE'),
   ('PIL.ImageMorph',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageMorph.py',
    'PYMODULE'),
   ('PIL.ImageOps',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageOps.py',
    'PYMODULE'),
   ('PIL.ImagePalette',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImagePalette.py',
    'PYMODULE'),
   ('PIL.ImagePath',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImagePath.py',
    'PYMODULE'),
   ('PIL.ImageQt',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageQt.py',
    'PYMODULE'),
   ('PIL.ImageSequence',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageSequence.py',
    'PYMODULE'),
   ('PIL.ImageShow',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageShow.py',
    'PYMODULE'),
   ('PIL.ImageStat',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageStat.py',
    'PYMODULE'),
   ('PIL.ImageText',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageText.py',
    'PYMODULE'),
   ('PIL.ImageTk',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageTk.py',
    'PYMODULE'),
   ('PIL.ImageTransform',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageTransform.py',
    'PYMODULE'),
   ('PIL.ImageWin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImageWin.py',
    'PYMODULE'),
   ('PIL.ImtImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\ImtImagePlugin.py',
    'PYMODULE'),
   ('PIL.IptcImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\IptcImagePlugin.py',
    'PYMODULE'),
   ('PIL.Jpeg2KImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\Jpeg2KImagePlugin.py',
    'PYMODULE'),
   ('PIL.JpegImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\JpegImagePlugin.py',
    'PYMODULE'),
   ('PIL.JpegPresets',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\JpegPresets.py',
    'PYMODULE'),
   ('PIL.McIdasImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\McIdasImagePlugin.py',
    'PYMODULE'),
   ('PIL.MicImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\MicImagePlugin.py',
    'PYMODULE'),
   ('PIL.MpegImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\MpegImagePlugin.py',
    'PYMODULE'),
   ('PIL.MpoImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\MpoImagePlugin.py',
    'PYMODULE'),
   ('PIL.MspImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\MspImagePlugin.py',
    'PYMODULE'),
   ('PIL.PSDraw',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PSDraw.py',
    'PYMODULE'),
   ('PIL.PaletteFile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PaletteFile.py',
    'PYMODULE'),
   ('PIL.PalmImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PalmImagePlugin.py',
    'PYMODULE'),
   ('PIL.PcdImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PcdImagePlugin.py',
    'PYMODULE'),
   ('PIL.PcfFontFile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PcfFontFile.py',
    'PYMODULE'),
   ('PIL.PcxImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PcxImagePlugin.py',
    'PYMODULE'),
   ('PIL.PdfImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PdfImagePlugin.py',
    'PYMODULE'),
   ('PIL.PdfParser',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PdfParser.py',
    'PYMODULE'),
   ('PIL.PixarImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PixarImagePlugin.py',
    'PYMODULE'),
   ('PIL.PngImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PngImagePlugin.py',
    'PYMODULE'),
   ('PIL.PpmImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PpmImagePlugin.py',
    'PYMODULE'),
   ('PIL.PsdImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\PsdImagePlugin.py',
    'PYMODULE'),
   ('PIL.QoiImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\QoiImagePlugin.py',
    'PYMODULE'),
   ('PIL.SgiImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\SgiImagePlugin.py',
    'PYMODULE'),
   ('PIL.SpiderImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\SpiderImagePlugin.py',
    'PYMODULE'),
   ('PIL.SunImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\SunImagePlugin.py',
    'PYMODULE'),
   ('PIL.TarIO',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\TarIO.py',
    'PYMODULE'),
   ('PIL.TgaImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\TgaImagePlugin.py',
    'PYMODULE'),
   ('PIL.TiffImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\TiffImagePlugin.py',
    'PYMODULE'),
   ('PIL.TiffTags',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\TiffTags.py',
    'PYMODULE'),
   ('PIL.WalImageFile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\WalImageFile.py',
    'PYMODULE'),
   ('PIL.WebPImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\WebPImagePlugin.py',
    'PYMODULE'),
   ('PIL.WmfImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\WmfImagePlugin.py',
    'PYMODULE'),
   ('PIL.XVThumbImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\XVThumbImagePlugin.py',
    'PYMODULE'),
   ('PIL.XbmImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\XbmImagePlugin.py',
    'PYMODULE'),
   ('PIL.XpmImagePlugin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\XpmImagePlugin.py',
    'PYMODULE'),
   ('PIL.__main__',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\__main__.py',
    'PYMODULE'),
   ('PIL._binary',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\_binary.py',
    'PYMODULE'),
   ('PIL._deprecate',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\_deprecate.py',
    'PYMODULE'),
   ('PIL._tkinter_finder',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\_tkinter_finder.py',
    'PYMODULE'),
   ('PIL._typing',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\_typing.py',
    'PYMODULE'),
   ('PIL._util',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\_util.py',
    'PYMODULE'),
   ('PIL._version',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\_version.py',
    'PYMODULE'),
   ('PIL.features',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\features.py',
    'PYMODULE'),
   ('PIL.report',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\PIL\\report.py',
    'PYMODULE'),
   ('__future__', 'C:\\Python313\\Lib\\__future__.py', 'PYMODULE'),
@@ -394,11 +394,11 @@
   ('_compat_pickle', 'C:\\Python313\\Lib\\_compat_pickle.py', 'PYMODULE'),
   ('_compression', 'C:\\Python313\\Lib\\_compression.py', 'PYMODULE'),
   ('_distutils_hack',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\_distutils_hack\\__init__.py',
    'PYMODULE'),
   ('_distutils_hack.override',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\_distutils_hack\\override.py',
    'PYMODULE'),
   ('_ios_support', 'C:\\Python313\\Lib\\_ios_support.py', 'PYMODULE'),
@@ -529,112 +529,112 @@
   ('bdb', 'C:\\Python313\\Lib\\bdb.py', 'PYMODULE'),
   ('bisect', 'C:\\Python313\\Lib\\bisect.py', 'PYMODULE'),
   ('blinker',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\blinker\\__init__.py',
    'PYMODULE'),
   ('blinker._utilities',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\blinker\\_utilities.py',
    'PYMODULE'),
   ('blinker.base',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\blinker\\base.py',
    'PYMODULE'),
   ('bz2', 'C:\\Python313\\Lib\\bz2.py', 'PYMODULE'),
   ('calendar', 'C:\\Python313\\Lib\\calendar.py', 'PYMODULE'),
   ('click',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\__init__.py',
    'PYMODULE'),
   ('click._compat',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\_compat.py',
    'PYMODULE'),
   ('click._termui_impl',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\_termui_impl.py',
    'PYMODULE'),
   ('click._textwrap',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\_textwrap.py',
    'PYMODULE'),
   ('click._utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\_utils.py',
    'PYMODULE'),
   ('click._winconsole',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\_winconsole.py',
    'PYMODULE'),
   ('click.core',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\core.py',
    'PYMODULE'),
   ('click.decorators',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\decorators.py',
    'PYMODULE'),
   ('click.exceptions',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\exceptions.py',
    'PYMODULE'),
   ('click.formatting',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\formatting.py',
    'PYMODULE'),
   ('click.globals',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\globals.py',
    'PYMODULE'),
   ('click.parser',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\parser.py',
    'PYMODULE'),
   ('click.shell_completion',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\shell_completion.py',
    'PYMODULE'),
   ('click.termui',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\termui.py',
    'PYMODULE'),
   ('click.testing',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\testing.py',
    'PYMODULE'),
   ('click.types',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\types.py',
    'PYMODULE'),
   ('click.utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\click\\utils.py',
    'PYMODULE'),
   ('cmd', 'C:\\Python313\\Lib\\cmd.py', 'PYMODULE'),
   ('code', 'C:\\Python313\\Lib\\code.py', 'PYMODULE'),
   ('codeop', 'C:\\Python313\\Lib\\codeop.py', 'PYMODULE'),
   ('colorama',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\colorama\\__init__.py',
    'PYMODULE'),
   ('colorama.ansi',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\colorama\\ansi.py',
    'PYMODULE'),
   ('colorama.ansitowin32',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\colorama\\ansitowin32.py',
    'PYMODULE'),
   ('colorama.initialise',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\colorama\\initialise.py',
    'PYMODULE'),
   ('colorama.win32',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\colorama\\win32.py',
    'PYMODULE'),
   ('colorama.winterm',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\colorama\\winterm.py',
    'PYMODULE'),
   ('colorsys', 'C:\\Python313\\Lib\\colorsys.py', 'PYMODULE'),
@@ -656,199 +656,199 @@
   ('contextvars', 'C:\\Python313\\Lib\\contextvars.py', 'PYMODULE'),
   ('copy', 'C:\\Python313\\Lib\\copy.py', 'PYMODULE'),
   ('cryptography',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\__init__.py',
    'PYMODULE'),
   ('cryptography.__about__',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\__about__.py',
    'PYMODULE'),
   ('cryptography.exceptions',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\exceptions.py',
    'PYMODULE'),
   ('cryptography.hazmat',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\__init__.py',
    'PYMODULE'),
   ('cryptography.hazmat._oid',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\_oid.py',
    'PYMODULE'),
   ('cryptography.hazmat.backends',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\backends\\__init__.py',
    'PYMODULE'),
   ('cryptography.hazmat.backends.openssl',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\__init__.py',
    'PYMODULE'),
   ('cryptography.hazmat.backends.openssl.backend',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\backends\\openssl\\backend.py',
    'PYMODULE'),
   ('cryptography.hazmat.bindings',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\bindings\\__init__.py',
    'PYMODULE'),
   ('cryptography.hazmat.bindings.openssl',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\bindings\\openssl\\__init__.py',
    'PYMODULE'),
   ('cryptography.hazmat.bindings.openssl._conditional',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\bindings\\openssl\\_conditional.py',
    'PYMODULE'),
   ('cryptography.hazmat.bindings.openssl.binding',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\bindings\\openssl\\binding.py',
    'PYMODULE'),
   ('cryptography.hazmat.decrepit',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\decrepit\\__init__.py',
    'PYMODULE'),
   ('cryptography.hazmat.decrepit.ciphers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\decrepit\\ciphers\\__init__.py',
    'PYMODULE'),
   ('cryptography.hazmat.decrepit.ciphers.algorithms',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\decrepit\\ciphers\\algorithms.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\__init__.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives._asymmetric',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\_asymmetric.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives._cipheralgorithm',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\_cipheralgorithm.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives._serialization',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\_serialization.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\__init__.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric.dh',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\dh.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric.dsa',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\dsa.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric.ec',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\ec.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric.ed25519',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\ed25519.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric.ed448',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\ed448.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric.padding',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\padding.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric.rsa',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\rsa.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric.types',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\types.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric.utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\utils.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric.x25519',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\x25519.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.asymmetric.x448',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\asymmetric\\x448.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.ciphers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\ciphers\\__init__.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.ciphers.algorithms',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\ciphers\\algorithms.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.ciphers.base',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\ciphers\\base.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.ciphers.modes',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\ciphers\\modes.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.constant_time',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\constant_time.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.hashes',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\hashes.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.serialization',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\serialization\\__init__.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.serialization.base',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\serialization\\base.py',
    'PYMODULE'),
   ('cryptography.hazmat.primitives.serialization.ssh',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\hazmat\\primitives\\serialization\\ssh.py',
    'PYMODULE'),
   ('cryptography.utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\utils.py',
    'PYMODULE'),
   ('cryptography.x509',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\x509\\__init__.py',
    'PYMODULE'),
   ('cryptography.x509.base',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\x509\\base.py',
    'PYMODULE'),
   ('cryptography.x509.certificate_transparency',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\x509\\certificate_transparency.py',
    'PYMODULE'),
   ('cryptography.x509.extensions',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\x509\\extensions.py',
    'PYMODULE'),
   ('cryptography.x509.general_name',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\x509\\general_name.py',
    'PYMODULE'),
   ('cryptography.x509.name',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\x509\\name.py',
    'PYMODULE'),
   ('cryptography.x509.oid',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\x509\\oid.py',
    'PYMODULE'),
   ('cryptography.x509.verification',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\cryptography\\x509\\verification.py',
    'PYMODULE'),
   ('csv', 'C:\\Python313\\Lib\\csv.py', 'PYMODULE'),
@@ -878,23 +878,23 @@
   ('dis', 'C:\\Python313\\Lib\\dis.py', 'PYMODULE'),
   ('doctest', 'C:\\Python313\\Lib\\doctest.py', 'PYMODULE'),
   ('dotenv',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\dotenv\\__init__.py',
    'PYMODULE'),
   ('dotenv.ipython',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\dotenv\\ipython.py',
    'PYMODULE'),
   ('dotenv.main',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\dotenv\\main.py',
    'PYMODULE'),
   ('dotenv.parser',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\dotenv\\parser.py',
    'PYMODULE'),
   ('dotenv.variables',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\dotenv\\variables.py',
    'PYMODULE'),
   ('email', 'C:\\Python313\\Lib\\email\\__init__.py', 'PYMODULE'),
@@ -928,112 +928,112 @@
   ('email.quoprimime', 'C:\\Python313\\Lib\\email\\quoprimime.py', 'PYMODULE'),
   ('email.utils', 'C:\\Python313\\Lib\\email\\utils.py', 'PYMODULE'),
   ('flask',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\__init__.py',
    'PYMODULE'),
   ('flask.app',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\app.py',
    'PYMODULE'),
   ('flask.blueprints',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\blueprints.py',
    'PYMODULE'),
   ('flask.cli',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\cli.py',
    'PYMODULE'),
   ('flask.config',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\config.py',
    'PYMODULE'),
   ('flask.ctx',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\ctx.py',
    'PYMODULE'),
   ('flask.debughelpers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\debughelpers.py',
    'PYMODULE'),
   ('flask.globals',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\globals.py',
    'PYMODULE'),
   ('flask.helpers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\helpers.py',
    'PYMODULE'),
   ('flask.json',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\json\\__init__.py',
    'PYMODULE'),
   ('flask.json.provider',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\json\\provider.py',
    'PYMODULE'),
   ('flask.json.tag',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\json\\tag.py',
    'PYMODULE'),
   ('flask.logging',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\logging.py',
    'PYMODULE'),
   ('flask.sansio', '-', 'PYMODULE'),
   ('flask.sansio.app',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\sansio\\app.py',
    'PYMODULE'),
   ('flask.sansio.blueprints',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\sansio\\blueprints.py',
    'PYMODULE'),
   ('flask.sansio.scaffold',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\sansio\\scaffold.py',
    'PYMODULE'),
   ('flask.sessions',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\sessions.py',
    'PYMODULE'),
   ('flask.signals',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\signals.py',
    'PYMODULE'),
   ('flask.templating',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\templating.py',
    'PYMODULE'),
   ('flask.testing',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\testing.py',
    'PYMODULE'),
   ('flask.typing',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\typing.py',
    'PYMODULE'),
   ('flask.wrappers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask\\wrappers.py',
    'PYMODULE'),
   ('flask_cors',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask_cors\\__init__.py',
    'PYMODULE'),
   ('flask_cors.core',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask_cors\\core.py',
    'PYMODULE'),
   ('flask_cors.decorator',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask_cors\\decorator.py',
    'PYMODULE'),
   ('flask_cors.extension',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask_cors\\extension.py',
    'PYMODULE'),
   ('flask_cors.version',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\flask_cors\\version.py',
    'PYMODULE'),
   ('fnmatch', 'C:\\Python313\\Lib\\fnmatch.py', 'PYMODULE'),
@@ -1044,7 +1044,7 @@
   ('gettext', 'C:\\Python313\\Lib\\gettext.py', 'PYMODULE'),
   ('glob', 'C:\\Python313\\Lib\\glob.py', 'PYMODULE'),
   ('greenlet',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\greenlet\\__init__.py',
    'PYMODULE'),
   ('gzip', 'C:\\Python313\\Lib\\gzip.py', 'PYMODULE'),
@@ -1117,127 +1117,127 @@
   ('inspect', 'C:\\Python313\\Lib\\inspect.py', 'PYMODULE'),
   ('ipaddress', 'C:\\Python313\\Lib\\ipaddress.py', 'PYMODULE'),
   ('itsdangerous',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\itsdangerous\\__init__.py',
    'PYMODULE'),
   ('itsdangerous._json',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\itsdangerous\\_json.py',
    'PYMODULE'),
   ('itsdangerous.encoding',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\itsdangerous\\encoding.py',
    'PYMODULE'),
   ('itsdangerous.exc',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\itsdangerous\\exc.py',
    'PYMODULE'),
   ('itsdangerous.serializer',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\itsdangerous\\serializer.py',
    'PYMODULE'),
   ('itsdangerous.signer',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\itsdangerous\\signer.py',
    'PYMODULE'),
   ('itsdangerous.timed',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\itsdangerous\\timed.py',
    'PYMODULE'),
   ('itsdangerous.url_safe',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\itsdangerous\\url_safe.py',
    'PYMODULE'),
   ('jinja2',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\__init__.py',
    'PYMODULE'),
   ('jinja2._identifier',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\_identifier.py',
    'PYMODULE'),
   ('jinja2.async_utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\async_utils.py',
    'PYMODULE'),
   ('jinja2.bccache',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\bccache.py',
    'PYMODULE'),
   ('jinja2.compiler',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\compiler.py',
    'PYMODULE'),
   ('jinja2.constants',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\constants.py',
    'PYMODULE'),
   ('jinja2.debug',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\debug.py',
    'PYMODULE'),
   ('jinja2.defaults',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\defaults.py',
    'PYMODULE'),
   ('jinja2.environment',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\environment.py',
    'PYMODULE'),
   ('jinja2.exceptions',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\exceptions.py',
    'PYMODULE'),
   ('jinja2.ext',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\ext.py',
    'PYMODULE'),
   ('jinja2.filters',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\filters.py',
    'PYMODULE'),
   ('jinja2.idtracking',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\idtracking.py',
    'PYMODULE'),
   ('jinja2.lexer',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\lexer.py',
    'PYMODULE'),
   ('jinja2.loaders',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\loaders.py',
    'PYMODULE'),
   ('jinja2.nodes',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\nodes.py',
    'PYMODULE'),
   ('jinja2.optimizer',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\optimizer.py',
    'PYMODULE'),
   ('jinja2.parser',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\parser.py',
    'PYMODULE'),
   ('jinja2.runtime',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\runtime.py',
    'PYMODULE'),
   ('jinja2.sandbox',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\sandbox.py',
    'PYMODULE'),
   ('jinja2.tests',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\tests.py',
    'PYMODULE'),
   ('jinja2.utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\utils.py',
    'PYMODULE'),
   ('jinja2.visitor',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\jinja2\\visitor.py',
    'PYMODULE'),
   ('json', 'C:\\Python313\\Lib\\json\\__init__.py', 'PYMODULE'),
@@ -1247,16 +1247,16 @@
   ('logging', 'C:\\Python313\\Lib\\logging\\__init__.py', 'PYMODULE'),
   ('lzma', 'C:\\Python313\\Lib\\lzma.py', 'PYMODULE'),
   ('markupsafe',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\markupsafe\\__init__.py',
    'PYMODULE'),
   ('markupsafe._native',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\markupsafe\\_native.py',
    'PYMODULE'),
   ('mimetypes', 'C:\\Python313\\Lib\\mimetypes.py', 'PYMODULE'),
   ('mouseinfo',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\mouseinfo\\__init__.py',
    'PYMODULE'),
   ('multiprocessing',
@@ -1333,63 +1333,63 @@
   ('numbers', 'C:\\Python313\\Lib\\numbers.py', 'PYMODULE'),
   ('opcode', 'C:\\Python313\\Lib\\opcode.py', 'PYMODULE'),
   ('packaging',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\__init__.py',
    'PYMODULE'),
   ('packaging._elffile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\_elffile.py',
    'PYMODULE'),
   ('packaging._manylinux',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\_manylinux.py',
    'PYMODULE'),
   ('packaging._musllinux',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\_musllinux.py',
    'PYMODULE'),
   ('packaging._parser',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\_parser.py',
    'PYMODULE'),
   ('packaging._structures',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\_structures.py',
    'PYMODULE'),
   ('packaging._tokenizer',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\_tokenizer.py',
    'PYMODULE'),
   ('packaging.licenses',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\licenses\\__init__.py',
    'PYMODULE'),
   ('packaging.licenses._spdx',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\licenses\\_spdx.py',
    'PYMODULE'),
   ('packaging.markers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\markers.py',
    'PYMODULE'),
   ('packaging.requirements',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\requirements.py',
    'PYMODULE'),
   ('packaging.specifiers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\specifiers.py',
    'PYMODULE'),
   ('packaging.tags',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\tags.py',
    'PYMODULE'),
   ('packaging.utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\utils.py',
    'PYMODULE'),
   ('packaging.version',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\packaging\\version.py',
    'PYMODULE'),
   ('pathlib', 'C:\\Python313\\Lib\\pathlib\\__init__.py', 'PYMODULE'),
@@ -1400,358 +1400,361 @@
   ('pkgutil', 'C:\\Python313\\Lib\\pkgutil.py', 'PYMODULE'),
   ('platform', 'C:\\Python313\\Lib\\platform.py', 'PYMODULE'),
   ('playwright',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\__init__.py',
    'PYMODULE'),
   ('playwright.__main__',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\__main__.py',
    'PYMODULE'),
   ('playwright._impl',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\__init__.py',
    'PYMODULE'),
   ('playwright._impl.__pyinstaller',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\__pyinstaller\\__init__.py',
    'PYMODULE'),
   ('playwright._impl._api_structures',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_api_structures.py',
    'PYMODULE'),
   ('playwright._impl._artifact',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_artifact.py',
    'PYMODULE'),
   ('playwright._impl._assertions',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_assertions.py',
    'PYMODULE'),
   ('playwright._impl._async_base',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_async_base.py',
    'PYMODULE'),
   ('playwright._impl._browser',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_browser.py',
    'PYMODULE'),
   ('playwright._impl._browser_context',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_browser_context.py',
    'PYMODULE'),
   ('playwright._impl._browser_type',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_browser_type.py',
    'PYMODULE'),
   ('playwright._impl._cdp_session',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_cdp_session.py',
    'PYMODULE'),
   ('playwright._impl._clock',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_clock.py',
    'PYMODULE'),
   ('playwright._impl._connection',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_connection.py',
    'PYMODULE'),
   ('playwright._impl._console_message',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_console_message.py',
    'PYMODULE'),
   ('playwright._impl._dialog',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_dialog.py',
    'PYMODULE'),
   ('playwright._impl._download',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_download.py',
    'PYMODULE'),
   ('playwright._impl._driver',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_driver.py',
    'PYMODULE'),
   ('playwright._impl._element_handle',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_element_handle.py',
    'PYMODULE'),
   ('playwright._impl._errors',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_errors.py',
    'PYMODULE'),
   ('playwright._impl._event_context_manager',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_event_context_manager.py',
    'PYMODULE'),
   ('playwright._impl._fetch',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_fetch.py',
    'PYMODULE'),
   ('playwright._impl._file_chooser',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_file_chooser.py',
    'PYMODULE'),
   ('playwright._impl._frame',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_frame.py',
    'PYMODULE'),
   ('playwright._impl._glob',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_glob.py',
    'PYMODULE'),
   ('playwright._impl._greenlets',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_greenlets.py',
    'PYMODULE'),
   ('playwright._impl._har_router',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_har_router.py',
    'PYMODULE'),
   ('playwright._impl._helper',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_helper.py',
    'PYMODULE'),
   ('playwright._impl._impl_to_api_mapping',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_impl_to_api_mapping.py',
    'PYMODULE'),
   ('playwright._impl._input',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_input.py',
    'PYMODULE'),
   ('playwright._impl._js_handle',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_js_handle.py',
    'PYMODULE'),
   ('playwright._impl._json_pipe',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_json_pipe.py',
    'PYMODULE'),
   ('playwright._impl._local_utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_local_utils.py',
    'PYMODULE'),
   ('playwright._impl._locator',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_locator.py',
    'PYMODULE'),
   ('playwright._impl._map',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_map.py',
    'PYMODULE'),
   ('playwright._impl._network',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_network.py',
    'PYMODULE'),
   ('playwright._impl._object_factory',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_object_factory.py',
    'PYMODULE'),
   ('playwright._impl._page',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_page.py',
    'PYMODULE'),
   ('playwright._impl._path_utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_path_utils.py',
    'PYMODULE'),
   ('playwright._impl._playwright',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_playwright.py',
    'PYMODULE'),
   ('playwright._impl._selectors',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_selectors.py',
    'PYMODULE'),
   ('playwright._impl._set_input_files_helpers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_set_input_files_helpers.py',
    'PYMODULE'),
   ('playwright._impl._str_utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_str_utils.py',
    'PYMODULE'),
   ('playwright._impl._stream',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_stream.py',
    'PYMODULE'),
   ('playwright._impl._sync_base',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_sync_base.py',
    'PYMODULE'),
   ('playwright._impl._tracing',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_tracing.py',
    'PYMODULE'),
   ('playwright._impl._transport',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_transport.py',
    'PYMODULE'),
   ('playwright._impl._video',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_video.py',
    'PYMODULE'),
   ('playwright._impl._waiter',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_waiter.py',
    'PYMODULE'),
   ('playwright._impl._web_error',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_web_error.py',
    'PYMODULE'),
   ('playwright._impl._writable_stream',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_impl\\_writable_stream.py',
    'PYMODULE'),
   ('playwright._repo_version',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\_repo_version.py',
    'PYMODULE'),
   ('playwright.async_api',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\async_api\\__init__.py',
    'PYMODULE'),
   ('playwright.async_api._context_manager',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\async_api\\_context_manager.py',
    'PYMODULE'),
   ('playwright.async_api._generated',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\async_api\\_generated.py',
    'PYMODULE'),
   ('playwright.sync_api',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\sync_api\\__init__.py',
    'PYMODULE'),
   ('playwright.sync_api._context_manager',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\sync_api\\_context_manager.py',
    'PYMODULE'),
   ('playwright.sync_api._generated',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\playwright\\sync_api\\_generated.py',
    'PYMODULE'),
   ('pprint', 'C:\\Python313\\Lib\\pprint.py', 'PYMODULE'),
   ('py_compile', 'C:\\Python313\\Lib\\py_compile.py', 'PYMODULE'),
   ('pyautogui',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pyautogui\\__init__.py',
    'PYMODULE'),
   ('pyautogui._pyautogui_osx',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pyautogui\\_pyautogui_osx.py',
    'PYMODULE'),
   ('pyautogui._pyautogui_win',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pyautogui\\_pyautogui_win.py',
    'PYMODULE'),
   ('pyautogui._pyautogui_x11',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pyautogui\\_pyautogui_x11.py',
    'PYMODULE'),
   ('pydoc', 'C:\\Python313\\Lib\\pydoc.py', 'PYMODULE'),
   ('pydoc_data', 'C:\\Python313\\Lib\\pydoc_data\\__init__.py', 'PYMODULE'),
+  ('pydoc_data.module_docs',
+   'C:\\Python313\\Lib\\pydoc_data\\module_docs.py',
+   'PYMODULE'),
   ('pydoc_data.topics',
    'C:\\Python313\\Lib\\pydoc_data\\topics.py',
    'PYMODULE'),
   ('pyee',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pyee\\__init__.py',
    'PYMODULE'),
   ('pyee.asyncio',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pyee\\asyncio.py',
    'PYMODULE'),
   ('pyee.base',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pyee\\base.py',
    'PYMODULE'),
   ('pygetwindow',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pygetwindow\\__init__.py',
    'PYMODULE'),
   ('pygetwindow._pygetwindow_macos',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pygetwindow\\_pygetwindow_macos.py',
    'PYMODULE'),
   ('pygetwindow._pygetwindow_win',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pygetwindow\\_pygetwindow_win.py',
    'PYMODULE'),
   ('pymsgbox',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pymsgbox\\__init__.py',
    'PYMODULE'),
   ('pymsgbox._native_win',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pymsgbox\\_native_win.py',
    'PYMODULE'),
   ('pyperclip',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pyperclip\\__init__.py',
    'PYMODULE'),
   ('pyrect',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pyrect\\__init__.py',
    'PYMODULE'),
   ('pyscreeze',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pyscreeze\\__init__.py',
    'PYMODULE'),
   ('pystray',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\__init__.py',
    'PYMODULE'),
   ('pystray._appindicator',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_appindicator.py',
    'PYMODULE'),
   ('pystray._base',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_base.py',
    'PYMODULE'),
   ('pystray._darwin',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_darwin.py',
    'PYMODULE'),
   ('pystray._dummy',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_dummy.py',
    'PYMODULE'),
   ('pystray._gtk',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_gtk.py',
    'PYMODULE'),
   ('pystray._info',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_info.py',
    'PYMODULE'),
   ('pystray._util',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_util\\__init__.py',
    'PYMODULE'),
   ('pystray._util.gtk',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_util\\gtk.py',
    'PYMODULE'),
   ('pystray._util.notify_dbus',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_util\\notify_dbus.py',
    'PYMODULE'),
   ('pystray._util.win32',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_util\\win32.py',
    'PYMODULE'),
   ('pystray._win32',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_win32.py',
    'PYMODULE'),
   ('pystray._xorg',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pystray\\_xorg.py',
    'PYMODULE'),
   ('pytweening',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\pytweening\\__init__.py',
    'PYMODULE'),
   ('queue', 'C:\\Python313\\Lib\\queue.py', 'PYMODULE'),
@@ -1762,543 +1765,543 @@
   ('secrets', 'C:\\Python313\\Lib\\secrets.py', 'PYMODULE'),
   ('selectors', 'C:\\Python313\\Lib\\selectors.py', 'PYMODULE'),
   ('setuptools',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\__init__.py',
    'PYMODULE'),
   ('setuptools._core_metadata',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_core_metadata.py',
    'PYMODULE'),
   ('setuptools._discovery',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_discovery.py',
    'PYMODULE'),
   ('setuptools._distutils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\__init__.py',
    'PYMODULE'),
   ('setuptools._distutils._log',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\_log.py',
    'PYMODULE'),
   ('setuptools._distutils._modified',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\_modified.py',
    'PYMODULE'),
   ('setuptools._distutils._msvccompiler',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\_msvccompiler.py',
    'PYMODULE'),
   ('setuptools._distutils.archive_util',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\archive_util.py',
    'PYMODULE'),
   ('setuptools._distutils.ccompiler',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\ccompiler.py',
    'PYMODULE'),
   ('setuptools._distutils.cmd',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\cmd.py',
    'PYMODULE'),
   ('setuptools._distutils.command',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\command\\__init__.py',
    'PYMODULE'),
   ('setuptools._distutils.command.bdist',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\command\\bdist.py',
    'PYMODULE'),
   ('setuptools._distutils.command.build',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\command\\build.py',
    'PYMODULE'),
   ('setuptools._distutils.command.build_ext',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\command\\build_ext.py',
    'PYMODULE'),
   ('setuptools._distutils.command.sdist',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\command\\sdist.py',
    'PYMODULE'),
   ('setuptools._distutils.compat',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\compat\\__init__.py',
    'PYMODULE'),
   ('setuptools._distutils.compat.numpy',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\compat\\numpy.py',
    'PYMODULE'),
   ('setuptools._distutils.compat.py39',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\compat\\py39.py',
    'PYMODULE'),
   ('setuptools._distutils.compilers', '-', 'PYMODULE'),
   ('setuptools._distutils.compilers.C', '-', 'PYMODULE'),
   ('setuptools._distutils.compilers.C.base',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\compilers\\C\\base.py',
    'PYMODULE'),
   ('setuptools._distutils.compilers.C.errors',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\compilers\\C\\errors.py',
    'PYMODULE'),
   ('setuptools._distutils.compilers.C.msvc',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\compilers\\C\\msvc.py',
    'PYMODULE'),
   ('setuptools._distutils.core',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\core.py',
    'PYMODULE'),
   ('setuptools._distutils.debug',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\debug.py',
    'PYMODULE'),
   ('setuptools._distutils.dir_util',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\dir_util.py',
    'PYMODULE'),
   ('setuptools._distutils.dist',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\dist.py',
    'PYMODULE'),
   ('setuptools._distutils.errors',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\errors.py',
    'PYMODULE'),
   ('setuptools._distutils.extension',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\extension.py',
    'PYMODULE'),
   ('setuptools._distutils.fancy_getopt',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\fancy_getopt.py',
    'PYMODULE'),
   ('setuptools._distutils.file_util',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\file_util.py',
    'PYMODULE'),
   ('setuptools._distutils.filelist',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\filelist.py',
    'PYMODULE'),
   ('setuptools._distutils.log',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\log.py',
    'PYMODULE'),
   ('setuptools._distutils.spawn',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\spawn.py',
    'PYMODULE'),
   ('setuptools._distutils.sysconfig',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\sysconfig.py',
    'PYMODULE'),
   ('setuptools._distutils.text_file',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\text_file.py',
    'PYMODULE'),
   ('setuptools._distutils.util',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\util.py',
    'PYMODULE'),
   ('setuptools._distutils.version',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\version.py',
    'PYMODULE'),
   ('setuptools._distutils.versionpredicate',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_distutils\\versionpredicate.py',
    'PYMODULE'),
   ('setuptools._entry_points',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_entry_points.py',
    'PYMODULE'),
   ('setuptools._imp',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_imp.py',
    'PYMODULE'),
   ('setuptools._importlib',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_importlib.py',
    'PYMODULE'),
   ('setuptools._itertools',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_itertools.py',
    'PYMODULE'),
   ('setuptools._normalization',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_normalization.py',
    'PYMODULE'),
   ('setuptools._path',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_path.py',
    'PYMODULE'),
   ('setuptools._reqs',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_reqs.py',
    'PYMODULE'),
   ('setuptools._shutil',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_shutil.py',
    'PYMODULE'),
   ('setuptools._static',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_static.py',
    'PYMODULE'),
   ('setuptools._vendor', '-', 'PYMODULE'),
   ('setuptools._vendor.backports',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\backports\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.backports.tarfile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\backports\\tarfile\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.backports.tarfile.compat',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\backports\\tarfile\\compat\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.backports.tarfile.compat.py38',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\backports\\tarfile\\compat\\py38.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata._adapters',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\_adapters.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata._collections',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\_collections.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata._compat',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\_compat.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata._functools',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\_functools.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata._itertools',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\_itertools.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata._meta',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\_meta.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata._text',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\_text.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata._typing',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\_typing.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata.compat',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\compat\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata.compat.py311',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\compat\\py311.py',
    'PYMODULE'),
   ('setuptools._vendor.importlib_metadata.compat.py39',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\importlib_metadata\\compat\\py39.py',
    'PYMODULE'),
   ('setuptools._vendor.jaraco', '-', 'PYMODULE'),
   ('setuptools._vendor.jaraco.context',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\jaraco\\context\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.jaraco.functools',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\jaraco\\functools\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.jaraco.text',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\jaraco\\text\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.more_itertools',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\more_itertools\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.more_itertools.more',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\more_itertools\\more.py',
    'PYMODULE'),
   ('setuptools._vendor.more_itertools.recipes',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\more_itertools\\recipes.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging._elffile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\_elffile.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging._manylinux',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\_manylinux.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging._musllinux',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\_musllinux.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging._parser',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\_parser.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging._structures',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\_structures.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging._tokenizer',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\_tokenizer.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging.markers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\markers.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging.requirements',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\requirements.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging.specifiers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\specifiers.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging.tags',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\tags.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging.utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\utils.py',
    'PYMODULE'),
   ('setuptools._vendor.packaging.version',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\packaging\\version.py',
    'PYMODULE'),
   ('setuptools._vendor.tomli',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\tomli\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.tomli._parser',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\tomli\\_parser.py',
    'PYMODULE'),
   ('setuptools._vendor.tomli._re',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\tomli\\_re.py',
    'PYMODULE'),
   ('setuptools._vendor.tomli._types',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\tomli\\_types.py',
    'PYMODULE'),
   ('setuptools._vendor.wheel',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\wheel\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.wheel.macosx_libfile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\wheel\\macosx_libfile.py',
    'PYMODULE'),
   ('setuptools._vendor.wheel.wheelfile',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\wheel\\wheelfile.py',
    'PYMODULE'),
   ('setuptools._vendor.zipp',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\zipp\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.zipp._functools',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\zipp\\_functools.py',
    'PYMODULE'),
   ('setuptools._vendor.zipp.compat',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\zipp\\compat\\__init__.py',
    'PYMODULE'),
   ('setuptools._vendor.zipp.compat.overlay',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\zipp\\compat\\overlay.py',
    'PYMODULE'),
   ('setuptools._vendor.zipp.compat.py310',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\zipp\\compat\\py310.py',
    'PYMODULE'),
   ('setuptools._vendor.zipp.compat.py313',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\zipp\\compat\\py313.py',
    'PYMODULE'),
   ('setuptools._vendor.zipp.glob',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\_vendor\\zipp\\glob.py',
    'PYMODULE'),
   ('setuptools.archive_util',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\archive_util.py',
    'PYMODULE'),
   ('setuptools.command',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\command\\__init__.py',
    'PYMODULE'),
   ('setuptools.command._requirestxt',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\command\\_requirestxt.py',
    'PYMODULE'),
   ('setuptools.command.bdist_egg',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\command\\bdist_egg.py',
    'PYMODULE'),
   ('setuptools.command.bdist_wheel',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\command\\bdist_wheel.py',
    'PYMODULE'),
   ('setuptools.command.build',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\command\\build.py',
    'PYMODULE'),
   ('setuptools.command.egg_info',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\command\\egg_info.py',
    'PYMODULE'),
   ('setuptools.command.sdist',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\command\\sdist.py',
    'PYMODULE'),
   ('setuptools.command.setopt',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\command\\setopt.py',
    'PYMODULE'),
   ('setuptools.compat',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\compat\\__init__.py',
    'PYMODULE'),
   ('setuptools.compat.py310',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\compat\\py310.py',
    'PYMODULE'),
   ('setuptools.compat.py311',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\compat\\py311.py',
    'PYMODULE'),
   ('setuptools.compat.py39',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\compat\\py39.py',
    'PYMODULE'),
   ('setuptools.config',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\config\\__init__.py',
    'PYMODULE'),
   ('setuptools.config._apply_pyprojecttoml',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\config\\_apply_pyprojecttoml.py',
    'PYMODULE'),
   ('setuptools.config._validate_pyproject',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\config\\_validate_pyproject\\__init__.py',
    'PYMODULE'),
   ('setuptools.config._validate_pyproject.error_reporting',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\config\\_validate_pyproject\\error_reporting.py',
    'PYMODULE'),
   ('setuptools.config._validate_pyproject.extra_validations',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\config\\_validate_pyproject\\extra_validations.py',
    'PYMODULE'),
   ('setuptools.config._validate_pyproject.fastjsonschema_exceptions',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\config\\_validate_pyproject\\fastjsonschema_exceptions.py',
    'PYMODULE'),
   ('setuptools.config._validate_pyproject.fastjsonschema_validations',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\config\\_validate_pyproject\\fastjsonschema_validations.py',
    'PYMODULE'),
   ('setuptools.config._validate_pyproject.formats',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\config\\_validate_pyproject\\formats.py',
    'PYMODULE'),
   ('setuptools.config.expand',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\config\\expand.py',
    'PYMODULE'),
   ('setuptools.config.pyprojecttoml',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\config\\pyprojecttoml.py',
    'PYMODULE'),
   ('setuptools.config.setupcfg',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\config\\setupcfg.py',
    'PYMODULE'),
   ('setuptools.depends',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\depends.py',
    'PYMODULE'),
   ('setuptools.discovery',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\discovery.py',
    'PYMODULE'),
   ('setuptools.dist',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\dist.py',
    'PYMODULE'),
   ('setuptools.errors',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\errors.py',
    'PYMODULE'),
   ('setuptools.extension',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\extension.py',
    'PYMODULE'),
   ('setuptools.glob',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\glob.py',
    'PYMODULE'),
   ('setuptools.installer',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\installer.py',
    'PYMODULE'),
   ('setuptools.logging',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\logging.py',
    'PYMODULE'),
   ('setuptools.monkey',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\monkey.py',
    'PYMODULE'),
   ('setuptools.msvc',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\msvc.py',
    'PYMODULE'),
   ('setuptools.unicode_utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\unicode_utils.py',
    'PYMODULE'),
   ('setuptools.version',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\version.py',
    'PYMODULE'),
   ('setuptools.warnings',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\warnings.py',
    'PYMODULE'),
   ('setuptools.wheel',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\wheel.py',
    'PYMODULE'),
   ('setuptools.windows_support',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\setuptools\\windows_support.py',
    'PYMODULE'),
   ('shlex', 'C:\\Python313\\Lib\\shlex.py', 'PYMODULE'),
@@ -2306,7 +2309,7 @@
   ('signal', 'C:\\Python313\\Lib\\signal.py', 'PYMODULE'),
   ('site', 'C:\\Python313\\Lib\\site.py', 'PYMODULE'),
   ('six',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\six.py',
    'PYMODULE'),
   ('socket', 'C:\\Python313\\Lib\\socket.py', 'PYMODULE'),
@@ -2336,7 +2339,7 @@
   ('tty', 'C:\\Python313\\Lib\\tty.py', 'PYMODULE'),
   ('typing', 'C:\\Python313\\Lib\\typing.py', 'PYMODULE'),
   ('typing_extensions',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\typing_extensions.py',
    'PYMODULE'),
   ('unittest', 'C:\\Python313\\Lib\\unittest\\__init__.py', 'PYMODULE'),
@@ -2361,195 +2364,195 @@
   ('uuid', 'C:\\Python313\\Lib\\uuid.py', 'PYMODULE'),
   ('webbrowser', 'C:\\Python313\\Lib\\webbrowser.py', 'PYMODULE'),
   ('werkzeug',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\__init__.py',
    'PYMODULE'),
   ('werkzeug._internal',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\_internal.py',
    'PYMODULE'),
   ('werkzeug._reloader',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\_reloader.py',
    'PYMODULE'),
   ('werkzeug.datastructures',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\datastructures\\__init__.py',
    'PYMODULE'),
   ('werkzeug.datastructures.accept',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\datastructures\\accept.py',
    'PYMODULE'),
   ('werkzeug.datastructures.auth',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\datastructures\\auth.py',
    'PYMODULE'),
   ('werkzeug.datastructures.cache_control',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\datastructures\\cache_control.py',
    'PYMODULE'),
   ('werkzeug.datastructures.csp',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\datastructures\\csp.py',
    'PYMODULE'),
   ('werkzeug.datastructures.etag',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\datastructures\\etag.py',
    'PYMODULE'),
   ('werkzeug.datastructures.file_storage',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\datastructures\\file_storage.py',
    'PYMODULE'),
   ('werkzeug.datastructures.headers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\datastructures\\headers.py',
    'PYMODULE'),
   ('werkzeug.datastructures.mixins',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\datastructures\\mixins.py',
    'PYMODULE'),
   ('werkzeug.datastructures.range',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\datastructures\\range.py',
    'PYMODULE'),
   ('werkzeug.datastructures.structures',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\datastructures\\structures.py',
    'PYMODULE'),
   ('werkzeug.debug',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\debug\\__init__.py',
    'PYMODULE'),
   ('werkzeug.debug.console',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\debug\\console.py',
    'PYMODULE'),
   ('werkzeug.debug.repr',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\debug\\repr.py',
    'PYMODULE'),
   ('werkzeug.debug.tbtools',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\debug\\tbtools.py',
    'PYMODULE'),
   ('werkzeug.exceptions',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\exceptions.py',
    'PYMODULE'),
   ('werkzeug.formparser',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\formparser.py',
    'PYMODULE'),
   ('werkzeug.http',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\http.py',
    'PYMODULE'),
   ('werkzeug.local',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\local.py',
    'PYMODULE'),
   ('werkzeug.middleware',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\middleware\\__init__.py',
    'PYMODULE'),
   ('werkzeug.middleware.shared_data',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\middleware\\shared_data.py',
    'PYMODULE'),
   ('werkzeug.routing',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\routing\\__init__.py',
    'PYMODULE'),
   ('werkzeug.routing.converters',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\routing\\converters.py',
    'PYMODULE'),
   ('werkzeug.routing.exceptions',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\routing\\exceptions.py',
    'PYMODULE'),
   ('werkzeug.routing.map',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\routing\\map.py',
    'PYMODULE'),
   ('werkzeug.routing.matcher',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\routing\\matcher.py',
    'PYMODULE'),
   ('werkzeug.routing.rules',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\routing\\rules.py',
    'PYMODULE'),
   ('werkzeug.sansio',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\sansio\\__init__.py',
    'PYMODULE'),
   ('werkzeug.sansio.http',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\sansio\\http.py',
    'PYMODULE'),
   ('werkzeug.sansio.multipart',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\sansio\\multipart.py',
    'PYMODULE'),
   ('werkzeug.sansio.request',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\sansio\\request.py',
    'PYMODULE'),
   ('werkzeug.sansio.response',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\sansio\\response.py',
    'PYMODULE'),
   ('werkzeug.sansio.utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\sansio\\utils.py',
    'PYMODULE'),
   ('werkzeug.security',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\security.py',
    'PYMODULE'),
   ('werkzeug.serving',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\serving.py',
    'PYMODULE'),
   ('werkzeug.test',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\test.py',
    'PYMODULE'),
   ('werkzeug.urls',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\urls.py',
    'PYMODULE'),
   ('werkzeug.user_agent',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\user_agent.py',
    'PYMODULE'),
   ('werkzeug.utils',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\utils.py',
    'PYMODULE'),
   ('werkzeug.wrappers',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\wrappers\\__init__.py',
    'PYMODULE'),
   ('werkzeug.wrappers.request',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\wrappers\\request.py',
    'PYMODULE'),
   ('werkzeug.wrappers.response',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\wrappers\\response.py',
    'PYMODULE'),
   ('werkzeug.wsgi',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\werkzeug\\wsgi.py',
    'PYMODULE'),
   ('win32con',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\win32\\lib\\win32con.py',
    'PYMODULE'),
   ('winerror',
-   'C:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
+   'c:\\Users\\Administrator\\Downloads\\estudos\\estudos\\backups\\Painel '
    'restaurantes\\meu-fome-ninja\\.venv\\Lib\\site-packages\\win32\\lib\\winerror.py',
    'PYMODULE'),
   ('xml', 'C:\\Python313\\Lib\\xml\\__init__.py', 'PYMODULE'),

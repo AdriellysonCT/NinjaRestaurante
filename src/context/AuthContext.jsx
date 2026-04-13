@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import * as authService from '../services/authService';
+import * as autoReplyService from '../services/autoReplyService';
 
 // Criar o contexto
 export const AuthContext = createContext();
@@ -206,13 +207,16 @@ export const AuthProvider = ({ children }) => {
           if (!prev) return dadosRestaurante;
           return { ...prev, ...dadosRestaurante };
         });
-        
+
         if (dadosRestaurante.nome_fantasia) {
           localStorage.setItem('fome-ninja-restaurant-name', dadosRestaurante.nome_fantasia);
         }
         if (dadosRestaurante.id) {
           localStorage.setItem('restaurante_id', dadosRestaurante.id);
         }
+
+        // 🤖 Registra restaurante no Agent Python para auto-resposta WhatsApp
+        autoReplyService.registerRestauranteNoAgent(dadosRestaurante);
       } else {
         console.warn('⚠️ AuthContext: Restaurante não encontrado em restaurantes_app');
         setRestaurante(prev => prev || {

@@ -28,7 +28,9 @@ import urllib.parse
 import io
 import asyncio
 import subprocess
+import re
 from concurrent.futures import ThreadPoolExecutor
+import http.client as http_client
 
 try:
     from flask import Flask, request, jsonify
@@ -95,6 +97,41 @@ print("✨ Agente Ninja (Modo Local JSON) configurado!", flush=True)
 
 # 🛡️ Cache de Notificacoes Enviadas (Evita Duplicidade)
 sent_notifications = set() # Store (order_id, status)
+
+# 🤝 Cache de Auto-Resposta (Evita spam de boas-vindas)
+# Estrutura: {phone: {restaurante_id: timestamp, ...}, ...}
+auto_responded_contacts = {} # Store {phone: {restaurante_slug: timestamp}}
+
+# 🔗 Link do Cardápio para Auto-Resposta (pode ser sobrescrito por restaurante)
+CARDAPIO_LINK = os.getenv("CARDAPIO_LINK", "")  # Link padrão vazio - será enviado pelo painel
+
+# 📱 Modo de Login (para reconexão manual)
+login_mode = False
+
+# 🏪 Cache de Links de Restaurantes (ID -> Link do Cardápio)
+restaurantes_cache = {} # {restaurante_id: {nome: "Fenix", link: "https://..."}}
+
+# 🔗 Configurações do Supabase para consulta de pedidos
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+
+# 🤖 Palavras-chave para detecção de intenção
+PALAVRAS_CHAVE_STATUS = [
+    "pedido", "status", "acompanhar", "andamento", "situacao",
+    "como está", "como esta", "previsao", "previsão", "entrega",
+    "saiu", "chegou", "pronto", "saiu para entrega", "qual status",
+    "meu pedido", "pedido numero", "pedido número"
+]
+
+PALAVRAS_CHAVE_CARDAPIO = [
+    "cardápio", "cardapio", "menu", "pratos", "pedir",
+    "fazer pedido", "ver cardápio", "ver cardapio"
+]
+
+PALAVRAS_CHAVE_HORARIO = [
+    "horário", "horario", "funcionamento", "aberto", "fechado",
+    "que horas", "quando abre", "quando fecha", "expediente"
+]
 
 if sys.platform == "win32":
     # 🛡️ Proteção contra erro NoneType em modo --windowed (sem console)
@@ -176,18 +213,18 @@ def generate_matrix_message(status_key, customer_name, codigo_entrega=None):
             if codigo_entrega:
                 base_msg += f" Seu código de confirmação: *{codigo_entrega}*"
             return base_msg
-            
+
         with open(path, 'r', encoding='utf-8') as f:
             matriz = json.load(f)
-        
+
         saudacoes = matriz.get('saudacoes', ["Olá, {customer_name}!"])
         corpos = matriz.get('corpos', {}).get(status_key, ["Seu pedido foi atualizado."])
         fechamentos = matriz.get('fechamentos', ["😉"])
-        
+
         saudacao = random.choice(saudacoes)
         corpo = random.choice(corpos)
         fechamento = random.choice(fechamentos)
-        
+
         mensagem = f"{saudacao} {corpo} {fechamento}"
         mensagem = mensagem.replace("{customer_name}", customer_name)
         if codigo_entrega:
@@ -196,6 +233,406 @@ def generate_matrix_message(status_key, customer_name, codigo_entrega=None):
     except Exception as e:
         print(f"⚠️ Erro ao gerar mensagem: {e}")
         return f"Olá {customer_name}, seu pedido foi atualizado!"
+
+
+def consultar_pedido_supabase(phone, restaurante_id=None):
+    """Consulta pedidos do cliente no Supabase pelo telefone"""
+    try:
+        if not SUPABASE_URL or not SUPABASE_KEY:
+            print("⚠️ Supabase não configurado (SUPABASE_URL/SUPABASE_KEY no .env)", flush=True)
+            return None
+        
+        # Limpa o telefone
+        clean_phone = "".join(filter(str.isdigit, phone))
+        if not clean_phone.startswith("55") and len(clean_phone) <= 11:
+            clean_phone = "55" + clean_phone
+        
+        # Monta URL do Supabase
+        url = SUPABASE_URL.rstrip('/') + f"/rest/v1/pedidos?telefone=eq.{clean_phone}"
+        if restaurante_id:
+            url += f"&id_restaurante=eq.{restaurante_id}"
+        url += "&order=criado_em.desc&limit=1"
+        
+        # Faz requisição
+        conn = http_client.HTTPSURLConnection(SUPABASE_URL.replace("https://", ""))
+        headers = {
+            'apikey': SUPABASE_KEY,
+            'Authorization': f'Bearer {SUPABASE_KEY}',
+            'Content-Type': 'application/json'
+        }
+        
+        conn.request("GET", url, headers=headers)
+        response = conn.getresponse()
+        
+        if response.status == 200:
+            data = response.read().decode('utf-8')
+            pedidos = json.loads(data)
+            
+            if pedidos and len(pedidos) > 0:
+                return pedidos[0]  # Retorna pedido mais recente
+        
+        return None
+        
+    except Exception as e:
+        print(f"⚠️ Erro ao consultar pedido no Supabase: {e}", flush=True)
+        return None
+
+
+def gerar_resposta_status_pedido(pedido, customer_name):
+    """Gera mensagem com status do pedido"""
+    try:
+        if not pedido:
+            return None
+        
+        # Extrai dados do pedido
+        status = pedido.get('status', 'desconhecido')
+        numero_pedido = pedido.get('id') or pedido.get('numero_pedido', 'N/A')
+        criado_em = pedido.get('criado_em', '')
+        
+        # Mapeamento de status para mensagens
+        status_mensagens = {
+            'pendente': f"📋 Seu pedido *#{numero_pedido}* está *pendente* e será confirmado em breve!",
+            'aceito': f"🔥 Seu pedido *#{numero_pedido}* foi *aceito* e já está sendo preparado!",
+            'preparando': f"👨‍🍳 Seu pedido *#{numero_pedido}* está sendo *preparado* com todo carinho!",
+            'pronto': f"✅ Seu pedido *#{numero_pedido}* está *PRONTO* e aguardando retirada/entrega!",
+            'saiu_entrega': f"🛵 Seu pedido *#{numero_pedido}* *SAIU PARA ENTREGA*! Fique atento!",
+            'entregue': f"🎉 Seu pedido *#{numero_pedido}* foi *ENTREGUE*! Bom apetite!",
+            'cancelado': f"❌ Seu pedido *#{numero_pedido}* foi *cancelado*. Entre em contato para mais informações."
+        }
+        
+        mensagem = status_mensagens.get(status, f"📦 Status do seu pedido *#{numero_pedido}*: {status}")
+        
+        # Adiciona tempo estimado se disponível
+        tempo_preparo = pedido.get('tempo_preparo')
+        if tempo_preparo and status in ['aceito', 'preparando']:
+            mensagem += f"\n\n⏱️ Tempo estimado: *{tempo_preparo} minutos*"
+        
+        # Adiciona saudação
+        mensagem_final = f"Olá {customer_name}! 😊\n\n{mensagem}\n\nQualquer dúvida estamos aqui! 🥷"
+        
+        return mensagem_final
+        
+    except Exception as e:
+        print(f"⚠️ Erro ao gerar resposta de status: {e}", flush=True)
+        return None
+
+
+def detectar_intencao_mensagem(mensagem):
+    """Detecta a intenção da mensagem do cliente baseada em palavras-chave"""
+    if not mensagem:
+        return None
+    
+    mensagem_lower = mensagem.lower()
+    
+    # Verifica cada grupo de palavras-chave
+    for palavra in PALAVRAS_CHAVE_STATUS:
+        if palavra.lower() in mensagem_lower:
+            return 'status_pedido'
+    
+    for palavra in PALAVRAS_CHAVE_CARDAPIO:
+        if palavra.lower() in mensagem_lower:
+            return 'cardapio'
+    
+    for palavra in PALAVRAS_CHAVE_HORARIO:
+        if palavra.lower() in mensagem_lower:
+            return 'horario'
+    
+    return None
+
+
+def gerar_resposta_intencao(intencao, customer_name=None, restaurante_id=None, mensagem_cliente=None, phone=None):
+    """Gera resposta baseada na intenção detectada"""
+    
+    if intencao == 'status_pedido':
+        # Consulta pedido do cliente
+        if not phone:
+            return f"Olá {customer_name}! 😊\n\nPara consultar seu pedido, me informe seu telefone: (XX) XXXXX-XXXX"
+        
+        pedido = consultar_pedido_supabase(phone, restaurante_id)
+        
+        if pedido:
+            return gerar_resposta_status_pedido(pedido, customer_name)
+        else:
+            return f"Olá {customer_name}! 😊\n\nNão encontrei pedidos recentes para seu telefone. Verifique o número ou faça um novo pedido pelo nosso cardápio: {CARDAPIO_LINK}\n\nQualquer dúvida estamos aqui! 🥷"
+    
+    elif intencao == 'cardapio':
+        return generate_auto_reply_message(customer_name, restaurante_id)
+    
+    elif intencao == 'horario':
+        return f"Olá {customer_name}! 😊\n\n🕐 Nosso horário de funcionamento:\n• Segunda a Sexta: 18h às 23h\n• Sábados e Domingos: 17h às 00h\n\nFaça seu pedido agora: {CARDAPIO_LINK}\n\nQualquer dúvida estamos aqui! 🥷"
+    
+    return None
+
+
+async def check_and_reply_new_messages(page, auto_responded_contacts, restaurante_id=None):
+    """Verifica novas mensagens no WhatsApp Web e responde automaticamente"""
+    try:
+        print("🔍 Verificando novas conversas...", flush=True)
+        
+        # Clica no painel lateral para garantir que estamos na view de conversas
+        try:
+            await page.click("div[data-testid='chat-list']", timeout=3000)
+            await asyncio.sleep(1)
+        except:
+            pass
+        
+        # Procura por conversas com mensagens não lidas
+        # WhatsApp Web marca com classe 'unread' ou mostra badge verde
+        chat_items = await page.query_selector_all("div[data-testid='cell-frame-container']")
+        
+        if not chat_items:
+            print("  Nenhuma conversa encontrada na lista", flush=True)
+            return
+        
+        print(f"  Encontradas {len(chat_items)} conversas na lista", flush=True)
+        
+        for item in chat_items[:5]:  # Checa apenas as 5 primeiras
+            try:
+                # Verifica se tem badge de não lida
+                unread_badge = await item.query_selector("span[data-testid='unread-count']")
+                
+                # Tenta extrair nome e telefone
+                title_el = await item.query_selector("span[title]")
+                if not title_el:
+                    continue
+                    
+                title = await title_el.get_attribute("title")
+                if not title:
+                    continue
+                
+                print(f"  📱 Conversa: {title}", flush=True)
+                
+                # Se tem mensagem não lida, responde
+                if unread_badge or True:  # Responde a todas as novas conversas
+                    # Clica na conversa para abrir
+                    await item.click()
+                    await asyncio.sleep(2)
+                    
+                    # Verifica se já respondeu antes PARA ESTE RESTAURANTE
+                    phone_clean = "".join(filter(str.isdigit, title))
+                    if not phone_clean.startswith("55") and len(phone_clean) <= 11:
+                        phone_clean = "55" + phone_clean
+                    
+                    # Inicializa estrutura do telefone se não existe
+                    if phone_clean not in auto_responded_contacts:
+                        auto_responded_contacts[phone_clean] = {}
+                    
+                    # Verifica se já respondeu para este contato neste restaurante
+                    if restaurante_id and restaurante_id in auto_responded_contacts[phone_clean]:
+                        print(f"    ⏭️ Já respondeu para {title} neste restaurante, pulando...", flush=True)
+                        continue
+                    
+                    # Verifica se é uma conversa nova (sem mensagens enviadas ainda)
+                    # Procura pela última mensagem enviada (que seria nossa, à direita)
+                    sent_msgs = await page.query_selector_all("div[data-testid='chat-body-content'] > div:nth-child(2)")
+                    
+                    # Se tem poucas ou nenhuma mensagem enviada, é conversa nova
+                    if len(sent_msgs) < 2:
+                        print(f"    ✨ Nova conversa detectada! Respondendo {title}...", flush=True)
+                        
+                        # Gera mensagem de boas-vindas com link do restaurante específico
+                        reply_msg = generate_auto_reply_message(title, restaurante_id)
+                        
+                        # Envia a mensagem
+                        await send_message_direct(page, reply_msg)
+                        
+                        # Marca como respondido PARA ESTE RESTAURANTE
+                        if restaurante_id:
+                            auto_responded_contacts[phone_clean][restaurante_id] = time.time()
+                        else:
+                            auto_responded_contacts[phone_clean]["default"] = time.time()
+                        
+                        print(f"    ✅ Auto-resposta enviada para {title}!", flush=True)
+                    else:
+                        print(f"    ⏭️ Conversa já existente com {title}", flush=True)
+                        
+            except Exception as e:
+                print(f"    ⚠️ Erro ao processar conversa: {e}", flush=True)
+                continue
+        
+        # Volta para o painel inicial
+        await page.goto("https://web.whatsapp.com", wait_until="networkidle", timeout=30000)
+        
+    except Exception as e:
+        print(f"❌ Erro ao verificar mensagens: {e}", flush=True)
+
+
+async def check_and_reply_incoming_messages(page, restaurante_id=None):
+    """Verifica mensagens RECEBIDAS em conversas existentes e responde por intenção"""
+    try:
+        print("🔍 Verificando mensagens recebidas...", flush=True)
+        
+        # Clica na lista de conversas
+        try:
+            await page.click("div[data-testid='chat-list']", timeout=3000)
+            await asyncio.sleep(1)
+        except:
+            pass
+        
+        # Procura por conversas com mensagens não lidas
+        chat_items = await page.query_selector_all("div[data-testid='cell-frame-container']")
+        
+        if not chat_items:
+            return
+        
+        for item in chat_items[:5]:  # Checa até 5 conversas
+            try:
+                # Verifica badge de não lida
+                unread_badge = await item.query_selector("span[data-testid='unread-count']")
+                if not unread_badge:
+                    continue  # Só processa se tiver mensagens não lidas
+                
+                # Extrai nome/telefone
+                title_el = await item.query_selector("span[title]")
+                if not title_el:
+                    continue
+                
+                title = await title_el.get_attribute("title")
+                phone_clean = "".join(filter(str.isdigit, title))
+                if not phone_clean.startswith("55") and len(phone_clean) <= 11:
+                    phone_clean = "55" + phone_clean
+                
+                print(f"  📨 Mensagem não lida de: {title}", flush=True)
+                
+                # Clica para abrir conversa
+                await item.click()
+                await asyncio.sleep(2)
+                
+                # Extrai última mensagem recebida (do cliente)
+                # Mensagens recebidas têm classe específica no WhatsApp Web
+                last_incoming_msg = await page.query_selector_all("div[data-testid='chat-body-content'] span[dir='ltr']")
+                
+                if not last_incoming_msg:
+                    print("    ⚠️ Não foi possível extrair mensagem", flush=True)
+                    continue
+                
+                # Pega a última mensagem
+                last_msg_el = last_incoming_msg[-1]
+                message_text = await last_msg_el.inner_text()
+                
+                if not message_text or len(message_text.strip()) < 3:
+                    print("    ⚠️ Mensagem muito curta ou vazia", flush=True)
+                    continue
+                
+                print(f"    💬 Mensagem recebida: '{message_text[:50]}...'")
+                
+                # Detecta intenção
+                intencao = detectar_intencao_mensagem(message_text)
+                
+                if not intencao:
+                    print("    ⏭️ Sem intenção detectada, pulando...", flush=True)
+                    continue
+                
+                print(f"    🎯 Intenção detectada: {intencao}")
+                
+                # Gera resposta baseada na intenção
+                reply_msg = gerar_resposta_intencao(
+                    intencao=intencao,
+                    customer_name=title,
+                    restaurante_id=restaurante_id,
+                    mensagem_cliente=message_text,
+                    phone=phone_clean
+                )
+                
+                if not reply_msg:
+                    print("    ⚠️ Não foi possível gerar resposta", flush=True)
+                    continue
+                
+                # Envia resposta
+                print(f"    📨 Enviando resposta...", flush=True)
+                await send_message_direct(page, reply_msg)
+                print(f"    ✅ Resposta enviada para {title}!", flush=True)
+                
+                # Aguarda antes de processar próxima conversa
+                await asyncio.sleep(3)
+                
+            except Exception as e:
+                print(f"    ⚠️ Erro ao processar conversa: {e}", flush=True)
+                continue
+        
+        # Volta para painel inicial
+        await page.goto("https://web.whatsapp.com", wait_until="networkidle", timeout=30000)
+        
+    except Exception as e:
+        print(f"❌ Erro ao verificar mensagens recebidas: {e}", flush=True)
+
+
+async def send_message_direct(page, message):
+    """Envia mensagem diretamente na conversa atual"""
+    try:
+        # Foca no campo de texto
+        await page.click("div[contenteditable='true']", timeout=10000)
+        await asyncio.sleep(1)
+        
+        # Digita a mensagem
+        await page.type("div[contenteditable='true']", message, delay=50)
+        await asyncio.sleep(2)
+        
+        # Clica no botão de enviar
+        btn_selectors = [
+            "span[data-icon='send']",
+            "[data-testid='compose-btn-send']",
+            "button[aria-label='Enviar']",
+            "footer button"
+        ]
+        
+        sent = False
+        for sel in btn_selectors:
+            btn = await page.query_selector(sel)
+            if btn:
+                await btn.click()
+                print(f"    ✅ Enviado via selector: {sel}", flush=True)
+                sent = True
+                break
+        
+        if not sent:
+            await page.keyboard.press("Enter")
+            print("    ✅ Enviado via Enter", flush=True)
+        
+        await asyncio.sleep(3)
+        return True
+        
+    except Exception as e:
+        print(f"    ❌ Erro ao enviar mensagem: {e}", flush=True)
+        return False
+
+
+def generate_auto_reply_message(customer_name=None, restaurante_id=None):
+    """Gera mensagem automática de boas-vindas para novos contatos"""
+    try:
+        path = resource_path('mensagens_reserva.json')
+        
+        # Obtém link do cardápio do restaurante específico ou usa o padrão
+        cardapio_link = CARDAPIO_LINK
+        restaurante_nome = ""
+        
+        if restaurante_id and restaurante_id in restaurantes_cache:
+            cardapio_link = restaurantes_cache[restaurante_id].get('link', CARDAPIO_LINK)
+            restaurante_nome = restaurantes_cache[restaurante_id].get('nome', '')
+        
+        if not cardapio_link:
+            return f"Olá! 👋 Bem-vindo! 🥷\n\nFaça seu pedido conosco!"
+
+        if not os.path.exists(path):
+            return f"Olá! 👋 Bem-vindo ao *{restaurante_nome or 'nosso restaurante'}*! 🥷\n\nNosso cardápio: {cardapio_link}"
+
+        with open(path, 'r', encoding='utf-8') as f:
+            matriz = json.load(f)
+
+        auto_resposta = matriz.get('auto_resposta', {})
+        saudacoes = auto_resposta.get('saudacoes', ["Olá! Bem-vindo ao nosso restaurante! 🥷"])
+        corpo = auto_resposta.get('corpo', "Confira nosso cardápio: {cardapio_link}")
+        fechamentos = auto_resposta.get('fechamentos', ["Qualquer dúvida estamos aqui! 👍"])
+
+        saudacao = random.choice(saudacoes)
+        corpo_msg = corpo.replace("{cardapio_link}", cardapio_link)
+        fechamento = random.choice(fechamentos)
+
+        mensagem = f"{saudacao}\n\n{corpo_msg}\n\n{fechamento}"
+        return mensagem
+    except Exception as e:
+        print(f"⚠️ Erro ao gerar auto-resposta: {e}")
+        return f"Olá! 👋 Bem-vindo! 🥷\n\nNosso cardápio: {CARDAPIO_LINK}"
 
 
 # Configuração de Sessão Playwright (Mesmo caminho do teste de sucesso)
@@ -252,9 +689,39 @@ async def playwright_manager():
 
                 print("✅ [MOTOR OK] Agente Ninja pronto para receber missões!", flush=True)
 
+                # 🤝 Monitor de novas conversas (Auto-resposta)
+                last_checked_time = time.time()
+                print("👂 Monitor de conversas ativado! Respondendo automaticamente...", flush=True)
+
                 while True:
+                    # 🤝 VERIFICAR MENSAGENS RECEBIDAS (Prioridade baixa, roda entre envios)
+                    try:
+                        current_time = time.time()
+                        # Checa a cada 30 segundos
+                        if current_time - last_checked_time >= 30:
+                            last_checked_time = current_time
+                            
+                            # 1️⃣ Verifica NOVAS conversas (auto-resposta de boas-vindas)
+                            try:
+                                unread_badges = await page.query_selector("span[data-testid='unread-count']")
+                                if unread_badges:
+                                    print("📬 Detectada(s) mensagem(ns não lida(s), verificando...", flush=True)
+                                    await check_and_reply_new_messages(page, auto_responded_contacts, restaurante_id=None)
+                            except Exception as e:
+                                print(f"⚠️ Erro ao verificar novas conversas: {e}", flush=True)
+                            
+                            # 2️⃣ Verifica MENSAGENS RECEBIDAS em conversas existentes (respostas por intenção)
+                            try:
+                                await check_and_reply_incoming_messages(page, restaurante_id=None)
+                            except Exception as e:
+                                print(f"⚠️ Erro ao verificar mensagens recebidas: {e}", flush=True)
+                                
+                    except Exception as e:
+                        pass  # Silenciar erros de monitoramento para não atrapalhar envios
+
                     task_data = await msg_queue.get()
                     phone, message, customer_name = task_data['phone'], task_data['message'], task_data['customer_name']
+                    restaurante_id = task_data.get('restaurante_id')  # 🏪 Extrai ID do restaurante
 
                     try:
                         print(f"\n⚡ INICIANDO DISPARO: {customer_name} ({phone})", flush=True)
@@ -376,11 +843,19 @@ def print_content():
     data = request.json
     content = data.get('content')
     printer_name = data.get('printer_name') or get_default_printer()
-    
+
     if not content:
         return jsonify({"success": False, "message": "Sem conteúdo"}), 400
-        
+
+    # ✅ IMPRESSÃO DIRETA: Usa RAW mode (sem dialog do Windows)
+    print(f"🖨️ Impressão direta para: {printer_name}", flush=True)
     success = print_raw_text(printer_name, content)
+    
+    if success:
+        print(f"✅ Comanda impressa com sucesso!", flush=True)
+    else:
+        print(f"❌ Falha na impressão", flush=True)
+    
     return jsonify({"success": success})
 
 @app.route('/notify', methods=['POST'])
@@ -391,7 +866,7 @@ def notify():
     phone = data.get('phone')
     order_id = data.get('numero_pedido') or data.get('order_id')
     codigo_entrega = data.get('codigo_entrega') # 🛡️ Segredo Bilateral
-    
+
     if not phone or phone == 'Telefone não cadastrado':
         return jsonify({"success": False, "message": "Telefone inválido"}), 400
 
@@ -403,10 +878,10 @@ def notify():
 
     def process_task():
         print(f"🤖 Preparando mensagem p/ {customer_name} (Status: {status_key})...", flush=True)
-        
+
         # Gera mensagem usando a Matriz Ninja (JSON Local)
         msg = generate_matrix_message(status_key, customer_name, codigo_entrega)
-        
+
         # Registrar como enviada para evitar duplicidade
         if order_id:
             sent_notifications.add(notif_id)
@@ -416,6 +891,113 @@ def notify():
 
     threading.Thread(target=process_task).start()
     return jsonify({"success": True})
+
+
+@app.route('/auto-reply/contacts', methods=['GET'])
+def get_auto_reply_contacts():
+    """Lista contatos que já receberam auto-resposta"""
+    return jsonify({
+        "total": len(auto_responded_contacts),
+        "contacts": list(auto_responded_contacts)
+    })
+
+
+@app.route('/auto-reply/reset', methods=['POST'])
+def reset_auto_reply():
+    """Reseta cache de auto-resposta (opcional: para contato específico ou todos)"""
+    data = request.json or {}
+    phone = data.get('phone')
+    
+    if phone:
+        clean_phone = "".join(filter(str.isdigit, phone))
+        if not clean_phone.startswith("55") and len(clean_phone) <= 11:
+            clean_phone = "55" + clean_phone
+        
+        if clean_phone in auto_responded_contacts:
+            del auto_responded_contacts[clean_phone]
+            return jsonify({"success": True, "message": f"Contato {phone} liberado para auto-resposta"})
+        return jsonify({"success": False, "message": "Contato não encontrado"}), 404
+    else:
+        count = len(auto_responded_contacts)
+        auto_responded_contacts.clear()
+        return jsonify({"success": True, "message": f"Cache de auto-resposta resetado ({count} contatos)"})
+
+
+@app.route('/register-restaurant', methods=['POST'])
+def register_restaurant():
+    """Registra um restaurante no cache do agent (chamado pelo painel web)"""
+    data = request.json
+    
+    restaurante_id = data.get('restaurante_id')
+    restaurante_nome = data.get('nome', 'Restaurante')
+    cardapio_link = data.get('cardapio_link', '')
+    
+    if not restaurante_id or not cardapio_link:
+        return jsonify({"success": False, "message": "restaurante_id e cardapio_link são obrigatórios"}), 400
+    
+    restaurantes_cache[restaurante_id] = {
+        'nome': restaurante_nome,
+        'link': cardapio_link
+    }
+    
+    print(f"🏪 Restaurante registrado: {restaurante_nome} (ID: {restaurante_id})", flush=True)
+    print(f"   📱 Link do cardápio: {cardapio_link}", flush=True)
+    
+    return jsonify({
+        "success": True, 
+        "message": f"Restaurante {restaurante_nome} registrado com sucesso"
+    })
+
+
+@app.route('/auto-reply/send', methods=['POST'])
+def trigger_auto_reply():
+    """Dispara auto-resposta para um contato específico (chamado pelo painel web)"""
+    data = request.json
+    
+    phone = data.get('phone')
+    customer_name = data.get('customer_name', 'Cliente')
+    restaurante_id = data.get('restaurante_id')
+    
+    if not phone:
+        return jsonify({"success": False, "message": "Telefone é obrigatório"}), 400
+    
+    # Verifica se já respondeu para este contato neste restaurante
+    clean_phone = "".join(filter(str.isdigit, phone))
+    if not clean_phone.startswith("55") and len(clean_phone) <= 11:
+        clean_phone = "55" + clean_phone
+    
+    if clean_phone not in auto_responded_contacts:
+        auto_responded_contacts[clean_phone] = {}
+    
+    if restaurante_id and restaurante_id in auto_responded_contacts[clean_phone]:
+        return jsonify({"success": True, "message": "Já respondeu para este contato neste restaurante"}), 200
+    
+    # Gera mensagem com link do restaurante específico
+    reply_msg = generate_auto_reply_message(customer_name, restaurante_id)
+    
+    # Envia via fila do Playwright
+    if pw_loop and msg_queue:
+        pw_loop.call_soon_threadsafe(
+            msg_queue.put_nowait,
+            {
+                'phone': phone, 
+                'message': reply_msg, 
+                'customer_name': customer_name,
+                'is_auto_reply': True,
+                'restaurante_id': restaurante_id
+            }
+        )
+        
+        # Marca como respondido
+        if restaurante_id:
+            auto_responded_contacts[clean_phone][restaurante_id] = time.time()
+        else:
+            auto_responded_contacts[clean_phone]["default"] = time.time()
+        
+        print(f"📨 Auto-resposta agendada para {customer_name} ({phone})", flush=True)
+        return jsonify({"success": True, "message": "Auto-resposta agendada"})
+    
+    return jsonify({"success": False, "message": "Agent não está pronto"}), 503
 
 # --- Funções da Bandeja e Main ---
 
@@ -435,16 +1017,36 @@ def on_connect_whatsapp(icon, item):
     webbrowser.open("https://web.whatsapp.com")
     print("⚠️ Por favor, escaneie o QR Code no seu navegador padrao ou aguarde o motor reiniciar.")
 
+def on_reset_auto_reply(icon, item):
+    """Reseta cache de auto-resposta pelo menu do tray"""
+    print("🔄 Resetando cache de auto-resposta...", flush=True)
+    auto_responded_contacts.clear()
+    print("✅ Cache resetado! Novas conversas serão respondidas automaticamente.", flush=True)
+
+def on_view_restaurantes(icon, item):
+    """Mostra restaurantes cadastrados no tray"""
+    print("\n🏪 Restaurantes cadastrados:", flush=True)
+    if not restaurantes_cache:
+        print("  Nenhum restaurante registrado ainda", flush=True)
+    else:
+        for rid, info in restaurantes_cache.items():
+            print(f"  📱 {info['nome']} (ID: {rid})", flush=True)
+            print(f"     Link: {info['link']}", flush=True)
+    print()
+
 def setup_tray():
     try:
         image = Image.open(ICON_PATH)
     except:
         image = Image.new('RGB', (64, 64), color=(255, 69, 0))
-    
+
     menu = (
         item('Abrir Painel Ninja', on_open_dashboard),
         item('Conectar WhatsApp (QR Code)', on_connect_whatsapp),
         item('Ver Status Agente', lambda: webbrowser.open(f"http://localhost:{PORT}/status")),
+        item('Ver Restaurantes', on_view_restaurantes),
+        item('Resetar Auto-Resposta', on_reset_auto_reply),
+        item('Ver Contatos Auto-Resposta', lambda: webbrowser.open(f"http://localhost:{PORT}/auto-reply/contacts")),
         item('Sair', on_exit),
     )
     

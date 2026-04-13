@@ -11,6 +11,8 @@ import { logger } from "../utils/logger";
 import * as orderService from "../services/orderService";
 import { formatPhoneForWhatsApp } from "../utils/phoneFormatter";
 import { notificationService } from "../services/notificationService";
+import { isToday, formatDate } from "../utils/dateFormatter";
+import { utcToSaoPaulo, nowInSaoPaulo, startOfDayUTC, endOfDayUTC } from "../utils/timezone";
 
 const AUTO_ACCEPT_DELAY_MS = 500;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -332,22 +334,23 @@ const Dashboard = () => {
   }, [autoAcceptEnabled]);
 
   // Função para aceitar pedido automaticamente (isolada para reutilização)
+  // ✅ CORREÇÃO: Toca som + imprime imediatamente ao aceitar automaticamente
   const autoAcceptOrder = useCallback(async (order) => {
     // Verificar se já foi processado
     if (processedOrdersRef.current.has(order.id)) {
       logger.log(`⏭️ Pedido #${order.numero_pedido} já foi processado, ignorando...`);
       return false;
     }
-    
+
     // Marcar como processado
     processedOrdersRef.current.add(order.id);
-    
+
     logger.log(`🤖 Aceitando pedido automaticamente: #${order.numero_pedido}`);
-    
+
     try {
       const { error: updateError } = await supabase
         .from("pedidos_padronizados")
-        .update({ 
+        .update({
           status: 'aceito',
           started_at: new Date().toISOString()
         })
@@ -359,13 +362,27 @@ const Dashboard = () => {
         processedOrdersRef.current.delete(order.id); // Permitir retry
         return false;
       }
-      
-      // Impressão automática
-      printService.autoPrintOnAccept(order).catch(err => console.warn(err));
 
-      // 🥷 NinjaTalk AI: Notificação automática
-      notificationService.notifyStatusChange(order, 'aceito');
+      // ✅ CORREÇÃO: Tocar som de notificação ÚNICO ao aceitar pedido
+      // Usa o som de 'entrega' como padrão para todos os pedidos aceitos
+      const tipoSom = order.tipo_pedido === 'retirada' ? 'retirada' : 
+                      order.tipo_pedido === 'local' ? 'local' : 'entrega';
       
+      // Acessa a função de som do AppContext via window (já que não temos acesso direto ao context)
+      if (window._tocarSomPorTipo) {
+        console.log(`🔔 [AUTO-ACEITE] Tocando som para pedido #${order.numero_pedido}`);
+        window._tocarSomPorTipo(tipoSom);
+      }
+
+      // ✅ CORREÇÃO: Impressão automática IMEDIATA (Agente Python imprime direto, sem dialog)
+      logger.log(`🖨️ Disparando impressão automática para pedido #${order.numero_pedido}`);
+      printService.autoPrintOnAccept(order).catch(err => {
+        logger.error(`❌ Erro na impressão automática:`, err);
+      });
+
+      // 🥷 NinjaTalk AI: Notificação automática via WhatsApp
+      notificationService.notifyStatusChange(order, 'aceito');
+
       return true;
     } catch (error) {
       logger.error(`❌ Erro ao aceitar pedido #${order.numero_pedido}:`, error);
@@ -609,13 +626,14 @@ const Dashboard = () => {
   // O AppContext já gerencia o som de notificação com loop e verificação contínua
 
   // Calcular tempo restante para pedidos em preparo
+  // ✅ CORREÇÃO: Usa timezone America/Sao_Paulo para cálculo correto
   const calcularTempoRestante = (startedAt, prepTime) => {
     if (!startedAt || !prepTime) return { minutos: 0, atrasado: false };
 
-    const agora = new Date();
-    const inicio = new Date(startedAt);
+    const agora = nowInSaoPaulo();
+    const inicio = utcToSaoPaulo(startedAt);
     const tempoEstimado = prepTime * 60 * 1000; // em milissegundos
-    const passado = agora - inicio;
+    const passado = agora.getTime() - inicio.getTime();
     const restante = tempoEstimado - passado;
 
     if (restante <= 0) {
@@ -628,8 +646,8 @@ const Dashboard = () => {
     if (!startedAt || !Number.isFinite(Number(totalMinutes)) || Number(totalMinutes) <= 0) {
       return 0;
     }
-    const inicio = new Date(startedAt).getTime();
-    const agora = Date.now();
+    const inicio = utcToSaoPaulo(startedAt).getTime();
+    const agora = nowInSaoPaulo().getTime();
     const totalMs = Number(totalMinutes) * 60 * 1000;
     const decorridoMs = Math.max(0, agora - inicio);
     const percent = (decorridoMs / totalMs) * 100;
@@ -649,19 +667,13 @@ const Dashboard = () => {
 
     // Lógica para esconder pedidos concluídos/cancelados de dias anteriores
     // Isso evita que o dashboard fique poluído com histórico antigo
+    // ✅ CORREÇÃO: Usa timezone America/Sao_Paulo para comparação correta
     const stage = getVisualStage(order);
     if (stage === 'concluido' || stage === 'cancelado' || stage === 'falha_entrega') {
       if (!order.created_at) return true; // Se não tiver data, mostra por segurança
-      
-      const orderDate = new Date(order.created_at);
-      const today = new Date();
-      
-      const isSameDay = 
-        orderDate.getDate() === today.getDate() &&
-        orderDate.getMonth() === today.getMonth() &&
-        orderDate.getFullYear() === today.getFullYear();
-        
-      if (!isSameDay) return false;
+
+      // Verifica se o pedido NÃO é de hoje (usando timezone correto)
+      if (!isToday(order.created_at)) return false;
     }
 
     return searchTermMatch && paymentTypeMatch && deliveryTypeMatch;
@@ -688,38 +700,41 @@ const Dashboard = () => {
 
   // Calcular ranking de produtos mais vendidos hoje
   const calculateProductRanking = (period = "day") => {
-    // Intervalo do período em horário local
-    const now = new Date();
+    // ✅ CORREÇÃO: Usa timezone America/Sao_Paulo para cálculo correto
+    const now = nowInSaoPaulo();
     let start;
     if (period === "week") {
-      // início da semana (segunda-feira)
-      const d = new Date(now);
+      // início da semana (segunda-feira) em SP
+      const d = nowInSaoPaulo();
       const day = d.getDay(); // 0 (Dom) .. 6 (Sáb)
       const diffToMonday = ((day + 6) % 7); // 0 se segunda
       d.setHours(0, 0, 0, 0);
       d.setDate(d.getDate() - diffToMonday);
       start = d;
     } else {
-      // hoje
-      start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      // hoje em SP - usa apenas a data local (JS já converte UTC → local)
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      start = today;
     }
-    const end = now;
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
-    const insideToday = (d) => {
-      const dt = d ? new Date(d) : null;
-      if (!dt || Number.isNaN(dt.getTime())) return false;
+    const insidePeriod = (d) => {
+      if (!d) return false;
+      const dt = new Date(d);
+      if (Number.isNaN(dt.getTime())) return false;
       return dt >= start && dt <= end;
     };
 
-    // Considera pedidos criados hoje e aceitos (status original 'aceito').
-    // Observação: na formatação mapeamos 'aceito' -> 'em_preparo' para as colunas,
-    // então usamos originalStatus para o ranking.
-    const todayOrders = orders.filter(
-      (o) => insideToday(o.created_at || o.timestamp) && (o.originalStatus === 'aceito')
+    // Considera pedidos criados no período que NÃO são pendentes/novos.
+    // Inclui: aceito, em_preparo, pronto, coletado, concluido, etc.
+    // Exclui apenas: cancelado, pendente, novo
+    const excludedStatuses = ['pendente', 'novo', 'disponivel', 'cancelado', 'falha_pagamento'];
+    const periodOrders = orders.filter(
+      (o) => insidePeriod(o.created_at || o.timestamp) && !excludedStatuses.includes(o.originalStatus)
     );
 
     const productCount = {};
-    todayOrders.forEach((o) => {
+    periodOrders.forEach((o) => {
       (o.items || []).forEach((it) => {
         const name = it.name || 'Item';
         const qty = Number(it.qty || 1);
@@ -736,16 +751,16 @@ const Dashboard = () => {
   const productRanking = useMemo(() => calculateProductRanking(rankingPeriod), [orders, rankingPeriod]);
 
   const rankingSinceLabel = useMemo(() => {
-    const now = new Date();
+    const now = nowInSaoPaulo();
     if (rankingPeriod === "week") {
-      const d = new Date(now);
+      const d = nowInSaoPaulo();
       const day = d.getDay();
       const diffToMonday = ((day + 6) % 7);
       d.setHours(0,0,0,0);
       d.setDate(d.getDate() - diffToMonday);
       return `desde ${d.toLocaleDateString('pt-BR')} 00:00`;
     }
-    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
+    const start = utcToSaoPaulo(startOfDayUTC());
     return `desde ${start.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
   }, [rankingPeriod]);
 
