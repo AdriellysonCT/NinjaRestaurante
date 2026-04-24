@@ -130,7 +130,7 @@ const Settings = () => {
     telefone: '',
     email: '',
     nomeResponsavel: '',
-    chavePix: ''
+    efiPayeeCode: ''
   });
 
   // Estados para endereço
@@ -161,7 +161,7 @@ const Settings = () => {
             email: dados.email || '',
             nomeResponsavel: dados.nome_responsavel || '',
             imagemUrl: dados.imagem_url || '',
-            chavePix: dados.chave_pix || ''
+            efiPayeeCode: dados.efi_payee_code || ''
           });
           
           if (dados.nome_fantasia) {
@@ -202,7 +202,7 @@ const Settings = () => {
         email: restaurante.email || '',
         nomeResponsavel: restaurante.nome_responsavel || '',
         imagemUrl: restaurante.imagem_url || '',
-        chavePix: restaurante.chave_pix || ''
+        efiPayeeCode: restaurante.efi_payee_code || ''
       });
       
       if (restaurante.nome_fantasia) {
@@ -655,17 +655,17 @@ const Settings = () => {
             </div>
             <div>
               <label className="text-sm font-medium mb-1 flex items-center gap-2">
-                Chave PIX
-                <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Transferência</span>
+                Efi Payee Code
+                <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Split de Pagamento</span>
               </label>
               <input 
                 type="text" 
                 className="w-full bg-input px-3 py-2 rounded-md border border-border focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
-                value={dadosRestaurante.chavePix} 
-                onChange={(e) => handleRestauranteChange('chavePix', e.target.value)} 
-                placeholder="E-mail, CPF, CNPJ, Celular ou Chave Aleatória" 
+                value={dadosRestaurante.efiPayeeCode} 
+                onChange={(e) => handleRestauranteChange('efiPayeeCode', e.target.value)} 
+                placeholder="Código do favorecido na Efi" 
               />
-              <p className="text-xs text-muted-foreground mt-1">Sua chave PIX será enviada ao administrador para realização de pagamentos e transferências.</p>
+              <p className="text-xs text-muted-foreground mt-1">Este código identifica sua conta na Efi para recebimento automático via split. Você encontra este código no painel da Efi.</p>
             </div>
             
             {/* Seção de Logo */}
@@ -1072,18 +1072,62 @@ const Settings = () => {
         )}
         
         {activeTab === 'pagamentos' && (
-          <div className="ninja-card p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Métodos de Pagamento</h3>
-            <div className="space-y-2">
-              {Object.keys(paymentMethods).map(method => (
-                <div key={method} className="flex items-center justify-between py-2 border-b border-border">
-                  <span className="font-medium text-sm capitalize">{method.replace(/([A-Z])/g, ' $1')}</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked={paymentMethods[method]} onChange={(e) => handlePaymentMethodChange(method, e.target.checked)} className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+          <div className="ninja-card p-6 space-y-8">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Métodos de Pagamento Aceitos</h3>
+              <div className="space-y-2">
+                {Object.keys(paymentMethods).map(method => (
+                  <div key={method} className="flex items-center justify-between py-2 border-b border-border">
+                    <span className="font-medium text-sm capitalize">{method.replace(/([A-Z])/g, ' $1')}</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked={paymentMethods[method]} onChange={(e) => handlePaymentMethodChange(method, e.target.checked)} className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                Configuração de Split (Efi)
+                <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Automático</span>
+              </h3>
+              <div className="bg-secondary/30 p-4 rounded-lg border border-border space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    Efi Payee Code (Identificador de Conta)
                   </label>
+                  <input 
+                    type="text" 
+                    className="w-full bg-input px-3 py-2 rounded-md border border-border focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                    value={dadosRestaurante.efiPayeeCode} 
+                    onChange={(e) => handleRestauranteChange('efiPayeeCode', e.target.value)} 
+                    placeholder="Ex: 12345678-abcd-efgh-ijkl-1234567890ab" 
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Este código identifica sua conta na Efí Bank para que os pagamentos sejam divididos (split) automaticamente.
+                  </p>
                 </div>
-              ))}
+                
+                <div className="flex items-start gap-2 text-[11px] text-muted-foreground bg-primary/5 p-3 rounded border border-primary/10">
+                  <span className="text-primary text-base">ℹ️</span>
+                  <p>
+                    O Payee Code é o identificador único da sua conta/aplicação no marketplace da Efí. 
+                    Certifique-se de que este código esteja correto para garantir que os valores das vendas sejam creditados na sua conta.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <button 
+                  onClick={handleSalvarDadosRestaurante} 
+                  disabled={authLoading} 
+                  className="bg-primary text-primary-foreground py-2 px-6 rounded-md font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  {authLoading ? 'Salvando...' : 'Salvar Configurações Efi'}
+                </button>
+              </div>
             </div>
           </div>
         )}

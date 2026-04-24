@@ -12,15 +12,15 @@ export async function fetchDadosRepasse(restauranteId) {
       throw new Error('ID do restaurante é obrigatório');
     }
 
-    // Buscar chave PIX do restaurante (necessário para o formulário)
+    // Buscar identificador de split do restaurante
     const { data: restauranteData, error: restauranteError } = await supabase
       .from('restaurantes_app')
-      .select('chave_pix')
+      .select('efi_payee_code')
       .eq('id', restauranteId)
       .single();
 
     if (restauranteError) {
-      console.warn('Erro ao buscar chave PIX:', restauranteError);
+      console.warn('Erro ao buscar Efi Payee Code:', restauranteError);
     }
 
     // NOVA LÓGICA: Buscar resumo consolidado da VIEW
@@ -40,7 +40,7 @@ export async function fetchDadosRepasse(restauranteId) {
       totalVendas: parseFloat(resumoView?.total_vendido || 0),
       totalRepassado: parseFloat(resumoView?.total_repassado || 0),
       taxaPlataforma: 0.05, // Valor padrão ou buscar de config do restaurante se houver
-      chavePixCadastrada: restauranteData?.chave_pix || null
+      efiPayeeCode: restauranteData?.efi_payee_code || null
     };
 
   } catch (error) {
@@ -77,47 +77,40 @@ export async function fetchHistoricoRepasses(restauranteId, limite = 20) {
   }
 }
 
-// Solicitar novo repasse
-export async function solicitarRepasse({ restauranteId, valor, diasPrazo, observacao, chavePix }) {
-  try {
-    if (!restauranteId) {
-      throw new Error('ID do restaurante é obrigatório');
-    }
-
-    if (!chavePix) {
-      throw new Error('Chave PIX não cadastrada');
-    }
-
-    if (valor <= 0) {
-      throw new Error('Valor deve ser maior que zero');
-    }
-
-    // Verificar saldo disponível
-    const dadosRepasse = await fetchDadosRepasse(restauranteId);
+    // Solicitar novo repasse
+    export async function solicitarRepasse({ restauranteId, valor, diasPrazo, observacao, efiPayeeCode }) {
+      try {
+        if (!restauranteId) {
+          throw new Error('ID do restaurante é obrigatório');
+        }
     
-    if (valor > dadosRepasse.saldoDisponivel) {
-      throw new Error('Saldo insuficiente para esta solicitação');
-    }
-
-    // 1. Criar registro no Ledger via RPC (Garante isolamento e atomicidade)
-    const { data: lancamentoId, error: ledgerError } = await supabase
-      .rpc('solicitar_repasse_ledger', {
-        p_restaurante_id: restauranteId,
-        p_valor: valor
-      });
-
-    if (ledgerError) {
-      throw new Error(`Erro ao criar solicitação no Ledger: ${ledgerError.message}`);
-    }
-
-    // 2. (OPCIONAL/LEGACY) Se houver necessidade de logar em historico_repasses legado:
-    // Sugestão: Manter apenas se for necessário para integrações externas legadas. 
-    // Do ponto de vista de segurança, o Ledger é o oficial.
-
-    // A ATUALIZAÇÃO MANUAL DE SALDO FOI REMOVIDA DAQUI CONFORME SOLICITADO.
-    // O SALDO AGORA É CALCULADO PELA VIEW DINAMICAMENTE.
-
-    return lancamento;
+        if (!efiPayeeCode) {
+          throw new Error('Identificador Efi Payee Code não cadastrado');
+        }
+    
+        if (valor <= 0) {
+          throw new Error('Valor deve ser maior que zero');
+        }
+    
+        // Verificar saldo disponível
+        const dadosRepasse = await fetchDadosRepasse(restauranteId);
+        
+        if (valor > dadosRepasse.saldoDisponivel) {
+          throw new Error('Saldo insuficiente para esta solicitação');
+        }
+    
+        // 1. Criar registro no Ledger via RPC
+        const { data, error: ledgerError } = await supabase
+          .rpc('solicitar_repasse_ledger', {
+            p_restaurante_id: restauranteId,
+            p_valor: valor
+          });
+    
+        if (ledgerError) {
+          throw new Error(`Erro ao criar solicitação no Ledger: ${ledgerError.message}`);
+        }
+    
+        return data;
 
   } catch (error) {
     console.error('Erro ao solicitar repasse:', error);

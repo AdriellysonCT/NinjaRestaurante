@@ -11,7 +11,7 @@ export function Cadastro() {
     telefone: '',
     email: '',
     nomeResponsavel: '',
-    chavePix: '',
+    efiPayeeCode: '',
     senha: '',
     confirmaSenha: '',
   });
@@ -141,7 +141,7 @@ export function Cadastro() {
           telefone: formData.telefone,
           email: formData.email,
           nomeResponsavel: formData.nomeResponsavel,
-          chavePix: formData.chavePix,
+          efiPayeeCode: formData.efiPayeeCode,
           
         },
         formData.senha
@@ -304,21 +304,21 @@ export function Cadastro() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label htmlFor="chavePix" className="text-sm font-medium text-foreground flex items-center gap-2">
-                    Chave PIX
-                    <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Importante para repasses</span>
+                  <label htmlFor="efiPayeeCode" className="text-sm font-medium text-foreground flex items-center gap-2">
+                    Efi Payee Code
+                    <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase font-bold">Split de Pagamento</span>
                   </label>
                   <input
-                    id="chavePix"
-                    name="chavePix"
+                    id="efiPayeeCode"
+                    name="efiPayeeCode"
                     type="text"
-                    value={formData.chavePix}
+                    value={formData.efiPayeeCode}
                     onChange={handleChange}
                     className="mt-1 block w-full px-3 py-2 bg-background border border-input rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="E-mail, CPF, CNPJ, Celular ou Chave Aleatória"
+                    placeholder="Código do favorecido na Efi"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Esta chave será usada para receber os repasses das suas vendas. Você poderá alterá-la depois nas configurações.
+                    Este código identifica sua conta na Efi para recebimento automático via split. Você encontra este código no painel da Efi.
                   </p>
                 </div>
                 

@@ -8,7 +8,7 @@ function SolicitacaoRepasseSimples({ restauranteId }) {
     saldoPendente: 0,
     totalVendas: 0,
     totalRepassado: 0,
-    chavePixCadastrada: null
+    efiPayeeCode: null
   });
   
   const [historico, setHistorico] = useState([]);
@@ -40,7 +40,7 @@ function SolicitacaoRepasseSimples({ restauranteId }) {
         saldoPendente: dadosRepasse.saldoPendente,
         totalVendas: dadosRepasse.totalVendas,
         totalRepassado: dadosRepasse.totalRepassado,
-        chavePixCadastrada: dadosRepasse.chavePixCadastrada
+        efiPayeeCode: dadosRepasse.efiPayeeCode
       });
 
       setHistorico(historicoData || []);
@@ -56,8 +56,8 @@ function SolicitacaoRepasseSimples({ restauranteId }) {
   async function handleSolicitarRepasse(e) {
     e.preventDefault();
     
-    if (!dados.chavePixCadastrada) {
-      setError('Você precisa cadastrar uma chave PIX em Configurações primeiro.');
+    if (!dados.efiPayeeCode) {
+      setError('Você precisa cadastrar seu Efi Payee Code em Configurações > Pagamentos primeiro.');
       return;
     }
 
@@ -78,7 +78,8 @@ function SolicitacaoRepasseSimples({ restauranteId }) {
         restauranteId,
         valor: valorTotal,
         diasPrazo: diasSelecionados,
-        observacao: observacao.trim()
+        observacao: observacao.trim(),
+        efiPayeeCode: dados.efiPayeeCode
       });
 
       setSuccess(`Solicitação de ${formatCurrency(valorTotal)} enviada com sucesso! Prazo: até ${diasSelecionados} ${diasSelecionados === 1 ? 'dia útil' : 'dias úteis'}.`);
@@ -194,15 +195,15 @@ function SolicitacaoRepasseSimples({ restauranteId }) {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-primary mb-1">✓ Chave PIX Cadastrada</p>
-                <p className="text-2xl font-bold text-foreground font-mono tracking-wider">{dados.chavePixCadastrada}</p>
-                <p className="text-xs text-muted-foreground mt-1">Repasses serão enviados para esta chave</p>
+                <p className="text-sm font-semibold text-primary mb-1">✓ Efi Payee Code Ativo</p>
+                <p className="text-xl font-bold text-foreground font-mono tracking-tight break-all">{dados.efiPayeeCode}</p>
+                <p className="text-xs text-muted-foreground mt-1">Identificador para split automático via marketplace Efi</p>
               </div>
             </div>
             <button
               onClick={() => {
-                navigator.clipboard.writeText(dados.chavePixCadastrada);
-                setSuccess('Chave PIX copiada!');
+                navigator.clipboard.writeText(dados.efiPayeeCode);
+                setSuccess('Payee Code copiado!');
                 setTimeout(() => setSuccess(null), 2000);
               }}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all font-semibold shadow-md"
@@ -271,7 +272,7 @@ function SolicitacaoRepasseSimples({ restauranteId }) {
 
           <button
             type="submit"
-            disabled={solicitando || dados.saldoDisponivel <= 0 || !dados.chavePixCadastrada}
+            disabled={solicitando || dados.saldoDisponivel <= 0 || !dados.efiPayeeCode}
             className="w-full py-3 bg-success text-white rounded-lg font-medium hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {solicitando ? 'Processando...' : `Solicitar Repasse de ${formatCurrency(dados.saldoDisponivel)}`}

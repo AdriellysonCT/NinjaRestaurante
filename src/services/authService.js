@@ -58,7 +58,7 @@ export async function cadastrarRestaurante(dadosRestaurante, senha) {
       telefone: dadosRestaurante.telefone || '',
       email: dadosRestaurante.email,
       nome_responsavel: dadosRestaurante.nomeResponsavel || dadosRestaurante.nome_responsavel || '',
-      chave_pix: dadosRestaurante.chavePix || '',
+      efi_payee_code: dadosRestaurante.efiPayeeCode || '',
       ativo: false
     });
     
@@ -83,7 +83,7 @@ export async function cadastrarRestaurante(dadosRestaurante, senha) {
         latitude: dadosRestaurante.latitude || null,
         longitude: dadosRestaurante.longitude || null,
         conta_bancaria: dadosRestaurante.conta_bancaria || null,
-        chave_pix: dadosRestaurante.chavePix || null,
+        efi_payee_code: dadosRestaurante.efiPayeeCode || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -217,7 +217,7 @@ export async function atualizarDadosRestaurante(dadosAtualizados) {
     if (dadosAtualizados.telefone !== undefined) updateData.telefone = dadosAtualizados.telefone;
     if (dadosAtualizados.nomeResponsavel !== undefined) updateData.nome_responsavel = dadosAtualizados.nomeResponsavel;
     if (dadosAtualizados.imagemUrl !== undefined) updateData.imagem_url = dadosAtualizados.imagemUrl;
-    if (dadosAtualizados.chavePix !== undefined) updateData.chave_pix = dadosAtualizados.chavePix;
+    if (dadosAtualizados.efiPayeeCode !== undefined) updateData.efi_payee_code = dadosAtualizados.efiPayeeCode;
     if (dadosAtualizados.ativo !== undefined) updateData.ativo = dadosAtualizados.ativo;
     
     // Suporte para nomes de campos diretos (snake_case)
@@ -225,7 +225,7 @@ export async function atualizarDadosRestaurante(dadosAtualizados) {
     if (dadosAtualizados.tipo_restaurante !== undefined) updateData.tipo_restaurante = dadosAtualizados.tipo_restaurante;
     if (dadosAtualizados.nome_responsavel !== undefined) updateData.nome_responsavel = dadosAtualizados.nome_responsavel;
     if (dadosAtualizados.imagem_url !== undefined) updateData.imagem_url = dadosAtualizados.imagem_url;
-    if (dadosAtualizados.chave_pix !== undefined) updateData.chave_pix = dadosAtualizados.chave_pix;
+    if (dadosAtualizados.efi_payee_code !== undefined) updateData.efi_payee_code = dadosAtualizados.efi_payee_code;
 
     // Atualizar dados do restaurante
     const { data, error} = await supabase

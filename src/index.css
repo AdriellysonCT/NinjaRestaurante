@@ -226,3 +226,42 @@ textarea::placeholder {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--color-primary));
 }
+
+/* ========================================
+   ESTILOS PARA MOBILE
+   ======================================== */
+
+/* Safe area para dispositivos com notch */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Prevenir zoom em inputs no iOS */
+@media screen and (max-width: 1023px) {
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px !important;
+  }
+}
+
+/* Melhorar scroll no mobile */
+@media screen and (max-width: 1023px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Prevenir seleção de texto em botões no mobile */
+@media screen and (max-width: 1023px) {
+  button,
+  [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}

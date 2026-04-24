@@ -7,13 +7,32 @@ import './index.css';
 import './styles/direct-styles.css';
 import './styles/layout.css';
 
+// Hook para detectar se é mobile
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() => {
+    return window.innerWidth < 1024;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return isMobile;
+};
+
 // Importar componentes
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
+import { BottomNav } from './components/BottomNav';
 
 
 // Importar páginas
 import Dashboard from './pages/Dashboard';
+import { DashboardMobile } from './pages/DashboardMobile';
 import Orders from './pages/Orders';
 import Menu from './pages/Menu';
 import Complements from './pages/Complements';
@@ -64,7 +83,36 @@ const MainLayout = () => {
   const { user, restauranteId } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
+  // Se for mobile, renderar versão mobile simplificada
+  if (isMobile) {
+    return (
+      <div className="min-h-screen w-full bg-background">
+        <main className="bg-background">
+          <AnimatePresence mode="popLayout">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <Routes location={location}>
+                <Route path="/dashboard" element={<DashboardMobile />} />
+                <Route path="/pedidos" element={<DashboardMobile />} />
+                <Route path="/configuracoes" element={<Settings />} />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </motion.div>
+          </AnimatePresence>
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // Desktop - layout completo
   return (
     <div className="flex min-h-screen w-full">
       <Sidebar />
@@ -83,7 +131,6 @@ const MainLayout = () => {
               <Routes location={location}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/pedidos" element={<Orders />} />
-                
                 <Route path="/mesas" element={<Tables />} />
                 <Route path="/pdv" element={<POS />} />
                 <Route path="/agendados" element={<Scheduled />} />

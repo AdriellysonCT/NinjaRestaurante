@@ -1,168 +1,226 @@
-/**
- * 🤖 Serviço de Auto-Resposta WhatsApp
- * 
- * Este serviço registra o restaurante no Agent Python
- * e gerencia as auto-respostas quando clientes iniciam conversas.
- */
+const AGENT_API_BASE = "http://localhost:5001";
+const AGENT_DISABLE_KEY = "fome-ninja-agent-disabled-until";
+const AGENT_RETRY_DELAY_MS = 5 * 60 * 1000;
 
-const AGENT_API_BASE = 'http://localhost:5001';
+function getAgentDisabledUntil() {
+  if (typeof window === "undefined") return 0;
 
-/**
- * Registra o restaurante no Agent Python local
- * Deve ser chamado após o login do restaurante
- */
+  try {
+    return Number(window.sessionStorage.getItem(AGENT_DISABLE_KEY) || 0);
+  } catch (_) {
+    return 0;
+  }
+}
+
+function isAgentTemporarilyDisabled() {
+  return getAgentDisabledUntil() > Date.now();
+}
+
+function markAgentUnavailable() {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.sessionStorage.setItem(AGENT_DISABLE_KEY, String(Date.now() + AGENT_RETRY_DELAY_MS));
+  } catch (_) {}
+}
+
+function clearAgentUnavailable() {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.sessionStorage.removeItem(AGENT_DISABLE_KEY);
+  } catch (_) {}
+}
+
+function isConnectionError(error) {
+  return (
+    error instanceof TypeError ||
+    error?.message?.includes("fetch") ||
+    error?.message?.includes("Failed to fetch") ||
+    error?.message?.includes("ERR_CONNECTION_REFUSED")
+  );
+}
+
 export async function registerRestauranteNoAgent(restaurante) {
   if (!restaurante || !restaurante.id) {
-    console.warn('⚠️ Dados do restaurante inválidos para registro no agent');
+    console.warn("Dados do restaurante invalidos para registro no agent.");
     return false;
   }
 
-  // Constrói o link do cardápio específico deste restaurante
-  // Exemplo: https://ninja-restaurante.vercel.app/cardapio/fenix-carne
+  if (isAgentTemporarilyDisabled()) {
+    return false;
+  }
+
   const cardapioLink = construirLinkCardapio(restaurante);
 
   try {
     const response = await fetch(`${AGENT_API_BASE}/register-restaurant`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         restaurante_id: restaurante.id,
-        nome: restaurante.nome_fantasia || restaurante.nome || 'Restaurante',
-        cardapio_link: cardapioLink
-      })
+        nome: restaurante.nome_fantasia || restaurante.nome || "Restaurante",
+        cardapio_link: cardapioLink,
+      }),
     });
 
     if (response.ok) {
+      clearAgentUnavailable();
       const data = await response.json();
-      console.log('✅ Restaurante registrado no Agent:', data.message);
+      console.log("Restaurante registrado no Agent:", data.message);
       return true;
-    } else {
-      console.error('❌ Erro ao registrar restaurante no Agent');
-      return false;
     }
+
+    markAgentUnavailable();
+    console.warn("Agent Python respondeu com erro ao registrar restaurante.");
+    return false;
   } catch (error) {
-    // Se o agent não estiver rodando, não é crítico
-    if (error.message?.includes('fetch')) {
-      console.warn('⚠️ Agent Python não está rodando. Auto-resposta WhatsApp indisponível.');
+    if (isConnectionError(error)) {
+      markAgentUnavailable();
+      console.warn("Agent Python indisponivel. Auto-resposta WhatsApp desativada temporariamente.");
     } else {
-      console.error('❌ Erro ao conectar com Agent:', error);
+      console.error("Erro ao conectar com Agent:", error);
     }
+
     return false;
   }
 }
 
-/**
- * Constrói o link do cardápio específico do restaurante
- * Exemplo: https://ninja-restaurante.vercel.app/cardapio/fenix-carne
- */
 function construirLinkCardapio(restaurante) {
-  // Tenta obter o slug/identificador único do restaurante
-  const slug = restaurante.slug || 
-               restaurante.identificador || 
-               restaurante.nome_fantasia?.toLowerCase().replace(/\s+/g, '-') ||
-               restaurante.id;
-  
-  // URL base do cardápio (ajuste conforme sua rota)
+  const slug =
+    restaurante.slug ||
+    restaurante.identificador ||
+    restaurante.nome_fantasia?.toLowerCase().replace(/\s+/g, "-") ||
+    restaurante.id;
+
   const baseUrl = window.location.origin;
-  
   return `${baseUrl}/cardapio/${slug}`;
 }
 
-/**
- * Dispara auto-resposta manual para um contato
- * Útil quando o cliente manda mensagem mas o agent não detectou automaticamente
- */
 export async function triggerAutoReply({ phone, customer_name, restaurante_id }) {
+  if (isAgentTemporarilyDisabled()) {
+    return null;
+  }
+
   try {
     const response = await fetch(`${AGENT_API_BASE}/auto-reply/send`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         phone,
         customer_name,
-        restaurante_id
-      })
+        restaurante_id,
+      }),
     });
 
     const data = await response.json();
-    
+
     if (response.ok) {
-      console.log('✅ Auto-resposta disparada para', customer_name);
+      clearAgentUnavailable();
+      console.log("Auto-resposta disparada para", customer_name);
       return data;
-    } else {
-      console.error('❌ Erro ao disparar auto-resposta:', data.message);
+    }
+
+    markAgentUnavailable();
+    console.error("Erro ao disparar auto-resposta:", data.message);
+    return null;
+  } catch (error) {
+    if (isConnectionError(error)) {
+      markAgentUnavailable();
       return null;
     }
-  } catch (error) {
-    console.error('❌ Erro ao conectar com Agent para auto-resposta:', error);
+
+    console.error("Erro ao conectar com Agent para auto-resposta:", error);
     return null;
   }
 }
 
-/**
- * Lista contatos que já receberam auto-resposta
- */
 export async function getAutoReplyContacts() {
+  if (isAgentTemporarilyDisabled()) {
+    return null;
+  }
+
   try {
     const response = await fetch(`${AGENT_API_BASE}/auto-reply/contacts`);
-    
+
     if (response.ok) {
+      clearAgentUnavailable();
       return await response.json();
     }
+
+    markAgentUnavailable();
     return null;
   } catch (error) {
-    console.error('❌ Erro ao obter contatos de auto-resposta:', error);
+    if (isConnectionError(error)) {
+      markAgentUnavailable();
+      return null;
+    }
+
+    console.error("Erro ao obter contatos de auto-resposta:", error);
     return null;
   }
 }
 
-/**
- * Reseta o cache de auto-resposta
- */
 export async function resetAutoReply(phone = null) {
+  if (isAgentTemporarilyDisabled()) {
+    return null;
+  }
+
   try {
     const body = phone ? { phone } : {};
-    
     const response = await fetch(`${AGENT_API_BASE}/auto-reply/reset`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
 
     if (response.ok) {
+      clearAgentUnavailable();
       const data = await response.json();
-      console.log('✅ Cache de auto-resposta resetado:', data.message);
+      console.log("Cache de auto-resposta resetado:", data.message);
       return data;
     }
+
+    markAgentUnavailable();
     return null;
   } catch (error) {
-    console.error('❌ Erro ao resetar auto-resposta:', error);
+    if (isConnectionError(error)) {
+      markAgentUnavailable();
+      return null;
+    }
+
+    console.error("Erro ao resetar auto-resposta:", error);
     return null;
   }
 }
 
-/**
- * Verifica se o Agent está online
- */
 export async function checkAgentStatus() {
+  if (isAgentTemporarilyDisabled()) {
+    return { online: false, cached: true };
+  }
+
   try {
     const response = await fetch(`${AGENT_API_BASE}/status`);
-    
+
     if (response.ok) {
+      clearAgentUnavailable();
       const data = await response.json();
       return {
         online: true,
-        ...data
+        ...data,
       };
     }
+
+    markAgentUnavailable();
     return { online: false };
-  } catch (error) {
+  } catch (_) {
+    markAgentUnavailable();
     return { online: false };
   }
 }
