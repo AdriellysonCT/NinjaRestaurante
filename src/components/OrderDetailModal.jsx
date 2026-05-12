@@ -6,9 +6,10 @@ import ImprimirComanda from './ImprimirComanda';
 import DeliveryChat from './DeliveryChat';
 import { ratingService } from '../services/ratingService';
 import { formatPhoneForWhatsApp, formatDisplayPhone } from '../utils/phoneFormatter';
+import StatusManager from './StatusManager';
 // Detalhes do pedido - modal estilizado escuro
 
-export const OrderDetailModal = ({ isOpen, onClose, order, unreadCount }) => {
+export const OrderDetailModal = ({ isOpen, onClose, order, unreadCount, onUpdateStatus }) => {
   const { restaurante } = useAuth();
   const [isPrinting, setIsPrinting] = useState(false);
   const [showComments, setShowComments] = useState(false);
@@ -416,6 +417,35 @@ export const OrderDetailModal = ({ isOpen, onClose, order, unreadCount }) => {
               </div>
               <span className="text-[10px] text-muted-foreground/60 font-medium">via NinjaPay</span>
             </div>
+          </div>
+          
+          {/* Status do Pedido e Ações de Avanço */}
+          <div className="border-t border-border pt-4 mt-1 bg-secondary/20 -mx-4 px-4 pb-4">
+            <h4 className="text-[10px] font-black text-primary uppercase mb-3 flex items-center gap-1.5">
+              <Icons.NavigationIcon className="w-3 h-3" /> Gestão de Missão
+            </h4>
+            <div className="flex justify-center w-full [&>div]:w-full [&>div>button]:w-full [&>div>button]:py-3.5 [&>div>button]:rounded-xl [&>div>button]:text-sm [&>div>button]:uppercase [&>div>button]:shadow-lg [&>div>button]:border-b-4 [&>div>button]:border-black/20">
+              <StatusManager 
+                order={order} 
+                onUpdateStatus={onUpdateStatus} 
+                restaurante={restaurante}
+              />
+            </div>
+
+            {/* Zona de Perigo - Cancelar Missão */}
+            {['pendente', 'novo', 'disponivel', 'aceito', 'em_preparo'].includes(order.status) && (
+              <button
+                onClick={async () => {
+                  if (window.confirm('Tem certeza que deseja CANCELAR esta missão? Esta ação não pode ser desfeita.')) {
+                    await onUpdateStatus(order.id, 'cancelado');
+                    onClose();
+                  }
+                }}
+                className="w-full mt-4 py-2 text-[10px] font-black text-destructive/50 hover:text-destructive uppercase tracking-widest transition-colors flex items-center justify-center gap-1"
+              >
+                <Icons.AlertCircleIcon className="w-3 h-3" /> Cancelar Missão
+              </button>
+            )}
           </div>
           
           {/* Ações */}

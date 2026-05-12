@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -43,8 +43,8 @@ const STAGE_META = {
     pillClass: "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30",
   },
   aceito: {
-    label: "Aceitos",
-    shortLabel: "Aceitos",
+    label: "Em preparo",
+    shortLabel: "Preparo",
     pillClass: "bg-sky-500/15 text-sky-500 border border-sky-500/30",
   },
   coletado: {
@@ -71,13 +71,12 @@ const STAGE_META = {
 
 const FILTER_TABS = [
   { key: "all", label: "Todos" },
-  { key: "novas_missoes", label: "Nova missao" },
+  { key: "novas_missoes", label: "Nova missão" },
   { key: "em_preparo", label: "Em preparo" },
   { key: "pronto", label: "Pronto p/ entrega" },
-  { key: "aceito", label: "Aceitos" },
   { key: "coletado", label: "Coletados" },
-  { key: "problemas", label: "Falha / cancelado" },
-  { key: "concluido", label: "Concluidos" },
+  { key: "problemas", label: "Falhas / Cancelados" },
+  { key: "concluido", label: "Concluídos" },
 ];
 
 const TYPE_BADGE_LABELS = {
@@ -112,9 +111,6 @@ const getVisualStage = (order) => {
         return "concluido";
       case "cancelado":
         return "cancelado";
-      case "pronto_para_entrega":
-      case "coletado":
-        return "em_preparo";
       default:
         return "novas_missoes";
     }
@@ -125,10 +121,9 @@ const getVisualStage = (order) => {
     case "novo":
     case "disponivel":
       return "novas_missoes";
+    case "aceito":
     case "em_preparo":
       return "em_preparo";
-    case "aceito":
-      return order.nome_entregador || order.id_entregador ? "aceito" : "em_preparo";
     case "pronto_para_entrega":
       return "pronto";
     case "coletado":
@@ -373,13 +368,20 @@ export const DashboardMobile = () => {
           filter: `id_restaurante=eq.${restaurantId}`,
         },
         async (payload) => {
-          if (payload?.eventType === "INSERT" && autoAcceptRef.current && restaurante?.ativo) {
-            const newOrder = payload.new;
-            if (isPendingStatus(newOrder?.status)) {
-              setTimeout(async () => {
-                const fullOrder = await orderService.fetchOrderById(newOrder.id);
-                autoAcceptOrder(fullOrder || newOrder);
-              }, AUTO_ACCEPT_DELAY_MS);
+          if (payload?.eventType === "INSERT") {
+            // Vibração para novo pedido
+            if (window.navigator?.vibrate) {
+              window.navigator.vibrate([200, 100, 200]);
+            }
+
+            if (autoAcceptRef.current && restaurante?.ativo) {
+              const newOrder = payload.new;
+              if (isPendingStatus(newOrder?.status)) {
+                setTimeout(async () => {
+                  const fullOrder = await orderService.fetchOrderById(newOrder.id);
+                  autoAcceptOrder(fullOrder || newOrder);
+                }, AUTO_ACCEPT_DELAY_MS);
+              }
             }
           }
 
@@ -491,6 +493,11 @@ export const DashboardMobile = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     setUpdatingOrders((prev) => new Set(prev).add(orderId));
+    
+    // Feedback táctil (vibração suave)
+    if (window.navigator?.vibrate) {
+      window.navigator.vibrate(50);
+    }
 
     try {
       const updates = { status: newStatus };
@@ -511,6 +518,18 @@ export const DashboardMobile = () => {
             : order
         )
       );
+
+      // Sincronizar com o pedido selecionado no modal
+      setSelectedOrder((prev) => {
+        if (prev?.id === orderId) {
+          return {
+            ...prev,
+            status: newStatus,
+            started_at: newStatus === "aceito" ? new Date().toISOString() : prev.started_at,
+          };
+        }
+        return prev;
+      });
 
       const orderData = orders.find((order) => order.id === orderId);
       if (newStatus === "aceito" && orderData) {
@@ -847,13 +866,25 @@ export const DashboardMobile = () => {
         sortedOrders.map((order) => {
           const stage = getVisualStage(order);
           const stageMeta = STAGE_META[stage] || STAGE_META.novas_missoes;
+          
+          // Calcular atraso para o efeito visual
+          const { atrasado } = calcularTempoRestante(order.started_at, order.prepTime);
 
           return (
             <div
               key={order.id}
-              className="bg-card rounded-2xl p-4 border border-border shadow-sm active:scale-[0.98] transition-transform"
+              className={`bg-card rounded-2xl p-4 border transition-all active:scale-[0.98] ${
+                atrasado && stage === "em_preparo"
+                  ? "border-destructive/50 shadow-[0_0_15px_rgba(239,68,68,0.15)] ring-1 ring-destructive/20"
+                  : "border-border shadow-sm"
+              }`}
               onClick={() => handleCardClick(order)}
             >
+              {atrasado && stage === "em_preparo" && (
+                <div className="flex items-center gap-1.5 text-[10px] font-black text-destructive uppercase mb-2 animate-pulse">
+                  <Icons.AlertCircleIcon className="w-3 h-3" /> Pedido Atrasado
+                </div>
+              )}
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -946,15 +977,25 @@ export const DashboardMobile = () => {
               <h1 className="text-xl font-bold text-foreground">Pedidos</h1>
               <p className="text-xs text-muted-foreground">{countsByStage.all} pedido{countsByStage.all !== 1 ? "s" : ""} hoje</p>
             </div>
-            <span
-              className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-bold ${
-                isRestaurantOnline
-                  ? "bg-success/15 text-success border border-success/30"
-                  : "bg-destructive/15 text-destructive border border-destructive/30"
-              }`}
-            >
-              {isRestaurantOnline ? "Online" : "Offline"}
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => fetchOrders()}
+                disabled={isLoading}
+                className="p-2.5 rounded-xl bg-secondary text-foreground active:rotate-180 transition-transform duration-500"
+                aria-label="Recarregar"
+              >
+                <Icons.RefreshCwIcon className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`} />
+              </button>
+              <span
+                className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-bold ${
+                  isRestaurantOnline
+                    ? "bg-success/15 text-success border border-success/30"
+                    : "bg-destructive/15 text-destructive border border-destructive/30"
+                }`}
+              >
+                {isRestaurantOnline ? "Online" : "Offline"}
+              </span>
+            </div>
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
@@ -1027,6 +1068,7 @@ export const DashboardMobile = () => {
           onClose={() => setSelectedOrder(null)}
           order={selectedOrder}
           unreadCount={selectedOrder ? unreadMessages[selectedOrder.id] || 0 : 0}
+          onUpdateStatus={handleStatusChange}
         />
 
         <audio preload="auto">

@@ -33,12 +33,20 @@ const StatusManager = ({ order, onUpdateStatus, restaurante }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    setCurrentStatus(order.status);
+    // Normalizar status iniciais para o fluxo
+    const normalized = ['pendente', 'novo'].includes(order.status) ? 'disponivel' : order.status;
+    setCurrentStatus(normalized);
   }, [order.status]);
 
+  const normalizeStatus = (status) => {
+    if (['pendente', 'novo'].includes(status)) return 'disponivel';
+    return status;
+  };
+
   const handleUpdateStatus = async () => {
+    const normalizedCurrent = normalizeStatus(currentStatus);
     const statusFlow = getStatusFlow(order.tipo_pedido);
-    const currentAction = statusFlow[currentStatus];
+    const currentAction = statusFlow[normalizedCurrent];
     if (!currentAction || !currentAction.next) return;
 
     setIsLoading(true);
@@ -132,21 +140,17 @@ const StatusManager = ({ order, onUpdateStatus, restaurante }) => {
     setIsLoading(false);
   };
 
+  const normalizedCurrent = normalizeStatus(currentStatus);
   const statusFlow = getStatusFlow(order.tipo_pedido);
-  const currentAction = statusFlow[currentStatus];
+  const currentAction = statusFlow[normalizedCurrent];
 
-  if (!currentAction || currentAction.disabled || currentStatus === 'aceito') {
-    const isLocalOrder = order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local';
-    const displayText = currentStatus === 'aceito' 
-      ? (isLocalOrder ? 'Preparando Pedido Local' : 'Em Preparo') 
-      : (currentAction ? currentAction.text : 'Status Desconhecido');
-      
+  if (!currentAction || currentAction.disabled) {
     return (
       <button
-        className={`px-4 py-2 rounded text-white font-bold ${currentAction && currentStatus !== 'aceito' ? currentAction.color : 'bg-gray-400'}`}
+        className={`px-4 py-2 rounded text-white font-bold bg-gray-400`}
         disabled
       >
-        {displayText}
+        {currentAction ? currentAction.text : 'Status Desconhecido'}
       </button>
     );
   }
