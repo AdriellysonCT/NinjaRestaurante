@@ -2,7 +2,7 @@
 
 /* Ajustes globais */
 body {
-  overflow: hidden;
+  /* overflow: hidden; -> Removido para permitir rolagem em formulários */
 }
 
 /* Ajustes de cabeçalho */
@@ -56,8 +56,8 @@ h1 {
   flex: 1 1 0% !important;
 }
 
-/* Ajustes para o container principal */
-.flex.min-h-screen.w-full {
+/* Ajustes para o container principal - Removido para permitir scroll em páginas longas */
+/* .flex.min-h-screen.w-full {
   height: 100vh;
   overflow: hidden;
-}
+} */

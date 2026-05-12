@@ -168,7 +168,7 @@ export function Cadastro() {
   };
   
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-background to-background/95 flex flex-col items-center py-8 md:justify-center px-4 overflow-y-auto">
+    <div className="min-h-screen w-full bg-gradient-to-b from-background to-background/95 flex flex-col items-center md:justify-center pt-8 pb-24 px-4 overflow-y-auto scroll-smooth">
       {/* Botão Voltar flutuante para Mobile */}
       <div className="w-full max-w-2xl mb-4">
         <Link to="/login" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
