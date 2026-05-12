@@ -63,16 +63,19 @@ export function Login() {
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen w-full bg-gradient-to-b from-background to-background/95 flex flex-col items-center py-8 md:justify-center px-4 overflow-y-auto">
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md p-8 space-y-8 bg-card rounded-xl shadow-lg"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md p-6 md:p-10 space-y-8 bg-card/50 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl"
       >
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-primary">Fome Ninja</h1>
-          <p className="mt-2 text-muted-foreground">Faça login para acessar seu painel</p>
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
+            <span className="text-4xl">🥷</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-primary uppercase tracking-tighter">Fome Ninja</h1>
+          <p className="mt-2 text-muted-foreground font-medium italic">Acesso Restrito aos Mestres</p>
         </div>
         
         {loginSucesso ? (
@@ -122,13 +125,13 @@ export function Login() {
               />
             </div>
             
-            <div>
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex justify-center py-4 px-4 border-b-4 border-black/20 rounded-xl shadow-lg text-base font-black uppercase tracking-widest text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 transition-all active:scale-[0.98]"
               >
-                {loading ? 'Entrando...' : 'Entrar'}
+                {loading ? 'Entrando nas Sombras...' : 'Entrar no Painel'}
               </button>
             </div>
           </form>
