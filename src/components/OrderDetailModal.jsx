@@ -422,7 +422,7 @@ export const OrderDetailModal = ({ isOpen, onClose, order, unreadCount, onUpdate
           {/* Status do Pedido e Ações de Avanço */}
           <div className="border-t border-border pt-4 mt-1 bg-secondary/20 -mx-4 px-4 pb-4">
             <h4 className="text-[10px] font-black text-primary uppercase mb-3 flex items-center gap-1.5">
-              <Icons.NavigationIcon className="w-3 h-3" /> Gestão de Missão
+              <Icons.TargetIcon className="w-3 h-3" /> Gestão de Missão
             </h4>
             <div className="flex justify-center w-full [&>div]:w-full [&>div>button]:w-full [&>div>button]:py-3.5 [&>div>button]:rounded-xl [&>div>button]:text-sm [&>div>button]:uppercase [&>div>button]:shadow-lg [&>div>button]:border-b-4 [&>div>button]:border-black/20">
               <StatusManager 

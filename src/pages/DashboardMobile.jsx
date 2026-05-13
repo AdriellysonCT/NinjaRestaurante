@@ -148,7 +148,7 @@ const getTypeBadgeLabel = (tipoPedido) => TYPE_BADGE_LABELS[tipoPedido] || "PED"
 const getTypeBadgeClass = (tipoPedido) => TYPE_BADGE_CLASSES[tipoPedido] || "bg-gray-600 text-white";
 
 export const DashboardMobile = () => {
-  const { user, restaurante, atualizarDadosRestaurante } = useAuth();
+  const { user, restaurante, atualizarDadosRestaurante, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const location = useLocation();
   const activeTab = useMemo(() => {
@@ -829,8 +829,22 @@ export const DashboardMobile = () => {
             disabled={isUpdatingRestaurantStatus}
             className="w-full rounded-2xl px-4 py-3 text-sm font-bold bg-secondary text-foreground hover:bg-secondary/80 transition-colors border border-border mt-1 flex items-center justify-center gap-2"
           >
-            <Icons.LogOutIcon className="w-4 h-4" />
+            <Icons.PowerOffIcon className="w-4 h-4" />
             Encerrar o Dia
+          </button>
+
+          <button
+            type="button"
+            onClick={async () => {
+                const confirmed = window.confirm("Deseja realmente sair do sistema?");
+                if (confirmed) {
+                  await logout();
+                }
+            }}
+            className="w-full rounded-2xl px-4 py-3 text-sm font-bold bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors border border-destructive/20 mt-3 flex items-center justify-center gap-2"
+          >
+            <Icons.LogOutIcon className="w-4 h-4" />
+            Sair do Sistema
           </button>
         </div>
       </div>
@@ -1131,8 +1145,8 @@ export const DashboardMobile = () => {
               
               <h3 className="text-2xl font-bold text-foreground mb-2">Encerrar o dia?</h3>
               <p className="text-muted-foreground mb-8 leading-relaxed">
-                A loja ficará <span className="font-bold text-destructive">offline</span> e o painel de pedidos será limpo. <br/>
-                Os pedidos concluídos serão movidos para o histórico.
+                A loja ficará <span className="font-bold text-orange-500">Offline</span> e as vendas serão pausadas. <br/>
+                O painel será limpo, mas <span className="font-semibold text-primary">você continuará logado</span>.
               </p>
               
               <div className="w-full space-y-3">

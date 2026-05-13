@@ -184,24 +184,7 @@ export const AuthProvider = ({ children }) => {
       if (dadosRestaurante) {
         console.log('✅ AuthContext: Dados do restaurante carregados');
         
-        // 🔥 Lógica: Sempre começar OFFLINE/DESPAUSADO ao abrir o painel (primeira vez na sessão)
-        const isFirstLoadOfSession = !sessionStorage.getItem('fome-ninja-initialized');
-        
-        if (isFirstLoadOfSession && (dadosRestaurante.ativo || dadosRestaurante.pausado)) {
-          console.log('🌙 AuthContext: Forçando status OFFLINE/DESPAUSADO no primeiro carregamento da sessão');
-          // Atualizar no banco: desativar e despausar
-          await supabase
-            .from('restaurantes_app')
-            .update({ ativo: false, pausado: false })
-            .eq('id', dadosRestaurante.id);
-          
-          // Atualizar o objeto local
-          dadosRestaurante.ativo = false;
-          dadosRestaurante.pausado = false;
-          sessionStorage.setItem('fome-ninja-initialized', 'true');
-        } else {
-          sessionStorage.setItem('fome-ninja-initialized', 'true');
-        }
+        sessionStorage.setItem('fome-ninja-initialized', 'true');
 
         setRestaurante(prev => {
           if (!prev) return dadosRestaurante;
@@ -433,28 +416,7 @@ export const AuthProvider = ({ children }) => {
       
       console.log('Iniciando processo de logout...');
       
-      // ✅ Atualizar status ativo para false antes de deslogar
-      if (user?.id) {
-        try {
-          const { data: restauranteData } = await supabase
-            .from('restaurantes_app')
-            .select('id')
-            .eq('user_id', user.id)
-            .single();
-          
-          if (restauranteData?.id) {
-            await supabase
-              .from('restaurantes_app')
-              .update({ ativo: false, pausado: false })
-              .eq('id', restauranteData.id);
-            
-            console.log('✅ Restaurante marcado como OFFLINE e DESPAUSADO');
-          }
-        } catch (updateError) {
-          console.error('⚠️ Erro ao atualizar status ativo:', updateError);
-          // Não impedir logout se falhar ao atualizar status
-        }
-      }
+      // Logout simples sem alterar status do restaurante no banco
       
       // Parar monitoramento de sessão
       stopSessionMonitoring();

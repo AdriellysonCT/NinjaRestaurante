@@ -579,6 +579,9 @@ export const Header = ({ toggleTheme, theme }) => {
 
   const handleLogout = async () => {
     try {
+      const confirmed = window.confirm("Deseja realmente sair do sistema? Isso encerrará sua sessão administrativa, mas a loja continuará funcionando normalmente.");
+      if (!confirmed) return;
+      
       setShowProfileMenu(false);
       await logout();
     } catch (error) {
@@ -627,17 +630,31 @@ export const Header = ({ toggleTheme, theme }) => {
   };
 
   const handleEndDay = async () => {
+    if (isUpdatingStatus) return;
+    
     try {
       console.log('🌙 Encerrando o dia...');
+      setIsUpdatingStatus(true);
       setShowEndDayConfirm(false);
+      const now = new Date().toISOString();
       
-      // O logout já cuida de marcar o restaurante como offline (ativo = false)
-      // Veja a função logout() no AuthContext
-      await logout();
+      // Fecha a loja, remove a pausa e marca o horário de fechamento
+      await atualizarDadosRestaurante({ 
+        ativo: false, 
+        pausado: false,
+        ultimo_fechamento_em: now
+      });
+      
+      logger.log(`✅ Dia encerrado com sucesso em: ${new Date(now).toLocaleString()}`);
+      
+      // Feedback opcional: redirecionar para dashboard se estiver em outra página
+      if (location.pathname !== '/dashboard') {
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error('❌ Erro ao encerrar o dia:', error);
-      // Mesmo com erro, tentar fazer logout
-      await logout();
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -908,17 +925,25 @@ export const Header = ({ toggleTheme, theme }) => {
                   
                   <button 
                     onClick={() => setShowEndDayConfirm(true)}
-                    className="flex items-center w-full text-left px-4 py-2 text-xs text-orange-500 hover:bg-secondary transition-colors font-medium"
+                    className="flex items-center w-full text-left px-4 py-2 text-xs text-orange-500 hover:bg-orange-500/10 transition-colors font-medium border-t border-border"
+                  >
+                    <PowerOffIcon className="w-4 h-4 mr-2" />
+                    <span>Encerrar o Dia</span>
+                  </button>
+                  
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center w-full text-left px-4 py-2 text-xs text-destructive hover:bg-destructive/10 transition-colors font-medium border-t border-border"
                   >
                     <LogOutIcon className="w-4 h-4 mr-2" />
-                    <span>Encerrar o Dia</span>
+                    <span>Sair do Sistema</span>
                   </button>
                 </div>
               ) : (
                 <div className="p-4">
                   <h3 className="text-sm font-bold text-card-foreground mb-2">Encerrar o Dia?</h3>
                   <p className="text-xs text-muted-foreground mb-4">
-                    Isso irá marcar o estabelecimento como inativo e você será deslogado do sistema.
+                    Isso irá marcar o estabelecimento como <strong>fechado</strong> e as vendas serão pausadas. Você continuará logado no sistema.
                   </p>
                   <div className="flex gap-2">
                     <button
