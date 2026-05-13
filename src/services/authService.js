@@ -219,6 +219,7 @@ export async function atualizarDadosRestaurante(dadosAtualizados) {
     if (dadosAtualizados.imagemUrl !== undefined) updateData.imagem_url = dadosAtualizados.imagemUrl;
     if (dadosAtualizados.efiPayeeCode !== undefined) updateData.efi_payee_code = dadosAtualizados.efiPayeeCode;
     if (dadosAtualizados.ativo !== undefined) updateData.ativo = dadosAtualizados.ativo;
+    if (dadosAtualizados.pausado !== undefined) updateData.pausado = dadosAtualizados.pausado;
     
     // Suporte para nomes de campos diretos (snake_case)
     if (dadosAtualizados.nome_fantasia !== undefined) updateData.nome_fantasia = dadosAtualizados.nome_fantasia;
@@ -226,6 +227,7 @@ export async function atualizarDadosRestaurante(dadosAtualizados) {
     if (dadosAtualizados.nome_responsavel !== undefined) updateData.nome_responsavel = dadosAtualizados.nome_responsavel;
     if (dadosAtualizados.imagem_url !== undefined) updateData.imagem_url = dadosAtualizados.imagem_url;
     if (dadosAtualizados.efi_payee_code !== undefined) updateData.efi_payee_code = dadosAtualizados.efi_payee_code;
+    if (dadosAtualizados.pausado !== undefined) updateData.pausado = dadosAtualizados.pausado;
 
     // Atualizar dados do restaurante
     const { data, error} = await supabase

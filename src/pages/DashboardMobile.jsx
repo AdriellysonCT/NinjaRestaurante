@@ -63,9 +63,14 @@ const STAGE_META = {
     pillClass: "bg-slate-500/15 text-slate-500 border border-slate-500/30",
   },
   concluido: {
-    label: "Concluidos",
-    shortLabel: "Concluidos",
+    label: "Concluídos",
+    shortLabel: "Concluídos",
     pillClass: "bg-teal-500/15 text-teal-500 border border-teal-500/30",
+  },
+  pausado: {
+    label: "Pausado",
+    shortLabel: "Pausado",
+    pillClass: "bg-slate-500/20 text-slate-500 border border-slate-500/30",
   },
 };
 
@@ -169,6 +174,7 @@ export const DashboardMobile = () => {
   const [unreadMessages, setUnreadMessages] = useState({});
   const [isUpdatingRestaurantStatus, setIsUpdatingRestaurantStatus] = useState(false);
   const [isUpdatingPause, setIsUpdatingPause] = useState(false);
+  const [showConfirmEncerrar, setShowConfirmEncerrar] = useState(false);
 
   const autoAcceptRef = useRef(autoAcceptEnabled);
   const processedOrdersRef = useRef(new Set());
@@ -607,7 +613,34 @@ export const DashboardMobile = () => {
       });
     } catch (statusError) {
       logger.error("Erro ao atualizar status da loja:", statusError);
-      alert("Nao foi possivel atualizar o status da loja.");
+      alert("Não foi possível atualizar o status da loja.");
+    } finally {
+      setIsUpdatingRestaurantStatus(false);
+    }
+  };
+
+  const handleEncerrarDia = async () => {
+    setIsUpdatingRestaurantStatus(true);
+    try {
+      // 1. Ficar offline no banco
+      await atualizarDadosRestaurante({
+        ativo: false,
+        pausado: false
+      });
+
+      // 2. Limpar todos os pedidos da lista atual (zera o painel)
+      setOrders([]);
+      
+      // 3. Fechar modal
+      setShowConfirmEncerrar(false);
+      
+      // Feedback tátil de sucesso
+      if (window.navigator?.vibrate) {
+        window.navigator.vibrate([100, 50, 100]);
+      }
+    } catch (error) {
+      logger.error("Erro ao encerrar dia:", error);
+      alert("Erro ao encerrar dia. Tente novamente.");
     } finally {
       setIsUpdatingRestaurantStatus(false);
     }
@@ -633,7 +666,13 @@ export const DashboardMobile = () => {
   };
 
   const renderStatusButton = (order) => {
-    const stage = getVisualStage(order);
+    let stage = getVisualStage(order);
+    
+    // Diferenciar estágio visual 'em_preparo' para mostrar o botão correto baseado no status real
+    if (stage === "em_preparo" && order.status === "aceito") {
+      stage = "aceito";
+    }
+
     const isLocalOrder = order.tipo_pedido === "retirada" || order.tipo_pedido === "local";
 
     const buttonConfigByStage = {
@@ -673,9 +712,9 @@ export const DashboardMobile = () => {
         className: "bg-destructive hover:bg-destructive/90 text-white",
       },
       aceito: {
-        text: "Aguardando entregador",
-        nextStatus: null,
-        className: "bg-sky-500/15 text-sky-500 border border-sky-500/30",
+        text: "Iniciar preparo",
+        nextStatus: "em_preparo",
+        className: "bg-primary hover:bg-primary/90 text-white",
       },
     };
 
@@ -746,20 +785,20 @@ export const DashboardMobile = () => {
             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
               isRestaurantOnline
                 ? "bg-success/15 text-success border border-success/30"
-                : "bg-destructive/15 text-destructive border border-destructive/30"
+                : "bg-secondary text-muted-foreground border border-border"
             }`}
           >
-            {isRestaurantOnline ? "Loja online" : "Loja offline"}
+            {isRestaurantOnline ? "Loja online" : "FECHADO TEMPORARIAMENTE"}
           </span>
           {isRestaurantOnline && (
             <span
               className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
                 isRestaurantPaused
-                  ? "bg-amber-500/15 text-amber-600 border border-amber-500/30"
+                  ? "bg-secondary text-muted-foreground border border-border"
                   : "bg-sky-500/15 text-sky-500 border border-sky-500/30"
               }`}
             >
-              {isRestaurantPaused ? "Vendas pausadas" : "Recebendo pedidos"}
+              {isRestaurantPaused ? "VENDAS PAUSADAS" : "Recebendo pedidos"}
             </span>
           )}
         </div>
@@ -790,6 +829,16 @@ export const DashboardMobile = () => {
               {isUpdatingPause ? "Atualizando..." : isRestaurantPaused ? "Retomar vendas" : "Pausar vendas"}
             </button>
           )}
+          
+          <button
+            type="button"
+            onClick={() => setShowConfirmEncerrar(true)}
+            disabled={isUpdatingRestaurantStatus}
+            className="w-full rounded-2xl px-4 py-3 text-sm font-bold bg-secondary text-foreground hover:bg-secondary/80 transition-colors border border-border mt-1 flex items-center justify-center gap-2"
+          >
+            <Icons.LogOutIcon className="w-4 h-4" />
+            Encerrar o Dia
+          </button>
         </div>
       </div>
 
@@ -990,10 +1039,10 @@ export const DashboardMobile = () => {
                 className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-bold ${
                   isRestaurantOnline
                     ? "bg-success/15 text-success border border-success/30"
-                    : "bg-destructive/15 text-destructive border border-destructive/30"
+                    : "bg-secondary text-muted-foreground border border-border"
                 }`}
               >
-                {isRestaurantOnline ? "Online" : "Offline"}
+                {isRestaurantOnline ? "Online" : "Fechado"}
               </span>
             </div>
           </div>
@@ -1070,6 +1119,46 @@ export const DashboardMobile = () => {
           unreadCount={selectedOrder ? unreadMessages[selectedOrder.id] || 0 : 0}
           onUpdateStatus={handleStatusChange}
         />
+
+        {/* Modal de Confirmação de Encerramento do Dia */}
+        {showConfirmEncerrar && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div 
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300" 
+              onClick={() => !isUpdatingRestaurantStatus && setShowConfirmEncerrar(false)}
+            />
+            <div className="relative bg-card w-full max-w-sm rounded-[2.5rem] border border-border shadow-2xl p-8 animate-in zoom-in-95 duration-300 flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mb-6">
+                <Icons.LogOutIcon className="w-10 h-10 text-foreground" />
+              </div>
+              
+              <h3 className="text-2xl font-bold text-foreground mb-2">Encerrar o dia?</h3>
+              <p className="text-muted-foreground mb-8 leading-relaxed">
+                A loja ficará <span className="font-bold text-destructive">offline</span> e o painel de pedidos será limpo. <br/>
+                Os pedidos concluídos serão movidos para o histórico.
+              </p>
+              
+              <div className="w-full space-y-3">
+                <button
+                  type="button"
+                  disabled={isUpdatingRestaurantStatus}
+                  onClick={handleEncerrarDia}
+                  className="w-full bg-destructive text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-transform disabled:opacity-50"
+                >
+                  {isUpdatingRestaurantStatus ? "Encerrando..." : "Sim, Encerrar"}
+                </button>
+                <button
+                  type="button"
+                  disabled={isUpdatingRestaurantStatus}
+                  onClick={() => setShowConfirmEncerrar(false)}
+                  className="w-full bg-secondary text-foreground font-bold py-4 rounded-2xl active:scale-[0.98] transition-transform disabled:opacity-50"
+                >
+                  Continuar Trabalhando
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <audio preload="auto">
           <source src="/sounds/Notificação_Pedidos.wav" type="audio/wav" />

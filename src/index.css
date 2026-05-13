@@ -265,3 +265,17 @@ textarea::placeholder {
     user-select: none;
   }
 }
+
+/* Fix para altura total no mobile e rolagem */
+@supports (height: 100svh) {
+  .min-h-svh {
+    min-height: 100svh;
+  }
+}
+
+@media screen and (max-width: 1023px) {
+  html, body {
+    height: -webkit-fill-available;
+    overscroll-behavior-y: none;
+  }
+}

@@ -63,7 +63,7 @@ export function Login() {
   };
   
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-background to-background/95 flex flex-col items-center md:justify-center pt-8 pb-24 px-4 overflow-y-auto">
+    <div className="min-h-svh w-full bg-gradient-to-b from-background to-background/95 flex flex-col items-center pt-12 md:justify-center pb-32 px-4 overflow-y-auto scroll-smooth">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
