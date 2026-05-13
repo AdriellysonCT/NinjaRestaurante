@@ -217,7 +217,7 @@ export const DashboardMobile = () => {
       setIsLoading(true);
       setError(null);
 
-      const { data: pedidosData, error: pedidosError } = await supabase
+      let query = supabase
         .from("pedidos_padronizados")
         .select(`
           *,
@@ -246,8 +246,13 @@ export const DashboardMobile = () => {
           )
         `)
         .eq("id_restaurante", restaurantId)
-        .neq("tipo_pedido", "local")
-        .order("criado_em", { ascending: false });
+        .neq("tipo_pedido", "local");
+
+      if (restaurante?.ultimo_fechamento_em) {
+        query = query.gt("criado_em", restaurante.ultimo_fechamento_em);
+      }
+
+      const { data: pedidosData, error: pedidosError } = await query.order("criado_em", { ascending: false });
 
       if (pedidosError) throw pedidosError;
 
@@ -309,7 +314,7 @@ export const DashboardMobile = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [restaurantId]);
+  }, [restaurantId, restaurante?.ultimo_fechamento_em]);
 
   useEffect(() => {
     if (restaurantId) {
@@ -550,7 +555,7 @@ export const DashboardMobile = () => {
         };
 
         if (statusMap[newStatus]) {
-          notificationService.notifyStatusChange(orderData, statusMap[newStatus]);
+          notificationService.notifyStatusChange(orderData, statusMap[statusMap[newStatus]]);
         }
       }
     } catch (updateError) {
@@ -620,27 +625,24 @@ export const DashboardMobile = () => {
   };
 
   const handleEncerrarDia = async () => {
-    setIsUpdatingRestaurantStatus(true);
+    if (isUpdatingRestaurantStatus) return;
+
     try {
-      // 1. Ficar offline no banco
+      setIsUpdatingRestaurantStatus(true);
+      const now = new Date().toISOString();
+
       await atualizarDadosRestaurante({
         ativo: false,
-        pausado: false
+        pausado: false,
+        ultimo_fechamento_em: now
       });
 
-      // 2. Limpar todos os pedidos da lista atual (zera o painel)
-      setOrders([]);
-      
-      // 3. Fechar modal
       setShowConfirmEncerrar(false);
+      setOrders([]); // Limpar lista local imediatamente
       
-      // Feedback tátil de sucesso
-      if (window.navigator?.vibrate) {
-        window.navigator.vibrate([100, 50, 100]);
-      }
-    } catch (error) {
-      logger.error("Erro ao encerrar dia:", error);
-      alert("Erro ao encerrar dia. Tente novamente.");
+      logger.log("Dia encerrado com sucesso");
+    } catch (err) {
+      console.error("Erro ao encerrar dia:", err);
     } finally {
       setIsUpdatingRestaurantStatus(false);
     }
@@ -779,29 +781,19 @@ export const DashboardMobile = () => {
     <div className="p-4 space-y-3">
       <div className="bg-card rounded-2xl p-4 border border-border shadow-sm">
         <p className="text-sm text-muted-foreground">Restaurante</p>
-        <h2 className="text-lg font-bold text-foreground mt-1">{restaurante?.nome_fantasia || "Painel do restaurante"}</h2>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
-              isRestaurantOnline
-                ? "bg-success/15 text-success border border-success/30"
-                : "bg-secondary text-muted-foreground border border-border"
-            }`}
-          >
-            {isRestaurantOnline ? "Loja online" : "FECHADO TEMPORARIAMENTE"}
+        <div className="flex items-center gap-2 mt-1">
+          <h2 className="text-lg font-bold text-foreground">{restaurante?.nome_fantasia || "Painel do restaurante"}</h2>
+          <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${
+            isRestaurantOnline 
+              ? isRestaurantPaused 
+                ? "bg-amber-500/10 text-amber-500 border-amber-500/20" 
+                : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+              : "bg-slate-500/10 text-slate-500 border-slate-500/20"
+          }`}>
+            {isRestaurantOnline ? (isRestaurantPaused ? "PAUSADO" : "ONLINE") : "OFFLINE"}
           </span>
-          {isRestaurantOnline && (
-            <span
-              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
-                isRestaurantPaused
-                  ? "bg-secondary text-muted-foreground border border-border"
-                  : "bg-sky-500/15 text-sky-500 border border-sky-500/30"
-              }`}
-            >
-              {isRestaurantPaused ? "VENDAS PAUSADAS" : "Recebendo pedidos"}
-            </span>
-          )}
         </div>
+
         <div className="mt-4 grid gap-2">
           <button
             type="button"
@@ -813,8 +805,9 @@ export const DashboardMobile = () => {
                 : "bg-success text-white"
             } ${isUpdatingRestaurantStatus ? "opacity-70" : ""}`}
           >
-            {isUpdatingRestaurantStatus ? "Atualizando..." : isRestaurantOnline ? "Ficar offline" : "Ficar online"}
+            {isUpdatingRestaurantStatus ? "Atualizando..." : isRestaurantOnline ? "Ficar offline" : "Abrir Loja"}
           </button>
+          
           {isRestaurantOnline && (
             <button
               type="button"
@@ -829,7 +822,7 @@ export const DashboardMobile = () => {
               {isUpdatingPause ? "Atualizando..." : isRestaurantPaused ? "Retomar vendas" : "Pausar vendas"}
             </button>
           )}
-          
+
           <button
             type="button"
             onClick={() => setShowConfirmEncerrar(true)}
@@ -1038,11 +1031,15 @@ export const DashboardMobile = () => {
               <span
                 className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-bold ${
                   isRestaurantOnline
-                    ? "bg-success/15 text-success border border-success/30"
-                    : "bg-secondary text-muted-foreground border border-border"
+                    ? isRestaurantPaused
+                      ? "bg-amber-500/15 text-amber-500 border border-amber-500/30"
+                      : "bg-success/15 text-success border border-success/30"
+                    : "bg-slate-500/10 text-slate-500 border border-slate-500/20"
                 }`}
               >
-                {isRestaurantOnline ? "Online" : "Fechado"}
+                {isRestaurantOnline 
+                  ? (isRestaurantPaused ? "Pausado" : "Aberto") 
+                  : "Fechado Temporariamente"}
               </span>
             </div>
           </div>
@@ -1065,26 +1062,26 @@ export const DashboardMobile = () => {
             <button
               onClick={handleToggleRestaurantStatus}
               disabled={isUpdatingRestaurantStatus}
-              className={`px-3 py-2 rounded-xl text-xs font-bold shadow-sm ${
+              className={`px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition-colors ${
                 isRestaurantOnline
                   ? "bg-destructive text-white"
                   : "bg-success text-white"
               } ${isUpdatingRestaurantStatus ? "opacity-70" : ""}`}
             >
-              {isUpdatingRestaurantStatus ? "..." : isRestaurantOnline ? "Ficar offline" : "Ficar online"}
+              {isUpdatingRestaurantStatus ? "..." : isRestaurantOnline ? "OFFLINE" : "ONLINE"}
             </button>
 
             {isRestaurantOnline && (
               <button
                 onClick={handleToggleRestaurantPause}
                 disabled={isUpdatingPause}
-                className={`px-3 py-2 rounded-xl text-xs font-bold shadow-sm ${
+                className={`px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition-colors ${
                   isRestaurantPaused
                     ? "bg-sky-500 text-white"
-                    : "bg-amber-500 text-black"
+                    : "bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.3)]"
                 } ${isUpdatingPause ? "opacity-70" : ""}`}
               >
-                {isUpdatingPause ? "..." : isRestaurantPaused ? "Retomar vendas" : "Pausar vendas"}
+                {isUpdatingPause ? "..." : isRestaurantPaused ? "RETOMAR" : "PAUSAR"}
               </button>
             )}
           </div>

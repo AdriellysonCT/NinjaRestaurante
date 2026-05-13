@@ -228,6 +228,7 @@ export async function atualizarDadosRestaurante(dadosAtualizados) {
     if (dadosAtualizados.imagem_url !== undefined) updateData.imagem_url = dadosAtualizados.imagem_url;
     if (dadosAtualizados.efi_payee_code !== undefined) updateData.efi_payee_code = dadosAtualizados.efi_payee_code;
     if (dadosAtualizados.pausado !== undefined) updateData.pausado = dadosAtualizados.pausado;
+    if (dadosAtualizados.ultimo_fechamento_em !== undefined) updateData.ultimo_fechamento_em = dadosAtualizados.ultimo_fechamento_em;
 
     // Atualizar dados do restaurante
     const { data, error} = await supabase
