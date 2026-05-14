@@ -22,6 +22,71 @@ const isPendingStatus = (status) => {
   return ['pendente', 'novo', 'disponivel'].includes(status);
 };
 
+// Mapeamento das "etapas visuais" (não são novos status no banco)
+const ORDER_STATUS_MAPPING = {
+  novas_missoes: "Novas Missões",
+  em_preparo: "Em Preparo",
+  pronto: "Pronto para Entregar",
+  aceito: "Aceitos",
+  coletado: "Coletados",
+  concluido: "Concluídos",
+  falha_entrega: "Falha na Entrega",
+  cancelado: "Cancelados",
+};
+
+// Determina a etapa visual a partir do status real + tipo_pedido
+const getVisualStage = (order) => {
+  if (!order) return 'novas_missoes';
+  
+  // Para pedidos de retirada/consumo local, fluxo simplificado
+  const isLocalOrPickup = order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local';
+  if (isLocalOrPickup) {
+    switch (order.status) {
+      case 'pendente':
+      case 'novo':
+      case 'disponivel':
+        return 'novas_missoes';
+      case 'aceito':
+      case 'em_preparo':
+        return 'em_preparo';
+      case 'concluido':
+        return 'concluido';
+      case 'cancelado':
+        return 'cancelado';
+      default:
+        return 'em_preparo';
+    }
+  }
+  
+  // Para pedidos de entrega (delivery), fluxo completo
+  switch (order.status) {
+    case 'pendente':
+    case 'novo':
+    case 'disponivel':
+      return 'novas_missoes';
+    case 'em_preparo':
+      return 'em_preparo';
+    case 'aceito':
+      // Se tem entregador associado, mapeia para aceito. Se não, em_preparo.
+      if (order.nome_entregador || order.id_entregador) {
+        return 'aceito';
+      }
+      return 'em_preparo';
+    case 'pronto_para_entrega':
+      return 'pronto';
+    case 'coletado':
+      return 'coletado';
+    case 'concluido':
+      return 'concluido';
+    case 'falha_entrega':
+      return 'falha_entrega';
+    case 'cancelado':
+      return 'cancelado';
+    default:
+      return 'novas_missoes';
+  }
+};
+
 const Dashboard = () => {
   const { user, restaurante, atualizarDadosRestaurante } = useAuth();
   const [orders, setOrders] = useState([]);
@@ -87,100 +152,6 @@ const Dashboard = () => {
 
   // Obter controle de som do contexto
   const { soundEnabled, soundPreference, soundUnlocked, enableSound, disableSound } = useAppContext?.() || {};
-
-  // Removido: não forçar auto-enable; respeitar preferência + desbloqueio por gesto
-
-  // Mapeamento das "etapas visuais" (não são novos status no banco)
-  const orderStatusMapping = {
-    novas_missoes: "Novas Missões",
-    em_preparo: "Em Preparo",
-    pronto: "Pronto para Entregar",
-    aceito: "Aceitos",
-    coletado: "Coletados",
-    concluido: "Concluídos",
-    falha_entrega: "Falha na Entrega",
-    cancelado: "Cancelados",
-  };
-
-  // Determina a etapa visual a partir do status real + tipo_pedido
-  const getVisualStage = (order) => {
-    if (!order) return 'novas_missoes';
-    
-    logger.log(`Mapeando pedido ${order.numero_pedido}: status="${order.status}", tipo_pedido="${order.tipo_pedido}", entregador="${order.nome_entregador || 'nenhum'}"`);
-    
-    // Para pedidos de retirada/consumo local, fluxo simplificado
-    // Fluxo: Novas Missões -> Em Preparo -> Concluído/Cancelado
-    const isLocalOrPickup = order.tipo_pedido === 'retirada' || order.tipo_pedido === 'local';
-    if (isLocalOrPickup) {
-      switch (order.status) {
-        case 'pendente':
-        case 'novo':
-        case 'disponivel':
-          logger.log(`  -> Pedido LOCAL/RETIRADA ${order.numero_pedido} mapeado para: novas_missoes`);
-          return 'novas_missoes';
-        case 'aceito':
-        case 'em_preparo':
-          logger.log(`  -> Pedido LOCAL/RETIRADA ${order.numero_pedido} mapeado para: em_preparo`);
-          return 'em_preparo';
-        case 'concluido':
-          logger.log(`  -> Pedido LOCAL/RETIRADA ${order.numero_pedido} mapeado para: concluido`);
-          return 'concluido';
-        case 'cancelado':
-          logger.log(`  -> Pedido LOCAL/RETIRADA ${order.numero_pedido} mapeado para: cancelado`);
-          return 'cancelado';
-        // Casos de status de entrega que não devem ocorrer em pedidos locais/retirada
-        // mas se ocorrerem, tratamos adequadamente
-        case 'pronto_para_entrega':
-        case 'coletado':
-          logger.log(`  -> ⚠️ Pedido LOCAL/RETIRADA ${order.numero_pedido} com status de entrega inválido "${order.status}", mapeando para: em_preparo`);
-          return 'em_preparo';
-        default:
-          logger.log(`  -> Pedido LOCAL/RETIRADA ${order.numero_pedido} mapeado para: novas_missoes (default)`);
-          return 'novas_missoes';
-      }
-    }
-    
-    // Para pedidos de entrega (delivery), fluxo completo
-    switch (order.status) {
-      case 'pendente':
-      case 'novo':
-      case 'disponivel':
-        logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: novas_missoes`);
-        return 'novas_missoes';
-      case 'em_preparo':
-        logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: em_preparo`);
-        return 'em_preparo';
-      case 'aceito':
-        // CORREÇÃO: Diferenciar entre "aceito pelo restaurante" e "aceito pelo entregador"
-        // Se tem entregador associado, significa que foi aceito pelo entregador
-        if (order.nome_entregador || order.id_entregador) {
-          logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: aceito (aceito pelo entregador)`);
-          return 'aceito';
-        } else {
-          // Se não tem entregador, significa que foi aceito pelo restaurante (em preparo)
-          logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: em_preparo (aceito pelo restaurante)`);
-          return 'em_preparo';
-        }
-      case 'pronto_para_entrega':
-        logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: pronto`);
-        return 'pronto';
-      case 'coletado':
-        logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: coletado`);
-        return 'coletado';
-      case 'concluido':
-        logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: concluido`);
-        return 'concluido';
-      case 'falha_entrega':
-        logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: falha_entrega`);
-        return 'falha_entrega';
-      case 'cancelado':
-        logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: cancelado`);
-        return 'cancelado';
-      default:
-        logger.log(`  -> Pedido ENTREGA ${order.numero_pedido} mapeado para: novas_missoes (default)`);
-        return 'novas_missoes';
-    }
-  };
 
   // Buscar ID do restaurante
   useEffect(() => {
@@ -715,9 +686,9 @@ const Dashboard = () => {
     'cancelado'
   ];
   const statusColumns = orderedStages
-    .filter((s) => orderStatusMapping[s])
+    .filter((s) => ORDER_STATUS_MAPPING[s])
     .map((stage) => ({
-      title: orderStatusMapping[stage],
+      title: ORDER_STATUS_MAPPING[stage],
       status: stage,
       orders: filteredOrders.map(o => ({...o, unreadCount: unreadMessages[o.id] || 0})).filter((order) => getVisualStage(order) === stage),
     }));
