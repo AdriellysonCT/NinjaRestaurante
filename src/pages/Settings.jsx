@@ -964,22 +964,6 @@ const Settings = () => {
             <h3 className="text-lg font-semibold text-foreground mb-4">Configurações de Entrega</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Valor Mínimo do Pedido (R$)</label>
-                <input type="number" className="w-full bg-input px-3 py-2 rounded-md" value={deliverySettings.minOrderValue} onChange={(e) => handleDeliverySettingChange('minOrderValue', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Distância Máxima de Entrega (km)</label>
-                <input type="number" className="w-full bg-input px-3 py-2 rounded-md" value={deliverySettings.maxDeliveryDistance} onChange={(e) => handleDeliverySettingChange('maxDeliveryDistance', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Entrega Grátis Acima de (R$)</label>
-                <input type="number" className="w-full bg-input px-3 py-2 rounded-md" value={deliverySettings.freeDeliveryOver} onChange={(e) => handleDeliverySettingChange('freeDeliveryOver', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Taxa de Entrega Base (R$)</label>
-                <input type="number" className="w-full bg-input px-3 py-2 rounded-md" value={deliverySettings.baseDeliveryFee} onChange={(e) => handleDeliverySettingChange('baseDeliveryFee', e.target.value)} />
-              </div>
-              <div>
                 <label className="block text-sm font-medium mb-1">Tempo Estimado de Entrega (minutos)</label>
                 <input type="number" className="w-full bg-input px-3 py-2 rounded-md" value={deliverySettings.estimatedDeliveryTime} onChange={(e) => handleDeliverySettingChange('estimatedDeliveryTime', e.target.value)} />
               </div>
