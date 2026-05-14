@@ -53,6 +53,30 @@ const Dashboard = () => {
   const processedOrdersRef = useRef(new Set()); // Evitar processar o mesmo pedido duas vezes
   const [unreadMessages, setUnreadMessages] = useState({}); // { [orderId]: count }
 
+  // Cálculo dinâmico do tempo de entrega (Logística Inteligente)
+  const dynamicDeliveryTime = useMemo(() => {
+    if (!orders) return null;
+    
+    // Contamos pedidos que estão "trabalhando" ou aguardando (Novas ou Em Preparo)
+    const activeOrdersCount = orders.filter(o => {
+      const stage = getVisualStage(o);
+      return stage === 'novas_missoes' || stage === 'em_preparo';
+    }).length;
+
+    // Tempo base das configurações
+    let baseTime = 30;
+    try {
+      const savedSettings = localStorage.getItem('fome-ninja-delivery-settings');
+      if (savedSettings) {
+        baseTime = JSON.parse(savedSettings).estimatedDeliveryTime || 30;
+      }
+    } catch (e) {
+      console.warn("Erro ao ler configurações de entrega:", e);
+    }
+
+    return orderService.calculateDynamicDeliveryTime(activeOrdersCount, baseTime);
+  }, [orders]);
+
   // Debounce da busca
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -380,8 +404,8 @@ const Dashboard = () => {
         logger.error(`❌ Erro na impressão automática:`, err);
       });
 
-      // 🥷 NinjaTalk AI: Notificação automática via WhatsApp
-      notificationService.notifyStatusChange(order, 'aceito');
+      // 🥷 NinjaTalk AI: Notificação automática via WhatsApp com tempo dinâmico
+      notificationService.notifyStatusChange(order, 'aceito', dynamicDeliveryTime?.label);
 
       return true;
     } catch (error) {
@@ -841,7 +865,7 @@ const Dashboard = () => {
           notificationService.notifyStatusChange({
             ...orderData,
             codigo_entrega: orderData.codigo_entrega || orderData.delivery_code // Garante que o código de segurança vá junto
-          }, mappedStatus);
+          }, mappedStatus, mappedStatus === 'aceito' ? dynamicDeliveryTime?.label : null);
         }
       }
 
@@ -1140,6 +1164,41 @@ const Dashboard = () => {
               <div className="text-primary-foreground/90 text-xs">Total de Hoje</div>
               <div className="text-primary-foreground font-bold text-2xl">
                 R$ {orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0).toFixed(2)}
+              </div>
+            </div>
+          </div>
+
+          {/* Gestão de Logística Inteligente */}
+          <div className="w-80 bg-card rounded-lg p-4 border border-border shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Icons.ClockIcon className={`w-5 h-5 ${
+                  dynamicDeliveryTime?.level === 'alto' ? 'text-destructive' : 
+                  dynamicDeliveryTime?.level === 'moderado' ? 'text-yellow-500' : 'text-primary'
+                }`} />
+                <h3 className="font-bold text-card-foreground">Logística Atual</h3>
+              </div>
+              <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                dynamicDeliveryTime?.level === 'alto' ? 'bg-destructive/10 text-destructive' : 
+                dynamicDeliveryTime?.level === 'moderado' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-success/10 text-success'
+              }`}>
+                {dynamicDeliveryTime?.level === 'alto' ? '🔥 Cozinha Lotada' : 
+                 dynamicDeliveryTime?.level === 'moderado' ? '⚡ Carga Média' : '🍃 Tranquilo'}
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-center text-center">
+              <div className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-1">Estimativa de Entrega</div>
+              <div className={`text-3xl font-black ${
+                dynamicDeliveryTime?.level === 'alto' ? 'text-destructive' : 
+                dynamicDeliveryTime?.level === 'moderado' ? 'text-yellow-500' : 'text-primary'
+              }`}>
+                {dynamicDeliveryTime?.label || '-- min'}
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-1 italic">
+                {dynamicDeliveryTime?.loadBuffer > 0 
+                  ? `Inclui +${dynamicDeliveryTime.loadBuffer}min de buffer pela carga atual`
+                  : 'Tempo base aplicado (fluxo normal)'}
               </div>
             </div>
           </div>

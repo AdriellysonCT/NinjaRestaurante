@@ -3,21 +3,27 @@ import * as Icons from './icons/index.jsx';
 
 const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady, onDispatch }) => {
   const [tempoRestante, setTempoRestante] = useState(0);
+  const [tempoDecorrido, setTempoDecorrido] = useState(0);
   const [statusTempo, setStatusTempo] = useState('Tempo Restante');
 
   useEffect(() => {
-    if (!order.started_at || !order.prepTime) return;
+    if (!order.started_at) return;
 
     const calcularTempo = () => {
       const agora = new Date();
       const inicio = new Date(order.started_at);
+      
+      // Tempo decorrido (há quanto tempo o restaurante aceitou)
+      const diffMs = agora - inicio;
+      setTempoDecorrido(Math.floor(diffMs / 60000)); // em minutos
+
+      if (!order.prepTime) return;
       const tempoEstimado = order.prepTime * 60 * 1000; // em milissegundos
-      const passado = agora - inicio;
-      const restante = tempoEstimado - passado;
+      const restante = tempoEstimado - diffMs;
 
       if (restante <= 0) {
         setStatusTempo('Atrasado');
-        setTempoRestante(0);
+        setTempoRestante(Math.abs(Math.ceil(restante / 60000))); // mostra quanto tempo de atraso
       } else {
         setStatusTempo('Tempo Restante');
         setTempoRestante(Math.ceil(restante / 60000)); // em minutos
@@ -139,23 +145,37 @@ const OrderCard = ({ order, onUpdateStatus, onClick, onAccept, onReject, onReady
       )}
 
       {/* Barra de tempo de preparo */}
-      {order.status === 'aceito' && order.started_at && order.prepTime > 0 && (
-        <div>
-          <div className="flex justify-between items-center text-sm mb-1">
-            <span className="font-semibold text-card-foreground">{statusTempo}:</span>
-            <span className={`flex items-center gap-1 font-bold ${statusTempo === 'Atrasado' ? 'text-destructive' : 'text-primary'}`}>
-              <Icons.ClockIcon className="w-4 h-4"/>
-              {tempoRestante}m
+      {order.status === 'aceito' && order.started_at && (
+        <div className="space-y-2 pt-1">
+          <div className="flex justify-between items-center text-sm">
+            <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
+              <Icons.TimerIcon className="w-3.5 h-3.5" />
+              Preparando há:
+            </span>
+            <span className="font-bold text-card-foreground">
+              {tempoDecorrido} min
             </span>
           </div>
-          <div className="w-full bg-secondary rounded-full h-1.5">
-            <div
-              className={`h-1.5 rounded-full transition-all duration-1000 ease-linear shadow-sm ${
-                statusTempo === 'Atrasado' ? 'bg-destructive animate-pulse' : 'bg-primary'
-              }`}
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
-          </div>
+
+          {order.prepTime > 0 && (
+            <>
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-semibold text-card-foreground">{statusTempo === 'Atrasado' ? '🔥 Atrasado:' : '⏳ Restante:'}</span>
+                <span className={`flex items-center gap-1 font-bold ${statusTempo === 'Atrasado' ? 'text-destructive' : 'text-primary'}`}>
+                  <Icons.ClockIcon className="w-4 h-4"/>
+                  {tempoRestante}m
+                </span>
+              </div>
+              <div className="w-full bg-secondary rounded-full h-1.5">
+                <div
+                  className={`h-1.5 rounded-full transition-all duration-1000 ease-linear shadow-sm ${
+                    statusTempo === 'Atrasado' ? 'bg-destructive animate-pulse' : 'bg-primary'
+                  }`}
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+            </>
+          )}
         </div>
       )}
 

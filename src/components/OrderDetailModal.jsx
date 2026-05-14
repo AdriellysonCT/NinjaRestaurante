@@ -98,6 +98,12 @@ export const OrderDetailModal = ({ isOpen, onClose, order, unreadCount, onUpdate
     }, 0);
     return sum || 0;
   }, [order]);
+
+  const elapsedTime = useMemo(() => {
+    if (!order?.started_at) return 0;
+    const diff = Date.now() - new Date(order.started_at).getTime();
+    return Math.floor(diff / 60000);
+  }, [order?.started_at, isOpen]); // Recalcula ao abrir o modal
   
   const handleRateDriver = async () => {
     if (rating === 0) {
@@ -165,6 +171,11 @@ export const OrderDetailModal = ({ isOpen, onClose, order, unreadCount, onUpdate
                 <Icons.ClockIcon className="w-4 h-4 text-primary" />
                 {totalPrepMinutes > 0 ? `${totalPrepMinutes} min` : '-- min'}
               </p>
+              {order.status === 'em_preparo' && order.started_at && (
+                <p className="text-[10px] font-black text-primary uppercase mt-1 flex items-center gap-1">
+                   <Icons.ActivityIcon className="w-3 h-3 animate-pulse" /> Preparando há: {elapsedTime} min
+                </p>
+              )}
               {order.status === 'em_preparo' && order.started_at && totalPrepMinutes > 0 && (
                 <div className="mt-2 w-full bg-secondary rounded-full h-1.5 overflow-hidden">
                   <div 

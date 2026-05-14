@@ -10,8 +10,9 @@ export const notificationService = {
    * Envia uma notificação de mudança de status para o cliente
    * @param {Object} order Pedido completo
    * @param {string} status Novo status do pedido
+   * @param {string} estimatedTime Opcional: Tempo estimado (ex: 35-45 min)
    */
-  notifyStatusChange: async (order, status) => {
+  notifyStatusChange: async (order, status, estimatedTime = null) => {
     // Só envia se tiver telefone
     const phone = order.customerPhone || order.telefone_cliente;
     if (!phone || phone === 'Telefone não cadastrado') {
@@ -33,7 +34,8 @@ export const notificationService = {
           phone: phone,
           order_id: order.id,
           numero_pedido: order.numero_pedido,
-          codigo_entrega: order.codigo_entrega // Fundamental para a mensagem de "Coletado"
+          codigo_entrega: order.codigo_entrega,
+          estimated_time: estimatedTime // Novo campo para transparência
         }),
       });
 

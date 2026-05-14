@@ -469,6 +469,20 @@ export const DashboardMobile = () => {
     });
   }, [filteredOrders]);
 
+  const currentLoad = useMemo(() => {
+    const activeOrders = orders.filter(o => 
+      ['pendente', 'novo', 'disponivel', 'aceito', 'em_preparo'].includes(o.status)
+    ).length;
+    
+    let baseTime = 30;
+    try {
+      const settings = JSON.parse(localStorage.getItem("fome-ninja-delivery-settings") || "{}");
+      baseTime = settings.estimatedDeliveryTime || 30;
+    } catch (_) {}
+
+    return orderService.calculateDynamicDeliveryTime(activeOrders, baseTime);
+  }, [orders]);
+
   const currentTabLabel = useMemo(() => {
     const activeFilter = FILTER_TABS.find((tab) => tab.key === filterStage);
     return activeFilter?.label || "Todos";
@@ -500,6 +514,14 @@ export const DashboardMobile = () => {
     const totalMs = Number(totalMinutes) * 60 * 1000;
     const decorridoMs = Math.max(0, agora - inicio);
     return Math.max(0, Math.min(100, (decorridoMs / totalMs) * 100));
+  };
+
+  const calcularTempoDecorrido = (startedAt) => {
+    if (!startedAt) return 0;
+    const agora = nowInSaoPaulo();
+    const inicio = utcToSaoPaulo(startedAt);
+    const decorridoMs = agora.getTime() - inicio.getTime();
+    return Math.floor(decorridoMs / 60000);
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
@@ -555,7 +577,11 @@ export const DashboardMobile = () => {
         };
 
         if (statusMap[newStatus]) {
-          notificationService.notifyStatusChange(orderData, statusMap[statusMap[newStatus]]);
+          notificationService.notifyStatusChange(
+            orderData, 
+            statusMap[newStatus], 
+            newStatus === 'aceito' ? currentLoad.label : undefined
+          );
         }
       }
     } catch (updateError) {
@@ -939,6 +965,11 @@ export const DashboardMobile = () => {
               {atrasado && stage === "em_preparo" && (
                 <div className="flex items-center gap-1.5 text-[10px] font-black text-destructive uppercase mb-2 animate-pulse">
                   <Icons.AlertCircleIcon className="w-3 h-3" /> Pedido Atrasado
+                </div>
+              )}
+              {stage === "em_preparo" && order.started_at && (
+                <div className="flex items-center gap-1.5 text-[10px] font-black text-primary uppercase mb-2">
+                  <Icons.ActivityIcon className="w-3 h-3 animate-pulse" /> Preparando há: {calcularTempoDecorrido(order.started_at)} min
                 </div>
               )}
               <div className="flex items-start justify-between gap-3 mb-3">

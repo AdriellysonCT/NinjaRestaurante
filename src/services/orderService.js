@@ -74,6 +74,42 @@ const mapOrder = (order) => {
   };
 };
 
+/**
+ * Calcula dinamicamente a estimativa de entrega baseada na carga atual
+ * @param {number} activeOrdersCount Qtd de pedidos pendentes ou em preparo
+ * @param {number} baseDeliveryTime Tempo base configurado (ex: 30)
+ * @returns {Object} { min, max, label, loadFactor }
+ */
+export const calculateDynamicDeliveryTime = (activeOrdersCount, baseDeliveryTime = 30) => {
+  let loadBuffer = 0;
+  
+  // Lógica de Carga (Food Load Factor)
+  if (activeOrdersCount >= 8) {
+    loadBuffer = 25;
+  } else if (activeOrdersCount >= 6) {
+    loadBuffer = 15;
+  } else if (activeOrdersCount >= 3) {
+    loadBuffer = 5;
+  }
+  
+  const estimatedTotal = Number(baseDeliveryTime) + loadBuffer;
+  
+  // Criamos uma faixa de tempo para dar segurança à cozinha (± 5 min)
+  const minTime = estimatedTotal - 5;
+  const maxTime = estimatedTotal + 5;
+  
+  // Garantimos que nunca mostre menos que 15 min (unrealistic)
+  const finalMin = Math.max(15, minTime);
+  
+  return {
+    min: finalMin,
+    max: maxTime,
+    loadBuffer,
+    label: `${finalMin}-${maxTime} min`,
+    level: loadBuffer === 0 ? 'normal' : loadBuffer <= 10 ? 'moderado' : 'alto'
+  };
+};
+
 // Função para buscar todos os pedidos do restaurante logado
 export async function fetchOrders() {
   try {
