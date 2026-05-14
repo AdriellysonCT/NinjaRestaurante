@@ -13,6 +13,7 @@ import { formatPhoneForWhatsApp } from "../utils/phoneFormatter";
 import { notificationService } from "../services/notificationService";
 import { isToday, formatDate } from "../utils/dateFormatter";
 import { utcToSaoPaulo, nowInSaoPaulo, startOfDayUTC, endOfDayUTC } from "../utils/timezone";
+import { notificationHelper } from "../utils/notificationHelper";
 
 const AUTO_ACCEPT_DELAY_MS = 500;
 const SEARCH_DEBOUNCE_MS = 300;
@@ -97,6 +98,7 @@ const Dashboard = () => {
   const [paymentType, setPaymentType] = useState("all");
   const [deliveryType, setDeliveryType] = useState("all");
   const notificationSoundRef = useRef(null);
+  const ordersRef = useRef([]); // Ref para acesso síncrono em callbacks
   const [playedNotifications, setPlayedNotifications] = useState(new Set());
   const [restaurantId, setRestaurantId] = useState(null);
   const [updatingOrders, setUpdatingOrders] = useState(new Set());
@@ -151,7 +153,12 @@ const Dashboard = () => {
   }, [searchTerm]);
 
   // Obter controle de som do contexto
-  const { soundEnabled, soundPreference, soundUnlocked, enableSound, disableSound } = useAppContext?.() || {};
+  const { soundEnabled, soundPreference, soundUnlocked, enableSound, disableSound } = useAppContext() || {};
+
+  // Sincronizar ordersRef com o estado orders
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
 
   // Buscar ID do restaurante
   useEffect(() => {
